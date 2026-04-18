@@ -62,7 +62,7 @@ st.markdown("""
         font-size: 0.85rem;
     }
 </style>
-""", unsafe_allow_value=True)
+""", unsafe_allow_html=True)
 
 # --- UI UTILS ---
 def badge(text, color="blue"):
@@ -127,15 +127,15 @@ else:
     # --- METRICS ---
     m1, m2, m3, m4, m5 = st.columns(5)
     with m1:
-        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Score</p><h2 style="color:#2563eb; margin:0;">{ad["compliance_score"]}%</h2></div>', unsafe_allow_value=True)
+        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Score</p><h2 style="color:#2563eb; margin:0;">{ad["compliance_score"]}%</h2></div>', unsafe_allow_html=True)
     with m2:
-        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Controls</p><h2 style="color:#1e293b; margin:0;">{ad["total_controls"]}</h2></div>', unsafe_allow_value=True)
+        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Controls</p><h2 style="color:#1e293b; margin:0;">{ad["total_controls"]}</h2></div>', unsafe_allow_html=True)
     with m3:
-        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Compliant</p><h2 style="color:#10b981; margin:0;">{ad["compliant_controls"]}</h2></div>', unsafe_allow_value=True)
+        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Compliant</p><h2 style="color:#10b981; margin:0;">{ad["compliant_controls"]}</h2></div>', unsafe_allow_html=True)
     with m4:
-        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Partial</p><h2 style="color:#f59e0b; margin:0;">{ad.get("partial_controls", 0)}</h2></div>', unsafe_allow_value=True)
+        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Partial</p><h2 style="color:#f59e0b; margin:0;">{ad.get("partial_controls", 0)}</h2></div>', unsafe_allow_html=True)
     with m5:
-        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Missing</p><h2 style="color:#ef4444; margin:0;">{ad["missing_controls"]}</h2></div>', unsafe_allow_value=True)
+        st.markdown(f'<div class="metric-card"><p style="color:#64748b; font-size:0.7rem; font-weight:700; text-transform:uppercase;">Missing</p><h2 style="color:#ef4444; margin:0;">{ad["missing_controls"]}</h2></div>', unsafe_allow_html=True)
 
     # --- INSIGHTS & CHARTS ---
     st.write("")
@@ -144,7 +144,7 @@ else:
     with col_left:
         st.subheader("🛠️ Smart Insights")
         for ins in ad.get('insights', []):
-            st.markdown(f'<div class="insight-box">{ins}</div>', unsafe_allow_value=True)
+            st.markdown(f'<div class="insight-box">{ins}</div>', unsafe_allow_html=True)
             
     with col_right:
         st.subheader("📊 Severity Distribution")
@@ -166,7 +166,7 @@ else:
         if ad.get('top_missing_high_risk'):
             st.subheader("⚠️ Critical Gaps")
             for gap in ad['top_missing_high_risk']:
-                st.markdown(f'<div class="gap-box"><b>{gap["rule_id"]}</b>: {gap["name"]}</div>', unsafe_allow_value=True)
+                st.markdown(f'<div class="gap-box"><b>{gap["rule_id"]}</b>: {gap["name"]}</div>', unsafe_allow_html=True)
 
     # --- SECTION DETAILS ---
     st.markdown('<div class="section-header">Section Performance Breakdown</div>', unsafe_allow_value=True)
