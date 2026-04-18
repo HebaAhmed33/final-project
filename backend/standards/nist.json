@@ -1,0 +1,47 @@
+[
+  {
+    "id": "NIST-001",
+    "name": "Asset Inventory",
+    "description": "Physical devices and systems within the organization must be inventoried.",
+    "domain": "Asset Management",
+    "severity": "medium",
+    "check_key": "asset_inventory_maintained",
+    "expected": true
+  },
+  {
+    "id": "NIST-002",
+    "name": "Access Control",
+    "description": "Access permissions and authorizations must be managed incorporating the principles of least privilege and separation of duties.",
+    "domain": "Access Control",
+    "severity": "critical",
+    "check_key": "access_control_policy_exists",
+    "expected": true
+  },
+  {
+    "id": "NIST-003",
+    "name": "Audit and Accountability",
+    "description": "Audit logging and accountability mechanisms must be enabled and reviewed for anomalous activity.",
+    "domain": "Monitoring",
+    "severity": "high",
+    "check_key": "logging_enabled",
+    "expected": true
+  },
+  {
+    "id": "NIST-004",
+    "name": "Incident Management",
+    "description": "Response processes and procedures must be established and maintained to ensure timely response to detected cybersecurity incidents.",
+    "domain": "Incident Management",
+    "severity": "high",
+    "check_key": "operational_procedures_documented",
+    "expected": true
+  },
+  {
+    "id": "NIST-005",
+    "name": "Network Protection",
+    "description": "Network integrity must be protected by incorporating network segmentation where appropriate.",
+    "domain": "Network Security",
+    "severity": "high",
+    "check_key": "firewall_rules_defined",
+    "expected": true
+  }
+]

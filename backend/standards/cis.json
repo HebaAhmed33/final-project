@@ -1,0 +1,47 @@
+[
+  {
+    "id": "CIS-001",
+    "name": "Secure Configuration",
+    "description": "Establish and maintain secure configuration standards for all enterprise assets.",
+    "domain": "Configuration Management",
+    "severity": "high",
+    "check_key": "security_policy_exists",
+    "expected": true
+  },
+  {
+    "id": "CIS-002",
+    "name": "Audit Log Management",
+    "description": "Collect and manage audit logs of events that could help detect or recover from an attack.",
+    "domain": "Monitoring",
+    "severity": "high",
+    "check_key": "logging_enabled",
+    "expected": true
+  },
+  {
+    "id": "CIS-003",
+    "name": "Data Recovery",
+    "description": "Establish and maintain data recovery practices to restore enterprise assets to a known trusted state.",
+    "domain": "Resilience",
+    "severity": "medium",
+    "check_key": "backup_configured",
+    "expected": true
+  },
+  {
+    "id": "CIS-004",
+    "name": "Network Segmentation",
+    "description": "Establish and maintain network infrastructure segmentation to restrict unnecessary network traffic.",
+    "domain": "Network Security",
+    "severity": "high",
+    "check_key": "network_segmentation_enabled",
+    "expected": true
+  },
+  {
+    "id": "CIS-005",
+    "name": "Remote Access Restriction",
+    "description": "Manage access control for assets remotely connecting to enterprise resources.",
+    "domain": "Access Control",
+    "severity": "high",
+    "check_key": "remote_access_restricted",
+    "expected": true
+  }
+]

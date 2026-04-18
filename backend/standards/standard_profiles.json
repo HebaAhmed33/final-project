@@ -1,0 +1,32 @@
+[
+  {
+    "id": "iso27001",
+    "name": "ISO 27001",
+    "applicable_organization_types": ["bank", "hospital", "company"]
+  },
+  {
+    "id": "pci_dss",
+    "name": "PCI DSS",
+    "applicable_organization_types": ["bank"]
+  },
+  {
+    "id": "hipaa",
+    "name": "HIPAA",
+    "applicable_organization_types": ["hospital"]
+  },
+  {
+    "id": "nist",
+    "name": "NIST",
+    "applicable_organization_types": ["company", "bank", "hospital"]
+  },
+  {
+    "id": "cis",
+    "name": "CIS",
+    "applicable_organization_types": ["company", "bank", "hospital"]
+  },
+  {
+    "id": "sama",
+    "name": "SAMA",
+    "applicable_organization_types": ["bank"]
+  }
+]

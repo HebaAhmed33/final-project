@@ -1,0 +1,34 @@
+[
+{
+"rule_id": "ISO-A8.21-01",
+"control": "A.8.21",
+"name": "Security of Network Services",
+"description": "Ensure that network services are identified, secured, and access to them is restricted using secure protocols.",
+"severity": "Medium",
+"required_evidence": "A8.21_network_services_security"
+},
+{
+"rule_id": "ISO-A8.22-01",
+"control": "A.8.22",
+"name": "Segregation in Networks",
+"description": "Ensure networks are segregated to reduce risks and limit the impact of security incidents.",
+"severity": "High",
+"required_evidence": "A8.22_network_segmentation"
+},
+{
+"rule_id": "ISO-A8.23-01",
+"control": "A.8.23",
+"name": "Web Filtering",
+"description": "Ensure access to external websites is filtered to reduce exposure to malicious or inappropriate content.",
+"severity": "Medium",
+"required_evidence": "A8.23_web_filtering"
+},
+{
+"rule_id": "ISO-A8.24-01",
+"control": "A.8.24",
+"name": "Use of Cryptography",
+"description": "Ensure cryptographic controls are implemented to protect the confidentiality, integrity, and authenticity of information.",
+"severity": "High",
+"required_evidence": "A8.24_cryptography_controls"
+}
+]

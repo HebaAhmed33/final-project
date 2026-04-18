@@ -1,0 +1,47 @@
+[
+  {
+    "id": "PCI-001",
+    "name": "Access Control Policy",
+    "description": "Access to cardholder data must be restricted to authorized personnel based on business need-to-know.",
+    "domain": "Access Control",
+    "severity": "critical",
+    "check_key": "access_control_policy_exists",
+    "expected": true
+  },
+  {
+    "id": "PCI-002",
+    "name": "Audit Logging",
+    "description": "Logging mechanisms must be enabled to track all access to network resources and cardholder data.",
+    "domain": "Monitoring",
+    "severity": "high",
+    "check_key": "logging_enabled",
+    "expected": true
+  },
+  {
+    "id": "PCI-003",
+    "name": "Network Security",
+    "description": "Firewall and router configurations must be established to protect cardholder data environments.",
+    "domain": "Network Security",
+    "severity": "critical",
+    "check_key": "firewall_rules_defined",
+    "expected": true
+  },
+  {
+    "id": "PCI-004",
+    "name": "Data Backup",
+    "description": "Backup procedures must be configured and tested to ensure recovery of cardholder data.",
+    "domain": "Resilience",
+    "severity": "high",
+    "check_key": "backup_configured",
+    "expected": true
+  },
+  {
+    "id": "PCI-005",
+    "name": "Remote Access Restriction",
+    "description": "Remote access to cardholder data environments must be restricted and authenticated.",
+    "domain": "Access Control",
+    "severity": "high",
+    "check_key": "remote_access_restricted",
+    "expected": true
+  }
+]

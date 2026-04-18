@@ -1,0 +1,47 @@
+[
+  {
+    "id": "CFG-001",
+    "name": "Firewall Rules",
+    "description": "Firewall rules must be explicitly defined and active.",
+    "severity": "high",
+    "domain": "network",
+    "check_key": "firewall_rules_defined",
+    "expected": true
+  },
+  {
+    "id": "CFG-002",
+    "name": "System Logging",
+    "description": "Centralized logging must be enabled for all critical systems.",
+    "severity": "high",
+    "domain": "monitoring",
+    "check_key": "logging_enabled",
+    "expected": true
+  },
+  {
+    "id": "CFG-003",
+    "name": "Backup Configuration",
+    "description": "Automated backups must be configured and verified regularly.",
+    "severity": "medium",
+    "domain": "resilience",
+    "check_key": "backup_configured",
+    "expected": true
+  },
+  {
+    "id": "CFG-004",
+    "name": "Network Segmentation",
+    "description": "Network segments must be isolated to limit lateral movement.",
+    "severity": "high",
+    "domain": "network",
+    "check_key": "network_segmentation_enabled",
+    "expected": true
+  },
+  {
+    "id": "CFG-005",
+    "name": "Remote Access Restriction",
+    "description": "Remote access must be restricted to authorized personnel only.",
+    "severity": "medium",
+    "domain": "access",
+    "check_key": "remote_access_restricted",
+    "expected": true
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "SAMA-001",
+    "name": "Information Security Governance",
+    "description": "An information security governance framework must be established and maintained by the organization.",
+    "domain": "Governance",
+    "severity": "critical",
+    "check_key": "security_policy_exists",
+    "expected": true
+  },
+  {
+    "id": "SAMA-002",
+    "name": "Asset Management",
+    "description": "All information assets must be identified, classified, and inventoried.",
+    "domain": "Asset Management",
+    "severity": "medium",
+    "check_key": "asset_inventory_maintained",
+    "expected": true
+  },
+  {
+    "id": "SAMA-003",
+    "name": "Event Logging and Monitoring",
+    "description": "Logging and monitoring must be implemented to detect and respond to security events.",
+    "domain": "Monitoring",
+    "severity": "high",
+    "check_key": "logging_enabled",
+    "expected": true
+  },
+  {
+    "id": "SAMA-004",
+    "name": "Backup and Recovery",
+    "description": "Backup and recovery procedures must be established and regularly tested.",
+    "domain": "Resilience",
+    "severity": "high",
+    "check_key": "backup_configured",
+    "expected": true
+  },
+  {
+    "id": "SAMA-005",
+    "name": "Network Security",
+    "description": "Network security controls including firewalls and segmentation must be implemented.",
+    "domain": "Network Security",
+    "severity": "high",
+    "check_key": "firewall_rules_defined",
+    "expected": true
+  }
+]

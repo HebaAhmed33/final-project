@@ -1,0 +1,66 @@
+[
+{
+"rule_id": "ISO-A6.1-01",
+"control": "A.6.1",
+"name": "Screening",
+"description": "Ensure background verification checks are carried out for employees in accordance with applicable laws and regulations.",
+"severity": "Medium",
+"required_evidence": "A6.1_employee_screening"
+},
+{
+"rule_id": "ISO-A6.2-01",
+"control": "A.6.2",
+"name": "Terms and Conditions of Employment",
+"description": "Ensure employees understand and agree to information security responsibilities as part of their employment terms.",
+"severity": "Medium",
+"required_evidence": "A6.2_employment_terms"
+},
+{
+"rule_id": "ISO-A6.3-01",
+"control": "A.6.3",
+"name": "Information Security Awareness, Education and Training",
+"description": "Ensure employees receive appropriate information security awareness, education, and training.",
+"severity": "High",
+"required_evidence": "A6.3_security_training"
+},
+{
+"rule_id": "ISO-A6.4-01",
+"control": "A.6.4",
+"name": "Disciplinary Process",
+"description": "Ensure a formal disciplinary process exists to address violations of information security policies.",
+"severity": "Low",
+"required_evidence": "A6.4_disciplinary_process"
+},
+{
+"rule_id": "ISO-A6.5-01",
+"control": "A.6.5",
+"name": "Responsibilities after Termination or Change of Employment",
+"description": "Ensure information security responsibilities remain defined after termination or change of employment.",
+"severity": "High",
+"required_evidence": "A6.5_post_employment_controls"
+},
+{
+"rule_id": "ISO-A6.6-01",
+"control": "A.6.6",
+"name": "Confidentiality or Non-Disclosure Agreements",
+"description": "Ensure confidentiality or non-disclosure agreements are in place to protect organizational information.",
+"severity": "High",
+"required_evidence": "A6.6_nda_agreements"
+},
+{
+"rule_id": "ISO-A6.7-01",
+"control": "A.6.7",
+"name": "Remote Working",
+"description": "Ensure security measures are implemented to protect information during remote working.",
+"severity": "High",
+"required_evidence": "A6.7_remote_work_security"
+},
+{
+"rule_id": "ISO-A6.8-01",
+"control": "A.6.8",
+"name": "Information Security Event Reporting",
+"description": "Ensure employees are aware of and follow procedures for reporting information security events.",
+"severity": "Medium",
+"required_evidence": "A6.8_security_event_reporting"
+}
+]

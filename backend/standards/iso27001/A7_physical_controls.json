@@ -1,0 +1,114 @@
+[
+{
+"rule_id": "ISO-A7.1-01",
+"control": "A.7.1",
+"name": "Physical Security Perimeter",
+"description": "Ensure physical security perimeters are defined and used to protect areas containing sensitive information and systems.",
+"severity": "High",
+"required_evidence": "A7.1_physical_perimeter"
+},
+{
+"rule_id": "ISO-A7.2-01",
+"control": "A.7.2",
+"name": "Physical Entry Controls",
+"description": "Ensure physical entry points are protected by appropriate access controls to prevent unauthorized access.",
+"severity": "High",
+"required_evidence": "A7.2_physical_access_control"
+},
+{
+"rule_id": "ISO-A7.3-01",
+"control": "A.7.3",
+"name": "Securing Offices, Rooms and Facilities",
+"description": "Ensure offices, rooms, and facilities are secured to prevent unauthorized access, damage, or interference with information and systems.",
+"severity": "Medium",
+"required_evidence": "A7.3_secure_facilities"
+},
+{
+"rule_id": "ISO-A7.4-01",
+"control": "A.7.4",
+"name": "Physical Security Monitoring",
+"description": "Ensure physical areas are monitored to detect and deter unauthorized access or security incidents.",
+"severity": "Medium",
+"required_evidence": "A7.4_cctv_monitoring"
+},
+{
+"rule_id": "ISO-A7.5-01",
+"control": "A.7.5",
+"name": "Protecting Against Physical and Environmental Threats",
+"description": "Ensure measures are implemented to protect against physical and environmental threats.",
+"severity": "Medium",
+"required_evidence": "A7.5_environmental_protection"
+},
+{
+"rule_id": "ISO-A7.6-01",
+"control": "A.7.6",
+"name": "Working in Secure Areas",
+"description": "Ensure procedures are in place for working in secure areas.",
+"severity": "Low",
+"required_evidence": "A7.6_secure_area_procedures"
+},
+{
+"rule_id": "ISO-A7.7-01",
+"control": "A.7.7",
+"name": "Clear Desk and Clear Screen",
+"description": "Ensure clear desk and clear screen policies are applied to reduce information exposure.",
+"severity": "Low",
+"required_evidence": "A7.7_clear_desk_policy"
+},
+{
+"rule_id": "ISO-A7.8-01",
+"control": "A.7.8",
+"name": "Equipment Siting and Protection",
+"description": "Ensure equipment is sited and protected to reduce risks from environmental threats and unauthorized access.",
+"severity": "Medium",
+"required_evidence": "A7.8_equipment_protection"
+},
+{
+"rule_id": "ISO-A7.9-01",
+"control": "A.7.9",
+"name": "Security of Assets Off-Premises",
+"description": "Ensure security of assets when used outside organizational premises.",
+"severity": "Medium",
+"required_evidence": "A7.9_offsite_asset_security"
+},
+{
+"rule_id": "ISO-A7.10-01",
+"control": "A.7.10",
+"name": "Storage Media",
+"description": "Ensure storage media is managed and protected throughout its lifecycle.",
+"severity": "High",
+"required_evidence": "A7.10_storage_media_security"
+},
+{
+"rule_id": "ISO-A7.11-01",
+"control": "A.7.11",
+"name": "Supporting Utilities",
+"description": "Ensure availability and protection of supporting utilities such as power and telecommunications.",
+"severity": "Medium",
+"required_evidence": "A7.11_supporting_utilities"
+},
+{
+"rule_id": "ISO-A7.12-01",
+"control": "A.7.12",
+"name": "Cabling Security",
+"description": "Ensure power and telecommunications cabling is protected from interception or damage.",
+"severity": "Medium",
+"required_evidence": "A7.12_cabling_security"
+},
+{
+"rule_id": "ISO-A7.13-01",
+"control": "A.7.13",
+"name": "Equipment Maintenance",
+"description": "Ensure equipment is correctly maintained to ensure availability and integrity.",
+"severity": "Low",
+"required_evidence": "A7.13_equipment_maintenance"
+},
+{
+"rule_id": "ISO-A7.14-01",
+"control": "A.7.14",
+"name": "Secure Disposal or Re-use of Equipment",
+"description": "Ensure equipment is securely disposed of or reused to prevent information leakage.",
+"severity": "High",
+"required_evidence": "A7.14_secure_disposal"
+}
+]

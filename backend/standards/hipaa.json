@@ -1,0 +1,47 @@
+[
+  {
+    "id": "HIPAA-001",
+    "name": "Access Control",
+    "description": "Technical policies and procedures must be implemented to allow access only to authorized persons.",
+    "domain": "Access Control",
+    "severity": "critical",
+    "check_key": "access_control_policy_exists",
+    "expected": true
+  },
+  {
+    "id": "HIPAA-002",
+    "name": "Audit Logging",
+    "description": "Hardware, software, and procedural mechanisms must record and examine activity in systems containing ePHI.",
+    "domain": "Monitoring",
+    "severity": "high",
+    "check_key": "logging_enabled",
+    "expected": true
+  },
+  {
+    "id": "HIPAA-003",
+    "name": "Data Backup Plan",
+    "description": "Procedures must be established to create and maintain retrievable exact copies of ePHI.",
+    "domain": "Resilience",
+    "severity": "high",
+    "check_key": "backup_configured",
+    "expected": true
+  },
+  {
+    "id": "HIPAA-004",
+    "name": "Incident Response",
+    "description": "Policies and procedures must be implemented to address security incidents affecting ePHI.",
+    "domain": "Incident Management",
+    "severity": "high",
+    "check_key": "operational_procedures_documented",
+    "expected": true
+  },
+  {
+    "id": "HIPAA-005",
+    "name": "Data Protection",
+    "description": "Technical security measures must be implemented to guard against unauthorized access to ePHI transmitted over electronic networks.",
+    "domain": "Data Protection",
+    "severity": "critical",
+    "check_key": "network_segmentation_enabled",
+    "expected": true
+  }
+]
