@@ -6,7 +6,7 @@ import AuthGuard from "./AuthGuard";
 
 import TopNavbar from "./TopNavbar";
 
-const PUBLIC_ROUTES = ["/", "/login", "/request-access", "/news", "/about"];
+const PUBLIC_ROUTES = ["/", "/login", "/request-access", "/news", "/about", "/onboarding"];
 
 export default function AppShell({ children }) {
   const pathname = usePathname();

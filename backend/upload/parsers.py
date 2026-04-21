@@ -9,6 +9,7 @@ import json
 from fastapi import HTTPException
 
 from upload.header_normalizer import normalize_headers
+from upload.sheet_classifier import classify_sheet, normalize_columns_for_type
 
 try:
     import yaml
@@ -74,7 +75,7 @@ def parse_excel(contents: bytes, filename: str) -> dict:
         raise HTTPException(
             status_code=400,
             detail=(
-                f"SmartISMS Mapping Error: We couldn't find your control columns. "
+                f"Aegis.One Mapping Error: We couldn't find your control columns. "
                 f"Please ensure your Excel has columns like (ID, Policy Name, or Status). "
                 f"Found these headers: {', '.join(h for h in headers if h)}"
             ),
@@ -202,3 +203,86 @@ def parse_config_file(contents: bytes, filename: str) -> tuple[dict, str]:
         return parse_env_config(contents, filename), "env"
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported config file type: {ext}")
+
+
+# ---------------------------------------------------------------------------
+# Multi-sheet Excel parser — Assessment mode
+# ---------------------------------------------------------------------------
+
+def parse_all_sheets(contents: bytes, filename: str) -> list[dict]:
+    """
+    Parse every sheet in an Excel workbook into a list of sheet dicts.
+
+    Each element contains:
+        name               : sheet name as it appears in the workbook
+        type               : classified sheet type (assets / controls / vendors / …)
+        row_count          : number of non-empty data rows
+        headers            : raw header strings
+        normalized_headers : canonical column names after alias mapping
+        rows               : list of row dicts keyed by canonical column names
+
+    Raises HTTPException on unreadable workbooks.
+    """
+    if openpyxl is None:
+        raise HTTPException(status_code=500, detail="openpyxl is not installed.")
+
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(contents), read_only=True, data_only=True)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Cannot read Excel file: {exc}")
+
+    result: list[dict] = []
+
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        raw_rows = list(ws.iter_rows(values_only=True))
+
+        if not raw_rows:
+            # Empty sheet — include it so the caller can see all sheet names
+            result.append({
+                "name": sheet_name,
+                "type": "unknown",
+                "row_count": 0,
+                "headers": [],
+                "normalized_headers": [],
+                "rows": [],
+            })
+            continue
+
+        raw_headers = raw_rows[0]
+        headers = [str(h).strip() if h is not None else "" for h in raw_headers]
+
+        # Classify the sheet using name + headers
+        sheet_type = classify_sheet(sheet_name, headers)
+
+        # Normalize column names for the detected type
+        normalized_headers = normalize_columns_for_type(headers, sheet_type)
+
+        # Parse data rows
+        rows: list[dict] = []
+        for row in raw_rows[1:]:
+            if all(cell is None or str(cell).strip() == "" for cell in row):
+                continue  # skip fully empty rows
+            entry: dict = {}
+            for col_idx, canonical in enumerate(normalized_headers):
+                if not canonical:
+                    continue
+                val = row[col_idx] if col_idx < len(row) else None
+                entry[canonical] = str(val).strip() if val is not None else ""
+            rows.append(entry)
+
+        result.append({
+            "name": sheet_name,
+            "type": sheet_type,
+            "row_count": len(rows),
+            "headers": [h for h in headers if h],
+            "normalized_headers": normalized_headers,
+            "rows": rows,
+        })
+
+    wb.close()
+    return result
+
+
+# Backward-compat alias
+parse_excel_multisheet = parse_all_sheets

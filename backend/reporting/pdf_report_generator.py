@@ -1,5 +1,5 @@
 """
-PDF Report Generator for SmartISMS Executive Reports.
+PDF Report Generator for Aegis.One Executive Reports.
 Generates clean, printable PDF documents from executive report data.
 """
 
@@ -65,7 +65,7 @@ def _section_divider():
 
 def _add_title(elements, report_data, styles):
     """Add the report title."""
-    title = report_data.get("title", "SmartISMS Assessment Report")
+    title = report_data.get("title", "Aegis.One Assessment Report")
     elements.append(Paragraph(title, styles["title"]))
     elements.append(_section_divider())
 
@@ -249,7 +249,7 @@ def generate_executive_pdf(report_data: dict, output_path: str) -> str:
 
 if __name__ == "__main__":
     mock_report = {
-        "title": "SmartISMS Assessment Report",
+        "title": "Aegis.One Assessment Report",
         "executive_summary": {
             "compliance_percentage": 60.0,
             "total_controls": 5,

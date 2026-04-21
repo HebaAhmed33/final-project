@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import API_BASE_URL from "./lib/api";
 
 export default function MarketingHomePage() {
   const [news, setNews] = useState([]);
@@ -11,10 +10,12 @@ export default function MarketingHomePage() {
   useEffect(() => {
     async function fetchNewsPreview() {
       try {
-        const res = await fetch(`${API_BASE_URL}/news`);
+        const res = await fetch("/api/news");
         const data = await res.json();
-        // Just take the first 3 for preview
-        setNews((data.data || []).slice(0, 3));
+        // /api/news returns an array directly (up to 4 items already)
+        if (Array.isArray(data)) {
+          setNews(data.slice(0, 4));
+        }
       } catch (err) {
         console.error("Failed to fetch news preview:", err);
       } finally {
@@ -25,151 +26,224 @@ export default function MarketingHomePage() {
   }, []);
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-      
-      {/* 1. Hero Section */}
-      <section style={{ 
-        padding: "6rem 2.5rem 8rem", 
-        textAlign: "center", 
-        background: "radial-gradient(ellipse at top, rgba(37, 99, 235, 0.08) 0%, transparent 70%)",
-        borderBottom: "1px solid var(--border-color)"
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#ffffff", minHeight: "100vh" }}>
+
+      {/* Hero Section */}
+      <section style={{
+        padding: "6rem 2.5rem 4rem",
+        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        background: "linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)"
       }}>
-        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-          <div style={{ display: "inline-block", padding: "0.25rem 1rem", background: "rgba(37, 99, 235, 0.1)", color: "var(--primary)", borderRadius: "99px", fontSize: "0.85rem", fontWeight: 700, letterSpacing: "0.05em", marginBottom: "1.5rem" }}>
-            SMARTISMS GRC PLATFORM
-          </div>
-          <h1 style={{ fontSize: "3.5rem", fontWeight: 800, color: "var(--text-main)", letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: "1.5rem" }}>
-            Unified Security <br />
-            <span style={{ color: "var(--primary)" }}>Intelligence Architecture</span>
-          </h1>
-          <p style={{ fontSize: "1.2rem", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "2.5rem", maxWidth: "700px", margin: "0 auto 2.5rem" }}>
-            Streamline complex compliance frameworks, automate infrastructure gap analysis, and unify actionable global threat intelligence from a single centralized operations engine.
-          </p>
-          <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-            <Link href="/request-access" style={{ textDecoration: "none" }}>
-              <button className="btn-primary" style={{ padding: "1rem 2rem", fontSize: "1.05rem", fontWeight: 600 }}>
-                Request Enterprise Access
-              </button>
-            </Link>
-            <Link href="/login" style={{ textDecoration: "none" }}>
-              <button style={{ padding: "1rem 2rem", fontSize: "1.05rem", fontWeight: 600, background: "transparent", border: "1px solid var(--border-color)", color: "var(--text-main)", borderRadius: "8px", cursor: "pointer" }}>
-                Platform Sign In
-              </button>
-            </Link>
-          </div>
+        <p style={{
+          fontSize: "1.05rem",
+          color: "#64748b",
+          lineHeight: 1.6,
+          marginBottom: "3rem",
+          maxWidth: "800px"
+        }}>
+          Gain full visibility into your assets, access requests, and security controls. Automate compliance
+          processes and track risks with a centralized GRC dashboard.
+        </p>
+
+        <Link href="/onboarding" style={{ textDecoration: "none" }}>
+          <button style={{
+            background: "#1a2340",
+            color: "#ffffff",
+            border: "none",
+            padding: "1rem 2.5rem",
+            borderRadius: "99px",
+            fontSize: "1.05rem",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
+          }}>
+            Get Started Now
+          </button>
+        </Link>
+
+        {/* Dashboard Mockup Image */}
+        <div style={{
+          marginTop: "4rem",
+          width: "100%",
+          maxWidth: "1000px",
+          borderRadius: "16px",
+          overflow: "hidden",
+          boxShadow: "0 40px 80px -20px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.06)",
+          background: "#ffffff"
+        }}>
+          <img
+            src="/isms-image.png"
+            alt="Aegis.One Security Dashboard"
+            style={{ width: "100%", height: "auto", display: "block" }}
+            onError={(e) => { e.target.onerror = null; e.target.src = "/isms-new.jpg"; }}
+          />
+        </div>
+
+        <div style={{
+          marginTop: "3rem",
+          color: "#94a3b8",
+          fontSize: "0.75rem",
+          fontWeight: 700,
+          letterSpacing: "0.1em",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "0.5rem",
+          textTransform: "uppercase"
+        }}>
+          SCROLL TO EXPLORE
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
         </div>
       </section>
 
-      {/* 2. Products Section */}
-      <section style={{ padding: "5rem 2.5rem", background: "var(--bg-main)", borderBottom: "1px solid var(--border-color)" }}>
+      {/* Decorative Wave */}
+      <div style={{ width: "100%", overflow: "hidden", lineHeight: 0 }}>
+        <svg viewBox="0 0 1440 320" width="100%" height="auto" preserveAspectRatio="none" style={{ display: "block" }}>
+          <path fill="#f8fafc" fillOpacity="1" d="M0,256L48,250.7C96,245,192,235,288,213.3C384,192,480,160,576,144C672,128,768,128,864,154.7C960,181,1056,235,1152,245.3C1248,256,1344,224,1392,208L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+        </svg>
+      </div>
+
+      {/* Cybersecurity News & Trends Section */}
+      <section style={{ padding: "5rem 2.5rem", background: "#ffffff" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "var(--text-main)", letterSpacing: "-0.03em", marginBottom: "1rem" }}>
-              Enterprise Solutions
+
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#1a2340", letterSpacing: "-0.03em", marginBottom: "1rem" }}>
+              Cybersecurity News &amp; Trends
             </h2>
-            <p style={{ fontSize: "1.1rem", color: "var(--text-muted)", maxWidth: "600px", margin: "0 auto" }}>
-              Rigorous compliance architectures scaling securely against complex global regulations.
+            <div style={{ width: "48px", height: "3px", background: "#f5c842", borderRadius: "2px", margin: "0 auto 1rem" }}></div>
+            <p style={{ color: "#64748b", fontSize: "1rem", margin: 0 }}>
+              Stay updated with the latest GRC, compliance, and risk management insights.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
-            {/* Assessment Card */}
-            <div className="card" style={{ padding: "2rem" }}>
-              <div style={{ width: "48px", height: "48px", background: "rgba(37, 99, 235, 0.1)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary)", marginBottom: "1.5rem" }}>
-                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              </div>
-              <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--text-main)", marginBottom: "0.75rem" }}>GRC Assessment Workflow</h3>
-              <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "1.5rem" }}>
-                Execute unified cross-framework compliance evaluations against ISO 27001, NIST, HIPAA, and PCI DSS standards natively.
-              </p>
-              <Link href="/request-access" style={{ color: "var(--primary)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "0.25rem", textDecoration: "none" }}>
-                Learn More <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </Link>
-            </div>
-
-            {/* Config Card */}
-            <div className="card" style={{ padding: "2rem" }}>
-              <div style={{ width: "48px", height: "48px", background: "rgba(16, 185, 129, 0.1)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#10B981", marginBottom: "1.5rem" }}>
-                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              </div>
-              <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--text-main)", marginBottom: "0.75rem" }}>Configuration Analysis</h3>
-              <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "1.5rem" }}>
-                Scan infrastructure blueprints and detect deep operational drift against rigid, predefined technical network baselines.
-              </p>
-              <Link href="/request-access" style={{ color: "var(--primary)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "0.25rem", textDecoration: "none" }}>
-                Learn More <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </Link>
-            </div>
-
-            {/* Reports Card */}
-            <div className="card" style={{ padding: "2rem" }}>
-              <div style={{ width: "48px", height: "48px", background: "rgba(139, 92, 246, 0.1)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#8B5CF6", marginBottom: "1.5rem" }}>
-                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              </div>
-              <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--text-main)", marginBottom: "0.75rem" }}>Compliance Reporting</h3>
-              <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "1.5rem" }}>
-                Dynamically render and compile audited risk artifacts into verifiable, C-level executive PDF summary documents.
-              </p>
-              <Link href="/request-access" style={{ color: "var(--primary)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "0.25rem", textDecoration: "none" }}>
-                Learn More <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Intelligence (News Preview) Section */}
-      <section style={{ padding: "5rem 2.5rem", background: "var(--bg-card)" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "3rem" }}>
-            <div>
-              <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text-main)", letterSpacing: "-0.03em", marginBottom: "0.5rem" }}>
-                Global Intelligence Feed
-              </h2>
-              <p style={{ color: "var(--text-muted)", fontSize: "1.05rem", margin: 0 }}>
-                Aggregated GRC updates, breach disclosures, and threat alerts.
-              </p>
-            </div>
-            <Link href="/news" className="btn-primary" style={{ padding: "0.6rem 1.25rem", textDecoration: "none", display: "inline-block" }}>
-              View All News
-            </Link>
-          </div>
-
           {loading ? (
-             <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)" }}>Loading intelligence feed...</div>
+            <div style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>Loading...</div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "1.5rem",
+              maxWidth: "900px",
+              margin: "0 auto"
+            }}>
               {news.length > 0 ? news.map((item, idx) => (
-                <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
-                  <div className="card" style={{ height: "100%", display: "flex", flexDirection: "column", padding: "1.5rem", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-4px)"} onMouseLeave={e => e.currentTarget.style.transform =("translateY(0)")}>
-                    <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--primary)", textTransform: "uppercase", marginBottom: "0.75rem", letterSpacing: "0.05em" }}>
-                      {item.source}
-                    </div>
-                    <h3 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--text-main)", marginBottom: "0.5rem", lineHeight: 1.4 }}>
+                <a
+                  key={idx}
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  <div style={{
+                    background: "#ffffff",
+                    padding: "1.5rem",
+                    borderRadius: "12px",
+                    border: "1px solid #e2e8f0",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    transition: "box-shadow 0.2s",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.75rem"
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.12)"}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"}
+                  >
+                    {/* Title */}
+                    <h3 style={{
+                      fontSize: "0.95rem",
+                      fontWeight: 700,
+                      color: idx === 0 ? "#b7791f" : "#1a2340",
+                      lineHeight: 1.4,
+                      margin: 0,
+                      flex: 1
+                    }}>
                       {item.title}
                     </h3>
-                    <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>
-                       {item.description.length > 120 ? item.description.substring(0, 120) + "..." : item.description}
-                    </p>
-                    <div style={{ marginTop: "auto", paddingTop: "1rem", fontSize: "0.80rem", color: "var(--text-muted)", fontWeight: 500 }}>
-                      {new Date(item.published_at).toLocaleDateString()}
+
+                    {/* Source + Date row */}
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      fontSize: "0.8rem",
+                      color: "#94a3b8"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        {/* Newspaper icon */}
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                        </svg>
+                        <span>{item.source || "The Hacker News"}</span>
+                      </div>
+                      <span>
+                        {item.date
+                          ? new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                          : ""}
+                      </span>
                     </div>
                   </div>
                 </a>
               )) : (
-                <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "3rem", background: "var(--bg-main)", borderRadius: "8px", color: "var(--text-muted)" }}>
-                  Intelligence feed temporarily offline. Please check back later.
-                </div>
+                /* Fallback static cards if feed is empty */
+                [
+                  { title: "Google Blocks 8.3B Policy-Violating Ads in 2025, Launches Android 17 Privacy Overhaul", source: "The Hacker News", date: "Apr 17, 2026" },
+                  { title: "NIST Limits CVE Enrichment After 263% Surge in Vulnerability Submissions", source: "The Hacker News", date: "Apr 17, 2026" },
+                  { title: "Deterministic + Agentic AI: The Architecture Exposure Validation Requires", source: "The Hacker News", date: "Apr 15, 2026" },
+                  { title: "Google Adds Rust-Based DNS Parser into Pixel 10 Modem to Enhance Security", source: "The Hacker News", date: "Apr 14, 2026" },
+                ].map((item, idx) => (
+                  <div key={idx} style={{
+                    background: "#ffffff",
+                    padding: "1.5rem",
+                    borderRadius: "12px",
+                    border: "1px solid #e2e8f0",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.75rem"
+                  }}>
+                    <h3 style={{
+                      fontSize: "0.95rem",
+                      fontWeight: 700,
+                      color: idx === 0 ? "#b7791f" : "#1a2340",
+                      lineHeight: 1.4,
+                      margin: 0,
+                      flex: 1
+                    }}>
+                      {item.title}
+                    </h3>
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      fontSize: "0.8rem",
+                      color: "#94a3b8"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                        </svg>
+                        <span>{item.source}</span>
+                      </div>
+                      <span>{item.date}</span>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           )}
         </div>
       </section>
 
-      {/* Basic Footer */}
-      <footer style={{ padding: "2rem 2.5rem", textAlign: "center", borderTop: "1px solid var(--border-color)", background: "var(--bg-main)", color: "var(--text-muted)", fontSize: "0.9rem" }}>
-        © {new Date().getFullYear()} SmartISMS. Enterprise GRC & Security Intelligence. All rights reserved.
+      {/* Footer */}
+      <footer style={{ padding: "3rem 2.5rem", textAlign: "center", borderTop: "1px solid #f1f5f9", background: "#ffffff", color: "#94a3b8", fontSize: "0.95rem", fontWeight: 500 }}>
+        © {new Date().getFullYear()} Aegis.One by SmartISMS. Enterprise GRC &amp; Security Intelligence. All rights reserved.
       </footer>
     </div>
   );
