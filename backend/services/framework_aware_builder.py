@@ -877,15 +877,65 @@ def build_framework_aware_assessment(
         relevant_controls = infer_all_controls(relevant_controls, routing, present_types)
         # 2. Then, override with explicit manual mappings
         relevant_controls = _map_controls_to_framework(uploaded_controls, relevant_controls)
+    # ── 4b. High-Risk sheet boost ────────────────────────────────────────
+    #   If a High-Risk mapping sheet is present, use its ISO control
+    #   references as HIGH-CONFIDENCE evidence to boost control statuses.
+    high_risk_result = next(
+        (r for r in routing.get("routing_results", [])
+         if r.get("source_type") == "high_risk" and r.get("total_records", 0) > 0),
+        None,
+    )
+    cross_framework_mapping = []
+    if high_risk_result:
+        parsed_risks = high_risk_result.get("parsed_risks", [])
+        all_iso_refs = set(high_risk_result.get("all_iso_controls_referenced", []))
+        _builder_log.warning("[RUNTIME PROOF] >>> HIGH-RISK boost: %d risks, %d ISO refs",
+                             len(parsed_risks), len(all_iso_refs))
 
-    # ── 4. Score (framework controls only) ───────────────────────────────
+        # Build lookup: ISO control ref -> set of risk IDs referencing it
+        from services.cross_framework_map import _normalize_control_ref
+        ref_to_risks: dict[str, list[str]] = {}
+        for risk in parsed_risks:
+            for iso_ref in risk.get("iso_controls", []):
+                norm = _normalize_control_ref(iso_ref)
+                ref_to_risks.setdefault(norm, []).append(risk.get("risk_id", ""))
+
+        # Boost controls that are referenced by high-risk entries
+        for ctrl in relevant_controls:
+            ctrl_ref = _normalize_control_ref(ctrl.get("control", ctrl.get("rule_id", "")))
+            if ctrl_ref in ref_to_risks:
+                # High-risk sheet references this control → strong evidence
+                current = ctrl.get("status", "missing")
+                if current == "missing":
+                    ctrl["status"] = "partial"
+                    ctrl["has_evidence"] = True
+                    ctrl["reason"] = (
+                        f"Referenced by high-risk mapping "
+                        f"(risks: {', '.join(ref_to_risks[ctrl_ref][:3])}). "
+                        f"Partial evidence from risk analysis."
+                    )
+                    ctrl["source"] = "high_risk_mapping"
+                elif current == "partial":
+                    ctrl["status"] = "compliant"
+                    ctrl["has_evidence"] = True
+                    ctrl["reason"] = (
+                        f"Strong evidence: referenced by high-risk mapping "
+                        f"AND supported by organizational data."
+                    )
+                    ctrl["source"] = "high_risk_boosted"
+                # If already compliant, keep it
+
+        # Build cross-framework mapping output
+        cross_framework_mapping = parsed_risks
+
+    # ── 5. Score (framework controls only) ───────────────────────────────
     score_data = _score_flat(relevant_controls)
 
-    # ── 5. Rebuild sections ───────────────────────────────────────────────
+    # ── 6. Rebuild sections ───────────────────────────────────────────────
     sections  = _build_sections(relevant_controls)
     severity  = _severity_breakdown(relevant_controls)
 
-    # ── 6. Framework gap analysis (separate from risk register) ───────────
+    # ── 7. Framework gap analysis (separate from risk register) ───────────
     gap_analysis = _build_gap_analysis(relevant_controls, framework_label)
 
     # ── 7. Risk register — from UPLOADED risk sheet + generated from data gaps
@@ -1028,6 +1078,10 @@ def build_framework_aware_assessment(
         "vendor_checklist": _build_vendor_checklist(all_sheets),
         "training_matrix": _build_training_matrix(all_sheets),
         "governance_calendar": _build_governance_calendar(all_sheets),
+
+        # 10. Cross-Framework Mapping (from High-Risk sheet)
+        "cross_framework_mapping": cross_framework_mapping,
+        "has_high_risk_data": len(cross_framework_mapping) > 0,
         
         # 10. Traceability
         "traceability": {

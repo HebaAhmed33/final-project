@@ -378,6 +378,90 @@ def _analyse_organization_profile(rows: list[dict], sheet_name: str) -> dict:
     }
 
 
+
+def _analyse_high_risk(rows: list[dict], sheet_name: str) -> dict:
+    """Analyse a High-Risk mapping sheet — extract risks and ISO control references."""
+    import re
+    total = len(rows)
+    parsed_risks: list[dict] = []
+
+    for row in rows:
+        rid = (row.get("risk_id") or "").strip()
+        statement = (row.get("risk_statement") or "").strip()
+        mapped_raw = (row.get("mapped_controls") or "").strip()
+        rationale = (row.get("rationale") or "").strip()
+        likelihood = (row.get("likelihood") or "").strip()
+        impact = (row.get("impact") or "").strip()
+        risk_level = (row.get("risk_level") or "").strip()
+
+        # Parse ISO control references from comma/semicolon separated string
+        # e.g. "A.5.17, A.8.16, A.8.24" or "A5.17; A8.16"
+        iso_controls = []
+        if mapped_raw:
+            parts = re.split(r"[,;\n]+", mapped_raw)
+            for part in parts:
+                cleaned = part.strip()
+                if cleaned:
+                    # Normalize: "A5.17" -> "A.5.17", "ISO-A5.17-01" -> "A.5.17"
+                    cleaned = cleaned.upper().replace("ISO-", "").replace("_", ".")
+                    cleaned = re.sub(r"-\d+$", "", cleaned)
+                    if re.match(r"A\.?\d+\.?\d+", cleaned):
+                        # Ensure proper dot format
+                        if "." not in cleaned:
+                            m = re.match(r"([A-Z])(\d)(\d+)", cleaned)
+                            if m:
+                                cleaned = f"{m.group(1)}.{m.group(2)}.{m.group(3)}"
+                        iso_controls.append(cleaned)
+
+        if statement or iso_controls:
+            parsed_risks.append({
+                "risk_id": rid,
+                "risk_statement": statement,
+                "iso_controls": iso_controls,
+                "rationale": rationale,
+                "likelihood": likelihood,
+                "impact": impact,
+                "risk_level": risk_level,
+            })
+
+    # Expand to cross-framework mapping
+    from services.cross_framework_map import map_risks_cross_framework
+    enriched_risks = map_risks_cross_framework(parsed_risks)
+
+    # Collect all unique ISO controls referenced
+    all_iso_refs = sorted({c for r in parsed_risks for c in r.get("iso_controls", [])})
+
+    findings = []
+    if total == 0:
+        findings.append("High-Risk sheet is empty.")
+    else:
+        findings.append(
+            f"{len(parsed_risks)} high-priority risks identified, "
+            f"referencing {len(all_iso_refs)} unique ISO controls."
+        )
+        covered_frameworks = set()
+        for risk in enriched_risks:
+            cov = risk.get("cross_framework_coverage", {})
+            if cov.get("pci", 0) > 0: covered_frameworks.add("PCI DSS")
+            if cov.get("hipaa", 0) > 0: covered_frameworks.add("HIPAA")
+            if cov.get("nist", 0) > 0: covered_frameworks.add("NIST CSF")
+            if cov.get("cis", 0) > 0: covered_frameworks.add("CIS")
+        if covered_frameworks:
+            findings.append(
+                f"Cross-framework coverage extends to: {', '.join(sorted(covered_frameworks))}."
+            )
+
+    return {
+        "sheet_type": "high_risk",
+        "sheet_name": sheet_name,
+        "total_records": total,
+        "parsed_risks": enriched_risks,
+        "all_iso_controls_referenced": all_iso_refs,
+        "total_risks_parsed": len(parsed_risks),
+        "findings": findings,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Dispatcher map
 # ---------------------------------------------------------------------------
@@ -392,6 +476,7 @@ _ROUTE_MAP = {
     "governance":            _analyse_governance,
     "employees":             _analyse_employees,
     "organization_profile":  _analyse_organization_profile,
+    "high_risk":             _analyse_high_risk,
 }
 
 
@@ -438,6 +523,7 @@ def route_sheets(sheets_with_rows: list[dict]) -> dict:
     has_employees = False
     has_governance = False
     has_network_rules = False
+    has_high_risk = False
     all_warnings: list[str] = []
     detection_lines: list[str] = []
 
@@ -474,6 +560,7 @@ def route_sheets(sheets_with_rows: list[dict]) -> dict:
             "governance": "Governance Activities",
             "employees": "Employees",
             "organization_profile": "Organization Profile",
+            "high_risk": "High-Risk Mapping",
         }
         label = type_labels.get(sheet_type, f"Unknown ({sheet_name})")
         if row_count > 0:
@@ -498,6 +585,8 @@ def route_sheets(sheets_with_rows: list[dict]) -> dict:
             has_governance = True
         if sheet_type == "network_rules":
             has_network_rules = True
+        if sheet_type == "high_risk":
+            has_high_risk = True
 
     no_controls_detected = not controls_found
 
@@ -514,6 +603,7 @@ def route_sheets(sheets_with_rows: list[dict]) -> dict:
         "has_employees": has_employees,
         "has_governance": has_governance,
         "has_network_rules": has_network_rules,
+        "has_high_risk": has_high_risk,
         "routing_results": routing_results,
         "summary": {
             "sheets_processed": [s.get("name") for s in sheets_with_rows],

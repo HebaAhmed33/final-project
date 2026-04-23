@@ -566,6 +566,67 @@ export default function UploadPage() {
               ))}
             </div>
           </div>
+
+          {/* ──────────── CROSS-FRAMEWORK MAPPING ──────────── */}
+          {ad.cross_framework_mapping?.length > 0 && (
+            <div style={{ borderTop: "2px solid var(--border-color)", paddingTop: "2rem", marginTop: "2rem" }}>
+              <h3 style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <svg style={{ width: "22px", height: "22px", color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                High Risk → Multi-Framework Mapping
+              </h3>
+              <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>
+                Each high-priority risk is mapped from ISO 27001 to PCI DSS, HIPAA, NIST CSF, and CIS Controls.
+              </p>
+              <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+                <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none", overflowX: "auto" }}>
+                  <table className="modern-table" style={{ margin: 0, minWidth: "900px" }}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: "80px" }}>Risk ID</th>
+                        <th style={{ minWidth: "180px" }}>Risk Statement</th>
+                        <th style={{ width: "120px" }}>ISO 27001</th>
+                        <th style={{ width: "120px" }}>PCI DSS</th>
+                        <th style={{ width: "160px" }}>HIPAA</th>
+                        <th style={{ minWidth: "100px" }}>Rationale</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ad.cross_framework_mapping.map((risk, idx) => (
+                        <tr key={risk.risk_id || idx}>
+                          <td style={{ fontWeight: 600, color: "var(--primary)", fontSize: "0.82rem" }}>{risk.risk_id || `R-${idx + 1}`}</td>
+                          <td style={{ fontSize: "0.88rem", color: "var(--text-main)", lineHeight: "1.4" }}>{risk.risk_statement}</td>
+                          <td>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                              {(risk.iso_controls || []).map((c, i) => (
+                                <span key={i} className="badge badge-blue" style={{ fontSize: "0.72rem", padding: "0.15rem 0.4rem" }}>{c}</span>
+                              ))}
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                              {(risk.pci_controls || []).map((c, i) => (
+                                <span key={i} className="badge badge-yellow" style={{ fontSize: "0.72rem", padding: "0.15rem 0.4rem" }}>{c}</span>
+                              ))}
+                              {(!risk.pci_controls || risk.pci_controls.length === 0) && <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>—</span>}
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                              {(risk.hipaa_controls || []).map((c, i) => (
+                                <span key={i} className="badge badge-green" style={{ fontSize: "0.68rem", padding: "0.15rem 0.35rem" }}>{c}</span>
+                              ))}
+                              {(!risk.hipaa_controls || risk.hipaa_controls.length === 0) && <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>—</span>}
+                            </div>
+                          </td>
+                          <td style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: "1.35" }}>{risk.rationale || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </PageContainer>
