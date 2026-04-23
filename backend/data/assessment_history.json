@@ -502,5 +502,1013 @@
       "compliance_score": 0.0
     },
     "created_at": "2026-04-18T19:28:03.699653+00:00"
+  },
+  {
+    "id": "809f6f26-6fec-4249-8413-23045835919f",
+    "assessment_id": "8f8bd6f4-b97f-46d3-9ef8-f7719a4320ce",
+    "framework": "ISO27001",
+    "assessment_name": "hhh",
+    "scope": "",
+    "priority": "High",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T17:24:31.875657+00:00"
+  },
+  {
+    "id": "82e5ad86-3e22-495d-bf0f-39a93d991dae",
+    "assessment_id": "44bad87c-72b2-4738-a7e0-96ae3d5f344c",
+    "framework": "ISO27001",
+    "assessment_name": "trdttrd",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T17:30:25.632628+00:00"
+  },
+  {
+    "id": "6a3bf33a-0a33-4bc7-9ac5-09960ae40b45",
+    "assessment_id": "c61d7697-ce02-4e0c-aa0c-31552d52b3bb",
+    "framework": "ISO27001",
+    "assessment_name": "Template Test",
+    "scope": "",
+    "priority": "High",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T17:46:26.839896+00:00"
+  },
+  {
+    "id": "ea5de86a-6d2c-4d0b-856d-1f1598807890",
+    "assessment_id": "e1d16168-f041-47a1-b4f6-7562a9dccfcd",
+    "framework": "ISO27001",
+    "assessment_name": "TEST",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T17:53:06.299249+00:00"
+  },
+  {
+    "id": "f6fc02c2-eb68-4193-9c1b-4b02666fbeb7",
+    "assessment_id": "646001cc-5d2a-4617-9807-872c5a2aa673",
+    "framework": "ISO27001",
+    "assessment_name": "Phase 1 Runtime Test",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T18:53:26.031020+00:00"
+  },
+  {
+    "id": "ec4520e1-c7f8-4ed1-a9af-0880be0dcadf",
+    "assessment_id": "93d225e4-d55b-49b2-8aa0-e6ced7a2080c",
+    "framework": "ISO27001",
+    "assessment_name": "Phase 2 UI Validation",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T19:08:46.286258+00:00"
+  },
+  {
+    "id": "f3f2b4c1-fec6-4ad8-bb0b-060f369bb6fa",
+    "assessment_id": "6430db88-3333-4163-85ef-7c1849457880",
+    "framework": "ISO27001",
+    "assessment_name": "fff",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T19:09:27.382446+00:00"
+  },
+  {
+    "id": "a4cf2e96-fffc-4c42-87b9-bd6e7f9be7a3",
+    "assessment_id": "5b30aa36-5cba-4a7f-9237-3a36aa703dab",
+    "framework": "ISO27001",
+    "assessment_name": "Phase 2 UI Validation",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T19:11:10.708238+00:00"
+  },
+  {
+    "id": "cc1bd1bb-4989-4b58-bddb-ceb5512184f0",
+    "assessment_id": "e66450c8-fd5b-4613-947d-075211817d43",
+    "framework": "ISO27001",
+    "assessment_name": "fdsf",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T19:14:42.050447+00:00"
+  },
+  {
+    "id": "d9f6bfa9-15a8-4b12-9e6a-3afe8c2f5c6f",
+    "assessment_id": "b80c159e-7dcf-4639-9b4f-567d53c5cb86",
+    "framework": "ISO27001",
+    "assessment_name": "Playwright UI Test",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": false,
+    "evidence_source": "",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T19:22:57.393073+00:00"
+  },
+  {
+    "id": "52b8a8ed-02eb-4e35-8bc2-34f1a7642c52",
+    "assessment_id": "fb65ef81-dc7e-4360-94b5-a9365cbf79be",
+    "framework": "ISO27001",
+    "assessment_name": "Playwright UI Test",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": false,
+    "evidence_source": "",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T19:23:51.135295+00:00"
+  },
+  {
+    "id": "5b62d27b-61de-4c41-be98-674427658f78",
+    "assessment_id": "4c6ec3ab-3149-43db-9015-26e59a6dafc6",
+    "framework": "ISO27001",
+    "assessment_name": "sdad",
+    "scope": "",
+    "priority": "Medium",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 26,
+    "total_controls": 26,
+    "severity_summary": {
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 12,
+        "total": 12
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 10,
+        "total": 10
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 4,
+        "total": 4
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A6.3-01",
+        "control": "A.6.3",
+        "name": "Information Security Awareness, Education and Training",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.5-01",
+        "control": "A.6.5",
+        "name": "Responsibilities after Termination or Change of Employment",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.6-01",
+        "control": "A.6.6",
+        "name": "Confidentiality or Non-Disclosure Agreements",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A6.7-01",
+        "control": "A.6.7",
+        "name": "Remote Working",
+        "section_key": "A6",
+        "section_name": "People Controls"
+      },
+      {
+        "rule_id": "ISO-A7.1-01",
+        "control": "A.7.1",
+        "name": "Physical Security Perimeter",
+        "section_key": "A7",
+        "section_name": "Physical Controls"
+      }
+    ],
+    "insights_count": 15,
+    "most_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A6",
+      "section_name": "People Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-23T19:24:41.925859+00:00"
   }
 ]

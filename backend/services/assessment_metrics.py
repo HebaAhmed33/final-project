@@ -68,7 +68,8 @@ def compute_compliance_score(sections: list[dict]) -> dict:
             else:
                 missing += 1
 
-    score = round((compliant / total) * 100, 2) if total > 0 else 0.0
+    # GRC maturity scoring: compliant = 100%, partial = 50%, missing = 0%
+    score = round(((compliant + partial * 0.5) / total) * 100, 2) if total > 0 else 0.0
 
     return {
         "compliance_score": score,
@@ -127,7 +128,7 @@ def compute_section_summaries(sections: list[dict]) -> None:
         section["compliant_controls"] = compliant
         section["partial_controls"] = partial
         section["missing_controls"] = missing
-        section["compliance_score"] = round((compliant / total) * 100, 2) if total > 0 else 0.0
+        section["compliance_score"] = round(((compliant + partial * 0.5) / total) * 100, 2) if total > 0 else 0.0
 
 
 def get_top_missing_high_risk(sections: list[dict], limit: int = 5) -> list[dict]:

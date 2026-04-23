@@ -40,16 +40,12 @@ export default function UploadPage() {
   // Assessment fields
   const [assessmentFile, setAssessmentFile] = useState(null);
   const [assessmentName, setAssessmentName] = useState("");
-  const [framework, setFramework] = useState("");
-  const [scope, setScope] = useState("");
+  const [framework, setFramework] = useState("iso27001");
   const [priority, setPriority] = useState("Medium");
   const [notes, setNotes] = useState("");
 
   // Config fields
   const [configFile, setConfigFile] = useState(null);
-
-  // Dynamic framework list
-  const [frameworks, setFrameworks] = useState([]);
 
   // Status
   const [loading, setLoading] = useState(false);
@@ -61,30 +57,24 @@ export default function UploadPage() {
   const assessmentFileRef = useRef(null);
   const configFileRef = useRef(null);
 
-  // Fetch frameworks on mount
+  // Fetch user data for workspace name and type
   useEffect(() => {
-    async function loadFrameworks() {
+    const userStr = localStorage.getItem("smartisms_user");
+    if (userStr) {
       try {
-        const res = await fetch(`${API_BASE_URL}/frameworks`);
-        if (res.ok) {
-          const data = await res.json();
-          setFrameworks(data.frameworks || []);
-          if (data.frameworks?.length > 0 && !framework) {
-            setFramework(data.frameworks[0].id);
-          }
+        const user = JSON.parse(userStr);
+        if (user.companyName) {
+          setCompanyName(user.companyName);
         }
-      } catch {
-        // fallback
-        setFrameworks([
-          { id: "iso27001", label: "ISO 27001", type: "enriched" },
-          { id: "nist", label: "NIST", type: "legacy" },
-          { id: "pci_dss", label: "PCI DSS", type: "legacy" },
-        ]);
-        if (!framework) setFramework("iso27001");
+        if (user.companyType) {
+          setCompanyType(user.companyType);
+        } else if (user.organizationType) {
+          setCompanyType(user.organizationType);
+        }
+      } catch (e) {
+        console.error("Failed to parse user data");
       }
     }
-    loadFrameworks();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const resetStatus = () => { setError(null); setUploadResult(null); setAssessmentResult(null); };
@@ -110,8 +100,8 @@ export default function UploadPage() {
     return "#EF4444";
   };
 
-  const selectedFw = frameworks.find((f) => f.id === framework);
-  const isEnrichedFramework = selectedFw?.type === "enriched";
+  const isEnrichedFramework = framework === "iso27001";
+  const getFrameworkLabel = (fw) => fw === "iso27001" ? "ISO 27001" : fw === "hipaa" ? "HIPAA" : "PCI DSS";
 
   // ── Assessment submit ──────────────────────────────────────────────────
   const handleAssessmentSubmit = async (e) => {
@@ -126,8 +116,7 @@ export default function UploadPage() {
     const formData = new FormData();
     formData.append("file", assessmentFile);
     formData.append("assessment_name", assessmentName);
-    formData.append("framework", selectedFw?.label || framework);
-    formData.append("scope", scope);
+    formData.append("framework", getFrameworkLabel(framework));
     formData.append("priority", priority);
     formData.append("notes", notes);
 
@@ -141,14 +130,17 @@ export default function UploadPage() {
       if (!uploadRes.ok) throw new Error(uploadData.detail || uploadData.message || `HTTP ${uploadRes.status}`);
       setUploadResult(uploadData);
 
-      // 2) If enriched framework, automatically run assessment
-      if (isEnrichedFramework) {
+      // 2) The upload endpoint now runs the full GRC intelligence inference pipeline
+      // and returns the enriched assessment inside framework_assessment
+      if (uploadData.framework_assessment && uploadData.framework_assessment.compliance_score !== undefined) {
+        setAssessmentResult(uploadData.framework_assessment);
+      } else if (isEnrichedFramework) {
+        // Fallback for legacy mode just in case
         const assessRes = await fetch(`${API_BASE_URL}/assess/${framework}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             assessment_name: assessmentName,
-            scope: scope,
             priority: priority,
             notes: notes,
             use_uploaded_evidence: true,
@@ -163,12 +155,15 @@ export default function UploadPage() {
       // Clear form
       setAssessmentFile(null);
       setAssessmentName("");
-      setScope("");
       setPriority("Medium");
       setNotes("");
       if (assessmentFileRef.current) assessmentFileRef.current.value = "";
     } catch (err) {
-      setError(err.message);
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
+        setError(`Cannot connect to backend at ${API_BASE_URL}. Make sure the backend server is running (uvicorn app:app --host 0.0.0.0 --port 8000).`);
+      } else {
+        setError(err.message || "An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
@@ -196,7 +191,11 @@ export default function UploadPage() {
       setConfigFile(null);
       if (configFileRef.current) configFileRef.current.value = "";
     } catch (err) {
-      setError(err.message);
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
+        setError(`Cannot connect to backend at ${API_BASE_URL}. Make sure the backend server is running (uvicorn app:app --host 0.0.0.0 --port 8000).`);
+      } else {
+        setError(err.message || "An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
@@ -215,11 +214,13 @@ export default function UploadPage() {
     <PageContainer>
       {/* Page Header */}
       <div style={{ padding: "0 0 2rem" }}>
-        <h1 style={{ fontSize: "2.5rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: "0.5rem", color: "var(--text-main)" }}>
-          Data Initialization
+        <h1 style={{ fontSize: "2.5rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: "0.5rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+          Welcome to <span style={{ backgroundColor: "var(--accent, #fce69a)", color: "#1a2340", borderRadius: "6px", padding: "0.2rem 0.5rem", display: "inline-block" }}>
+            Aegis.One
+          </span>
         </h1>
         <p style={{ color: "var(--text-muted)", fontSize: "1.05rem", maxWidth: "700px", lineHeight: "1.6", margin: 0 }}>
-          Upload compliance evidence or technical configurations. Enriched frameworks (ISO 27001) will automatically generate compliance insights.
+          Welcome{companyName ? `, ${companyName}` : ""}. Start your workspace setup to manage compliance, assessments, and configuration reviews.
         </p>
       </div>
 
@@ -268,13 +269,15 @@ export default function UploadPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
                 <div>
                   <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Company Name</label>
-                  <input type="text" className="input-field" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="e.g. Acme Corp" />
+                  <div style={{ padding: "0.75rem 1rem", background: "var(--bg-main)", borderRadius: "6px", color: "var(--text-main)", fontSize: "0.95rem", border: "1px solid var(--border-color)", opacity: 0.8 }}>
+                    {companyName || "Organization"}
+                  </div>
                 </div>
                 <div>
-                  <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Organization Type</label>
-                  <select className="input-field" value={companyType} onChange={(e) => setCompanyType(e.target.value)}>
-                    {COMPANY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Company Type</label>
+                  <div style={{ padding: "0.75rem 1rem", background: "var(--bg-main)", borderRadius: "6px", color: "var(--text-main)", fontSize: "0.95rem", border: "1px solid var(--border-color)", opacity: 0.8 }}>
+                    {companyType || "Company"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -291,14 +294,11 @@ export default function UploadPage() {
                   <input type="text" className="input-field" value={assessmentName} onChange={(e) => setAssessmentName(e.target.value)} placeholder="e.g. Q3 Risk Audit" required />
                 </div>
                 <div>
-                  <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Framework *</label>
+                  <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Standard *</label>
                   <select className="input-field" value={framework} onChange={(e) => setFramework(e.target.value)} required>
-                    <option value="">Select framework...</option>
-                    {frameworks.map((f) => (
-                      <option key={f.id} value={f.id}>
-                        {f.label}{f.type === "enriched" ? " (Enriched)" : ""}
-                      </option>
-                    ))}
+                    <option value="iso27001">ISO 27001</option>
+                    <option value="hipaa">HIPAA</option>
+                    <option value="pci_dss">PCI DSS</option>
                   </select>
                 </div>
                 <div>
@@ -306,10 +306,6 @@ export default function UploadPage() {
                   <select className="input-field" value={priority} onChange={(e) => setPriority(e.target.value)}>
                     {["Low", "Medium", "High", "Critical"].map((p) => <option key={p} value={p}>{p}</option>)}
                   </select>
-                </div>
-                <div>
-                  <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Scope</label>
-                  <input type="text" className="input-field" value={scope} onChange={(e) => setScope(e.target.value)} placeholder="e.g. Headquarters IT" />
                 </div>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Notes</label>
@@ -376,14 +372,46 @@ export default function UploadPage() {
           </div>
           <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", fontSize: "0.9rem", color: "var(--text-main)" }}>
             <span><strong>File:</strong> {uploadResult.file_name}</span>
-            {uploadResult.imported_rows !== undefined && <span><strong>Imported:</strong> <span className="badge badge-green">{uploadResult.imported_rows}</span></span>}
-            {uploadResult.skipped_rows > 0 && <span><strong>Skipped:</strong> <span className="badge badge-yellow">{uploadResult.skipped_rows}</span></span>}
-            {uploadResult.metadata?.framework && <span><strong>Framework:</strong> {uploadResult.metadata.framework}</span>}
+            {uploadResult.detected_sheets !== undefined && <span><strong>Sheets:</strong> <span className="badge badge-blue">{uploadResult.detected_sheets}</span></span>}
+            {uploadResult.imported_rows !== undefined && <span><strong>Records:</strong> <span className="badge badge-green">{uploadResult.imported_rows}</span></span>}
+            {uploadResult.metadata?.framework && <span><strong>Standard:</strong> {uploadResult.metadata.framework}</span>}
             {uploadResult.file_type && <span><strong>Type:</strong> <span className="badge badge-blue">{uploadResult.file_type.toUpperCase()}</span></span>}
           </div>
+
+          {/* Detection Summary */}
+          {uploadResult.detection_summary?.length > 0 && (
+            <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px dashed #10B981" }}>
+              <p style={{ margin: "0 0 0.4rem 0", fontWeight: 600, fontSize: "0.85rem", color: "#065F46" }}>Detected Sheets:</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                {uploadResult.detection_summary.map((line, i) => (
+                  <span key={i} style={{
+                    padding: "0.3rem 0.6rem",
+                    borderRadius: "6px",
+                    fontSize: "0.82rem",
+                    fontWeight: 500,
+                    background: line.startsWith("✓") ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)",
+                    color: line.startsWith("✓") ? "#065F46" : "#92400E",
+                    border: `1px solid ${line.startsWith("✓") ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
+                  }}>{line}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Warnings */}
+          {uploadResult.warnings?.length > 0 && (
+            <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px dashed #F59E0B" }}>
+              <p style={{ margin: "0 0 0.4rem 0", fontWeight: 600, fontSize: "0.85rem", color: "#92400E" }}>Warnings:</p>
+              <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.82rem", color: "#92400E" }}>
+                {uploadResult.warnings.map((w, i) => <li key={i}>{w}</li>)}
+              </ul>
+            </div>
+          )}
+
+          {/* Legacy errors display */}
           {uploadResult.errors?.length > 0 && (
             <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px dashed #10B981" }}>
-              <p style={{ margin: "0 0 0.4rem 0", fontWeight: 600, fontSize: "0.85rem", color: "#92400E" }}>Warnings:</p>
+              <p style={{ margin: "0 0 0.4rem 0", fontWeight: 600, fontSize: "0.85rem", color: "#92400E" }}>Notes:</p>
               <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.82rem", color: "#92400E" }}>
                 {uploadResult.errors.map((e, i) => <li key={i}>{e}</li>)}
               </ul>

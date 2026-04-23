@@ -135,16 +135,31 @@ def _map_controls_to_framework(
         matched_ctrl: dict | None = None
         match_method: str | None = None
 
-        if row_id and row_id in by_rule_id:
-            matched_ctrl = by_rule_id[row_id]
-            match_method = "exact_id"
+        if row_id:
+            # 1. Exact match on rule_id
+            if row_id in by_rule_id:
+                matched_ctrl = by_rule_id[row_id]
+                match_method = "exact_id"
+            else:
+                # 2. Fuzzy/Substring match on rule_id or control code
+                for ctrl in relevant_controls:
+                    c_id = (ctrl.get("rule_id") or "").lower()
+                    c_ctrl = (ctrl.get("control") or "").lower()
+                    
+                    if (c_id and row_id in c_id) or (c_ctrl and (row_id == c_ctrl or row_id.replace("iso-", "") == c_ctrl)):
+                        matched_ctrl = ctrl
+                        match_method = "fuzzy_id"
+                        break
 
         if not matched_ctrl and row_name:
             best_score, best_ctrl = 0, None
             for ctrl in relevant_controls:
+                # 3. Enhanced Keyword Match
                 score = _keyword_overlap(row_name, ctrl.get("name", ""))
                 if score > best_score:
                     best_score, best_ctrl = score, ctrl
+            
+            # Lower threshold to 1 keyword to catch partial matches like "Cryptography"
             if best_score >= 1:
                 matched_ctrl = best_ctrl
                 match_method = "keyword"
@@ -163,18 +178,6 @@ def _map_controls_to_framework(
                     f"Matched from uploaded controls sheet (method: {match_method})."
                 )
 
-    for ctrl in relevant_controls:
-        if (ctrl.get("rule_id") or "").lower() not in matched_ids:
-            ctrl["has_evidence"] = False
-            ctrl["evidence_row"] = {}
-            ctrl["evidence_status"] = ""
-            ctrl["status"] = "missing"
-            ctrl["source"] = "framework_derived"
-            ctrl["match_method"] = None
-            ctrl["reason"] = (
-                f"Not in uploaded controls — required by "
-                f"{ctrl.get('domain', 'selected framework')}."
-            )
     return relevant_controls
 
 
@@ -187,7 +190,9 @@ def _score_flat(controls: list[dict]) -> dict:
     compliant = sum(1 for c in controls if c.get("status") == "compliant")
     partial   = sum(1 for c in controls if c.get("status") == "partial")
     missing   = total - compliant - partial
-    score     = round((compliant / total) * 100, 2) if total > 0 else 0.0
+    # GRC maturity scoring: compliant = 100%, partial = 50%, missing = 0%
+    # This reflects coverage and maturity, not strict binary mapping
+    score     = round(((compliant + partial * 0.5) / total) * 100, 2) if total > 0 else 0.0
     return {
         "compliance_score":  score,
         "total_controls":    total,
@@ -218,7 +223,7 @@ def _build_sections(annotated: list[dict]) -> list[dict]:
             "compliant_controls": comp,
             "partial_controls":  part,
             "missing_controls":  missing,
-            "compliance_score":  round((comp / total) * 100, 2) if total > 0 else 0.0,
+            "compliance_score":  round(((comp + part * 0.5) / total) * 100, 2) if total > 0 else 0.0,
         })
         sections.append(sec)
     return sections
@@ -562,11 +567,11 @@ def _build_insights(
     # ── Opening — always framework-specific ───────────────────────────────
     if no_controls:
         insights.append(
-            f"No existing controls were found. "
-            f"A {framework_label} baseline has been generated from your uploaded "
-            f"{', '.join(sorted(present_types)) or 'data'}. "
-            f"All {score_data['total_controls']} relevant {framework_label} controls "
-            f"are currently unaddressed."
+            f"GRC Intelligence Mode: {framework_label} compliance has been inferred "
+            f"from uploaded organizational data ({', '.join(sorted(present_types)) or 'data'}). "
+            f"{score_data['compliant_controls']} controls show strong evidence, "
+            f"{score_data['partial_controls']} show partial evidence, and "
+            f"{score_data['missing_controls']} require additional documentation."
         )
     else:
         insights.append(
@@ -839,23 +844,38 @@ def build_framework_aware_assessment(
         ]
 
     # ── 3. Annotate controls ──────────────────────────────────────────────
+    import logging, os
+    _builder_log = logging.getLogger("runtime_proof")
+    if not _builder_log.handlers:
+        _builder_log.setLevel(logging.DEBUG)
+        _fh = logging.FileHandler(
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "runtime_proof.log"),
+            mode="a", encoding="utf-8",
+        )
+        _fh.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+        _builder_log.addHandler(_fh)
+    _builder_log.warning("=" * 70)
+    _builder_log.warning("[RUNTIME PROOF] build_framework_aware_assessment called")
+    _builder_log.warning("[RUNTIME PROOF]   framework        : %s (%s)", framework_id, framework_label)
+    _builder_log.warning("[RUNTIME PROOF]   no_controls      : %s", no_controls)
+    _builder_log.warning("[RUNTIME PROOF]   present_types    : %s", sorted(present_types))
+    _builder_log.warning("[RUNTIME PROOF]   relevant_controls: %d", len(relevant_controls))
+    _builder_log.warning("[RUNTIME PROOF]   uploaded_controls: %d", len(uploaded_controls))
+    _builder_log.warning("=" * 70)
+
+    # ── 4. Assess Controls (Hybrid Mode) ──────────────────────────────────
+    from services.evidence_inference import infer_all_controls
+    
     if no_controls:
-        mode_label = "Generated Baseline — No existing controls detected"
-        for ctrl in relevant_controls:
-            ctrl.update({
-                "has_evidence":   False,
-                "evidence_row":   {},
-                "evidence_status": "",
-                "status":         "missing",
-                "source":         "framework_derived",
-                "reason": (
-                    f"Included because {ctrl.get('domain', 'this domain')} is "
-                    f"relevant to detected data: "
-                    f"{', '.join(sorted(present_types)) or 'general context'}."
-                ),
-            })
+        mode_label = "GRC Intelligence Assessment — Controls inferred from organizational data"
+        _builder_log.warning("[RUNTIME PROOF] >>> ENTERING INFERENCE PATH (evidence_inference)")
+        relevant_controls = infer_all_controls(relevant_controls, routing, present_types)
     else:
-        mode_label = "Evidence-Mapped Assessment"
+        mode_label = "Hybrid Assessment — Inferred data with manual control overrides"
+        _builder_log.warning("[RUNTIME PROOF] >>> ENTERING HYBRID PATH (inference + direct mapping)")
+        # 1. First, infer everything from data
+        relevant_controls = infer_all_controls(relevant_controls, routing, present_types)
+        # 2. Then, override with explicit manual mappings
         relevant_controls = _map_controls_to_framework(uploaded_controls, relevant_controls)
 
     # ── 4. Score (framework controls only) ───────────────────────────────
@@ -868,25 +888,56 @@ def build_framework_aware_assessment(
     # ── 6. Framework gap analysis (separate from risk register) ───────────
     gap_analysis = _build_gap_analysis(relevant_controls, framework_label)
 
-    # ── 7. Risk register — from UPLOADED risk sheet, NOT from missing controls
-    risk_register = _build_risk_register_from_routing(routing)
+    # ── 7. Risk register — from UPLOADED risk sheet + generated from data gaps
+    uploaded_risk_register = _build_risk_register_from_routing(routing)
 
-    # ── 8. Treatment plan — applied to uploaded risks + critical gaps ─────
-    # Build a minimal risk list from critical/high framework gaps for treatment
-    gap_risks_for_treatment = [
+    # Generate additional risks from data patterns and control gaps
+    from services.evidence_inference import generate_risks_from_data
+    generated_risks = generate_risks_from_data(routing, relevant_controls, present_types)
+
+    # Merge: uploaded risks take priority, generated risks supplement
+    all_risks = uploaded_risk_register.get("findings", []) if uploaded_risk_register.get("source") != "none" else []
+    risk_register = {
+        "source":          uploaded_risk_register.get("source", "none"),
+        "source_sheet":    uploaded_risk_register.get("source_sheet", ""),
+        "total_risks":     uploaded_risk_register.get("total_risks", 0) + len(generated_risks),
+        "uploaded_risks":  uploaded_risk_register.get("total_risks", 0),
+        "generated_risks": len(generated_risks),
+        "high_risks":      uploaded_risk_register.get("high_risks", 0) + sum(1 for r in generated_risks if r.get("risk_level", "").lower() in ("high", "critical")),
+        "medium_risks":    uploaded_risk_register.get("medium_risks", 0) + sum(1 for r in generated_risks if r.get("risk_level", "").lower() == "medium"),
+        "low_risks":       uploaded_risk_register.get("low_risks", 0) + sum(1 for r in generated_risks if r.get("risk_level", "").lower() == "low"),
+        "by_level":        uploaded_risk_register.get("by_level", {}),
+        "untreated_count": uploaded_risk_register.get("untreated_count", 0),
+        "untreated_risks": uploaded_risk_register.get("untreated_risks", []),
+        "findings":        all_risks,
+        "generated_risk_entries": generated_risks,
+    }
+
+    # ── 8. Treatment plan — applied to ALL risks (uploaded + generated)
+    all_risks_for_treatment = [
         {
-            "rule_id":      c.get("rule_id", ""),
-            "control_id":   c.get("rule_id", ""),
-            "control_name": c.get("name", ""),
-            "name":         c.get("name", ""),
+            "rule_id":      c.get("rule_id", c.get("risk_id", "")),
+            "control_id":   c.get("rule_id", c.get("risk_id", "")),
+            "control_name": c.get("name", c.get("risk_name", "")),
+            "name":         c.get("name", c.get("risk_name", "Unknown")),
             "status":       c.get("status", "missing"),
-            "severity":     c.get("severity", "medium"),
+            "severity":     c.get("severity", c.get("risk_level", "medium")),
         }
         for c in relevant_controls
         if c.get("status") in ("missing", "partial")
         and (c.get("severity") or "").lower() in ("critical", "high")
     ]
-    treatment_plan = generate_treatment_plan(gap_risks_for_treatment)
+    # Add generated risks to treatment plan
+    for gr in generated_risks:
+        all_risks_for_treatment.append({
+            "rule_id":      gr.get("risk_id", ""),
+            "control_id":   gr.get("risk_id", ""),
+            "control_name": gr.get("risk_name", ""),
+            "name":         gr.get("risk_name", "Unknown"),
+            "status":       "identified",
+            "severity":     gr.get("risk_level", "medium"),
+        })
+    treatment_plan = generate_treatment_plan(all_risks_for_treatment)
 
     # ── 9. Contextual findings ────────────────────────────────────────────
     vendor_findings  = _extract_vendor_findings(routing)
@@ -906,7 +957,11 @@ def build_framework_aware_assessment(
     # ── 12. SoA ───────────────────────────────────────────────────────────
     soa = _build_soa(relevant_controls)
 
-    # ── 13. Assemble response ─────────────────────────────────────────────
+    # ── 13. Compliance Matrix ─────────────────────────────────────────────
+    from services.evidence_inference import build_compliance_matrix
+    compliance_matrix = build_compliance_matrix(relevant_controls, framework_label)
+
+    # ── 14. Assemble response ─────────────────────────────────────────────
     return {
         "success":          True,
         "message":          f"{framework_label} — {mode_label} completed.",
@@ -966,12 +1021,15 @@ def build_framework_aware_assessment(
         # 7. Statement of Applicability
         "soa": soa,
 
-        # 8. Extra matrices based on user request logic
+        # 8. Compliance Matrix (requirements → inferred controls → gaps → remediation)
+        "compliance_matrix": compliance_matrix,
+
+        # 9. Extra matrices based on user request logic
         "vendor_checklist": _build_vendor_checklist(all_sheets),
         "training_matrix": _build_training_matrix(all_sheets),
         "governance_calendar": _build_governance_calendar(all_sheets),
         
-        # 9. Traceability
+        # 10. Traceability
         "traceability": {
             "framework_id":       framework_id,
             "framework_label":    framework_label,

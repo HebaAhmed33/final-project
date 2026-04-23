@@ -1,5 +1,5 @@
 "use client";
-
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import AuthGuard from "./AuthGuard";
@@ -11,6 +11,7 @@ const PUBLIC_ROUTES = ["/", "/login", "/request-access", "/news", "/about", "/on
 export default function AppShell({ children }) {
   const pathname = usePathname();
   const isPublic = PUBLIC_ROUTES.includes(pathname);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (isPublic) {
     return (
@@ -26,13 +27,14 @@ export default function AppShell({ children }) {
   return (
     <AuthGuard>
       <div style={{ display: "flex", minHeight: "100vh" }}>
-        <Sidebar />
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <main
           style={{
             flex: 1,
-            marginLeft: "260px",
+            marginLeft: isCollapsed ? "80px" : "260px",
             display: "flex",
             flexDirection: "column",
+            transition: "margin-left 0.3s ease",
           }}
         >
           {children}

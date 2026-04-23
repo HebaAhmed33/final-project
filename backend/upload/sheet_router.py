@@ -344,8 +344,37 @@ def _analyse_unknown(rows: list[dict], sheet_name: str) -> dict:
         "total_records": len(rows),
         "findings": [
             f"Sheet '{sheet_name}' could not be classified — {len(rows)} rows found. "
-            "Verify sheet name matches expected types."
+            "Data was preserved for reference."
         ],
+        "rows": rows[:50],  # Preserve some raw data for potential manual review
+    }
+
+
+def _analyse_organization_profile(rows: list[dict], sheet_name: str) -> dict:
+    """Analyse an organization profile / company info sheet."""
+    total = len(rows)
+    profile_data: dict[str, str] = {}
+
+    for row in rows:
+        field = (row.get("field") or row.get("name") or row.get("item") or "").strip()
+        value = (row.get("value") or row.get("detail") or row.get("data") or "").strip()
+        if field and value:
+            profile_data[field] = value
+
+    findings = []
+    if total == 0:
+        findings.append("Organization profile sheet is empty.")
+    else:
+        findings.append(
+            f"Organization profile contains {len(profile_data)} data fields."
+        )
+
+    return {
+        "sheet_type": "organization_profile",
+        "sheet_name": sheet_name,
+        "total_records": total,
+        "profile_data": profile_data,
+        "findings": findings,
     }
 
 
@@ -354,14 +383,15 @@ def _analyse_unknown(rows: list[dict], sheet_name: str) -> dict:
 # ---------------------------------------------------------------------------
 
 _ROUTE_MAP = {
-    "assets":        _analyse_assets,
-    "applications":  _analyse_applications,
-    "vendors":       _analyse_vendors,
-    "controls":      _analyse_controls,
-    "risk_register": _analyse_risk_register,
-    "network_rules": _analyse_network_rules,
-    "governance":    _analyse_governance,
-    "employees":     _analyse_employees,
+    "assets":                _analyse_assets,
+    "applications":          _analyse_applications,
+    "vendors":               _analyse_vendors,
+    "controls":              _analyse_controls,
+    "risk_register":         _analyse_risk_register,
+    "network_rules":         _analyse_network_rules,
+    "governance":            _analyse_governance,
+    "employees":             _analyse_employees,
+    "organization_profile":  _analyse_organization_profile,
 }
 
 
@@ -390,19 +420,32 @@ def route_sheets(sheets_with_rows: list[dict]) -> dict:
         has_assets           : bool
         has_vendors          : bool
         has_risks            : bool
+        has_org_profile      : bool
+        has_employees        : bool
+        has_governance       : bool
+        has_network_rules    : bool
         routing_results      : list of per-sheet analysis dicts (with traceability)
         summary              : aggregate metadata
+        detection_summary    : human-readable list of what was detected
+        warnings             : accumulated warnings from all sheets
     """
     routing_results = []
     controls_found = False
     has_assets = False
     has_vendors = False
     has_risks = False
+    has_org_profile = False
+    has_employees = False
+    has_governance = False
+    has_network_rules = False
+    all_warnings: list[str] = []
+    detection_lines: list[str] = []
 
     for sheet in sheets_with_rows:
         sheet_type = sheet.get("type", "unknown")
         sheet_name = sheet.get("name", "")
         rows = sheet.get("rows", [])
+        row_count = len(rows)
 
         handler = _ROUTE_MAP.get(sheet_type, _analyse_unknown)
         result = handler(rows, sheet_name)
@@ -410,10 +453,33 @@ def route_sheets(sheets_with_rows: list[dict]) -> dict:
         # Attach traceability fields to every result
         result["source_sheet"] = sheet_name
         result["source_type"] = sheet_type
-        result["record_count"] = len(rows)
+        result["record_count"] = row_count
         result["mapped_headers"] = sheet.get("normalized_headers", [])
+        result["classification"] = sheet.get("classification", "unknown")
 
         routing_results.append(result)
+
+        # Accumulate per-sheet warnings
+        sheet_warnings = sheet.get("warnings", [])
+        all_warnings.extend(sheet_warnings)
+
+        # Build human-readable detection line
+        type_labels = {
+            "controls": "Controls",
+            "assets": "Assets",
+            "applications": "Applications",
+            "vendors": "Vendors",
+            "risk_register": "Risk Register",
+            "network_rules": "Network Rules",
+            "governance": "Governance Activities",
+            "employees": "Employees",
+            "organization_profile": "Organization Profile",
+        }
+        label = type_labels.get(sheet_type, f"Unknown ({sheet_name})")
+        if row_count > 0:
+            detection_lines.append(f"✓ {label}: {row_count} records")
+        elif sheet_type != "unknown":
+            detection_lines.append(f"○ {label}: empty")
 
         # Track key data-presence flags
         if sheet_type == "controls" and not result.get("no_controls_detected"):
@@ -424,6 +490,14 @@ def route_sheets(sheets_with_rows: list[dict]) -> dict:
             has_vendors = True
         if sheet_type == "risk_register":
             has_risks = True
+        if sheet_type == "organization_profile":
+            has_org_profile = True
+        if sheet_type == "employees":
+            has_employees = True
+        if sheet_type == "governance":
+            has_governance = True
+        if sheet_type == "network_rules":
+            has_network_rules = True
 
     no_controls_detected = not controls_found
 
@@ -436,10 +510,16 @@ def route_sheets(sheets_with_rows: list[dict]) -> dict:
         "has_assets": has_assets,
         "has_vendors": has_vendors,
         "has_risks": has_risks,
+        "has_org_profile": has_org_profile,
+        "has_employees": has_employees,
+        "has_governance": has_governance,
+        "has_network_rules": has_network_rules,
         "routing_results": routing_results,
         "summary": {
             "sheets_processed": [s.get("name") for s in sheets_with_rows],
             "sheet_types_found": sorted({s.get("type", "unknown") for s in sheets_with_rows}),
             "total_records": sum(len(s.get("rows", [])) for s in sheets_with_rows),
         },
+        "detection_summary": detection_lines,
+        "warnings": all_warnings,
     }

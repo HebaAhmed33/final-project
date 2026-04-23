@@ -170,7 +170,7 @@ export default function AssessmentPage() {
               <>
                 <strong style={{ color: "#92400E", display: "block", fontSize: "0.95rem" }}>Baseline Mode</strong>
                 <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                  No evidence uploaded. Assessment will run against the full ISO 27001 framework without evidence mapping. Upload evidence via Data Initialization to get mapped results.
+                  No evidence uploaded. Assessment will run against the full ISO 27001 framework without evidence mapping. Upload evidence via Workspace to get mapped results.
                 </span>
               </>
             )}
@@ -259,7 +259,7 @@ export default function AssessmentPage() {
               <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>
                 {enrichedData.evidence_backed
                   ? `Evidence-backed results \u2022 Source: ${enrichedData.evidence_source === "latest_upload" ? "Latest Upload" : "Direct Payload"}`
-                  : "Baseline-only \u2022 No evidence mapped \u2022 Upload evidence via Data Initialization for compliance scoring"
+                  : "Baseline-only \u2022 No evidence mapped \u2022 Upload evidence via Workspace for compliance scoring"
                 }
               </span>
             </div>

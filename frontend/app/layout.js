@@ -2,8 +2,8 @@ import "./globals.css";
 import AppShell from "./components/AppShell";
 
 export const metadata = {
-  title: "SmartISMS GRC Dashboard",
-  description: "Enterprise GRC & Security Intelligence Dashboard",
+  title: "SmartISMS GRC Platform",
+  description: "Enterprise GRC & Security Intelligence Platform",
 };
 
 export default function RootLayout({ children }) {

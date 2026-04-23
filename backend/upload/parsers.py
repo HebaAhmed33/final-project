@@ -5,11 +5,14 @@ Each parser returns a structured dict or raises HTTPException on malformed input
 
 import io
 import json
+import logging
 
 from fastapi import HTTPException
 
 from upload.header_normalizer import normalize_headers
 from upload.sheet_classifier import classify_sheet, normalize_columns_for_type
+
+logger = logging.getLogger("aegis.upload.parsers")
 
 try:
     import yaml
@@ -23,28 +26,25 @@ except ImportError:
 
 
 # ---------------------------------------------------------------------------
-# Excel parser — Assessment mode
+# Excel parser — Assessment mode (LEGACY — kept for backward compat)
 # ---------------------------------------------------------------------------
-
-# Minimum canonical columns needed to extract useful data.
-# We only need ONE of these to consider the file usable.
-_MINIMUM_USEFUL_COLUMNS = {"control_id", "control_name", "status"}
-
 
 def parse_excel(contents: bytes, filename: str) -> dict:
     """
-    Parse an Excel workbook into a list-of-dicts with smart normalization.
+    Parse an Excel workbook — SMART mode.
 
-    Pipeline:
-      1. Load workbook
-      2. Normalize headers via alias map (policy_name → control_name, etc.)
-      3. Skip fully empty rows
-      4. Trim all cell values
-      5. Accept rows that have at least a control_id OR control_name
+    Instead of requiring exact columns and rejecting the file, this parser:
+      1. Loads the workbook
+      2. Tries the active sheet first
+      3. Normalizes headers via the alias map
+      4. If no useful columns found on the active sheet, scans ALL sheets
+      5. Accepts any row that has at least one non-empty mapped field
+      6. Never rejects a valid Excel file — always returns what it can extract
 
     Returns
     -------
-    dict  with keys: rows, headers, total_rows, imported_rows, skipped_rows, errors
+    dict  with keys: rows, headers, total_rows, imported_rows, skipped_rows,
+                     errors, warnings, detected_type
     """
     if openpyxl is None:
         raise HTTPException(status_code=500, detail="openpyxl is not installed.")
@@ -54,57 +54,90 @@ def parse_excel(contents: bytes, filename: str) -> dict:
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Cannot read Excel file: {exc}")
 
-    ws = wb.active
-    if ws is None:
-        raise HTTPException(status_code=400, detail="Workbook has no active sheet.")
+    # Try active sheet first, then all sheets
+    best_sheet = None
+    best_headers = []
+    best_useful_count = 0
 
-    raw_rows = list(ws.iter_rows(values_only=True))
-    if len(raw_rows) < 2:
-        raise HTTPException(
-            status_code=400,
-            detail="Excel file must contain a header row and at least one data row.",
+    _USEFUL_COLUMNS = {"control_id", "control_name", "status", "owner",
+                       "policy_name", "asset_name", "risk_name", "vendor_name"}
+
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        raw_rows = list(ws.iter_rows(values_only=True))
+        if len(raw_rows) < 2:
+            continue
+
+        headers = normalize_headers(raw_rows[0])
+        useful_count = len(_USEFUL_COLUMNS & set(headers))
+
+        if useful_count > best_useful_count:
+            best_useful_count = useful_count
+            best_sheet = sheet_name
+            best_headers = headers
+
+    if best_sheet is None:
+        # No sheet had any useful columns — still don't reject,
+        # fall back to the active sheet and use whatever headers exist
+        ws = wb.active
+        if ws is None:
+            wb.close()
+            return {
+                "rows": [],
+                "headers": [],
+                "total_rows": 0,
+                "imported_rows": 0,
+                "skipped_rows": 0,
+                "errors": [],
+                "warnings": ["Workbook has no active sheet."],
+                "detected_type": "unknown",
+            }
+        raw_rows = list(ws.iter_rows(values_only=True))
+        if len(raw_rows) < 2:
+            wb.close()
+            return {
+                "rows": [],
+                "headers": [],
+                "total_rows": 0,
+                "imported_rows": 0,
+                "skipped_rows": 0,
+                "errors": [],
+                "warnings": ["No data rows found in the workbook."],
+                "detected_type": "unknown",
+            }
+        best_headers = normalize_headers(raw_rows[0])
+        best_sheet = ws.title
+    else:
+        ws = wb[best_sheet]
+        raw_rows = list(ws.iter_rows(values_only=True))
+
+    warnings = []
+    if best_useful_count == 0:
+        warnings.append(
+            f"No standard control columns detected. Processing all data as-is. "
+            f"Headers found: {', '.join(h for h in best_headers if h)}"
         )
 
-    # ── 1. Normalize headers ─────────────────────────────────────────────
-    raw_headers = raw_rows[0]
-    headers = normalize_headers(raw_headers)
-
-    # Check that at least one useful column was resolved
-    found_useful = _MINIMUM_USEFUL_COLUMNS & set(headers)
-    if not found_useful:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                f"Aegis.One Mapping Error: We couldn't find your control columns. "
-                f"Please ensure your Excel has columns like (ID, Policy Name, or Status). "
-                f"Found these headers: {', '.join(h for h in headers if h)}"
-            ),
-        )
-
-    # ── 2. Parse rows ────────────────────────────────────────────────────
+    # Parse rows — accept any row that has at least one non-empty value
     imported: list[dict] = []
     skipped = 0
     errors: list[str] = []
 
     for row_idx, row in enumerate(raw_rows[1:], start=2):
-        # Skip completely empty rows
         if all(cell is None or str(cell).strip() == "" for cell in row):
             skipped += 1
             continue
 
         entry: dict = {}
-        for col_idx, header in enumerate(headers):
+        for col_idx, header in enumerate(best_headers):
             if not header:
                 continue
             val = row[col_idx] if col_idx < len(row) else None
             entry[header] = str(val).strip() if val is not None else ""
 
-        # Accept row if it has at least control_id or control_name
-        has_id = bool(entry.get("control_id"))
-        has_name = bool(entry.get("control_name"))
-
-        if not has_id and not has_name:
-            errors.append(f"Row {row_idx}: no control_id or control_name found — skipped.")
+        # Accept row if it has any non-empty value in a mapped field
+        has_any_data = any(bool(v) for v in entry.values())
+        if not has_any_data:
             skipped += 1
             continue
 
@@ -112,13 +145,21 @@ def parse_excel(contents: bytes, filename: str) -> dict:
 
     wb.close()
 
+    logger.info(
+        f"parse_excel: sheet='{best_sheet}', "
+        f"imported={len(imported)}, skipped={skipped}, "
+        f"headers={[h for h in best_headers if h]}"
+    )
+
     return {
         "rows": imported,
-        "headers": [h for h in headers if h],
+        "headers": [h for h in best_headers if h],
         "total_rows": len(raw_rows) - 1,
         "imported_rows": len(imported),
         "skipped_rows": skipped,
         "errors": errors,
+        "warnings": warnings,
+        "detected_type": "controls" if best_useful_count > 0 else "inferred",
     }
 
 
@@ -206,12 +247,19 @@ def parse_config_file(contents: bytes, filename: str) -> tuple[dict, str]:
 
 
 # ---------------------------------------------------------------------------
-# Multi-sheet Excel parser — Assessment mode
+# Multi-sheet Excel parser — Assessment mode (PRIMARY)
 # ---------------------------------------------------------------------------
 
 def parse_all_sheets(contents: bytes, filename: str) -> list[dict]:
     """
     Parse every sheet in an Excel workbook into a list of sheet dicts.
+
+    Smart ingestion engine behavior:
+      - Parses ALL sheets, not just one
+      - Classifies each sheet by name, headers, AND data heuristics
+      - Normalizes columns per detected sheet type
+      - Never rejects a valid file for missing columns
+      - Provides detailed detection metadata per sheet
 
     Each element contains:
         name               : sheet name as it appears in the workbook
@@ -220,6 +268,8 @@ def parse_all_sheets(contents: bytes, filename: str) -> list[dict]:
         headers            : raw header strings
         normalized_headers : canonical column names after alias mapping
         rows               : list of row dicts keyed by canonical column names
+        classification     : how the sheet was classified (by_name / by_headers / by_data / unknown)
+        warnings           : any warnings about the sheet
 
     Raises HTTPException on unreadable workbooks.
     """
@@ -238,7 +288,6 @@ def parse_all_sheets(contents: bytes, filename: str) -> list[dict]:
         raw_rows = list(ws.iter_rows(values_only=True))
 
         if not raw_rows:
-            # Empty sheet — include it so the caller can see all sheet names
             result.append({
                 "name": sheet_name,
                 "type": "unknown",
@@ -246,20 +295,55 @@ def parse_all_sheets(contents: bytes, filename: str) -> list[dict]:
                 "headers": [],
                 "normalized_headers": [],
                 "rows": [],
+                "classification": "empty",
+                "warnings": [],
             })
             continue
 
         raw_headers = raw_rows[0]
         headers = [str(h).strip() if h is not None else "" for h in raw_headers]
 
-        # Classify the sheet using name + headers
-        sheet_type = classify_sheet(sheet_name, headers)
+        # Detect if the first row is actually a title/banner row (single merged cell)
+        non_empty_headers = [h for h in headers if h]
+        if len(non_empty_headers) <= 1 and len(raw_rows) > 2:
+            # The first row might be a title row — try using row 2 as headers
+            logger.info(
+                f"Sheet '{sheet_name}': first row looks like a title row "
+                f"(only {len(non_empty_headers)} non-empty cells). "
+                f"Trying row 2 as headers."
+            )
+            headers = [str(h).strip() if h is not None else "" for h in raw_rows[1]]
+            non_empty_headers = [h for h in headers if h]
+            if len(non_empty_headers) >= 2:
+                raw_rows = raw_rows[1:]  # shift: row 2 is now the header
+            else:
+                # Revert to original
+                headers = [str(h).strip() if h is not None else "" for h in raw_headers]
+
+        # Prepare sample rows for data heuristic classification
+        sample_rows = raw_rows[1:11] if len(raw_rows) > 1 else []
+
+        # Classify the sheet using name + headers + data heuristic
+        sheet_type = classify_sheet(sheet_name, headers, sample_rows)
+
+        # Track how classification was determined
+        from upload.sheet_classifier import classify_sheet_by_name, classify_sheet_by_headers
+        if classify_sheet_by_name(sheet_name):
+            classification_method = "by_name"
+        elif classify_sheet_by_headers(headers):
+            classification_method = "by_headers"
+        elif sheet_type != "unknown":
+            classification_method = "by_data"
+        else:
+            classification_method = "unknown"
 
         # Normalize column names for the detected type
         normalized_headers = normalize_columns_for_type(headers, sheet_type)
 
         # Parse data rows
         rows: list[dict] = []
+        sheet_warnings: list[str] = []
+
         for row in raw_rows[1:]:
             if all(cell is None or str(cell).strip() == "" for cell in row):
                 continue  # skip fully empty rows
@@ -269,7 +353,24 @@ def parse_all_sheets(contents: bytes, filename: str) -> list[dict]:
                     continue
                 val = row[col_idx] if col_idx < len(row) else None
                 entry[canonical] = str(val).strip() if val is not None else ""
-            rows.append(entry)
+            # Accept any row that has at least one non-empty field
+            if any(bool(v) for v in entry.values()):
+                rows.append(entry)
+
+        # Generate warnings for partially mapped sheets
+        if sheet_type == "unknown" and len(rows) > 0:
+            sheet_warnings.append(
+                f"Sheet '{sheet_name}' could not be auto-classified. "
+                f"{len(rows)} rows were preserved as raw data."
+            )
+
+        logger.info(
+            f"Sheet '{sheet_name}': type={sheet_type}, "
+            f"classification={classification_method}, "
+            f"rows={len(rows)}, "
+            f"headers={[h for h in headers if h]}, "
+            f"normalized={[h for h in normalized_headers if h]}"
+        )
 
         result.append({
             "name": sheet_name,
@@ -278,9 +379,20 @@ def parse_all_sheets(contents: bytes, filename: str) -> list[dict]:
             "headers": [h for h in headers if h],
             "normalized_headers": normalized_headers,
             "rows": rows,
+            "classification": classification_method,
+            "warnings": sheet_warnings,
         })
 
     wb.close()
+
+    # Log summary
+    classified = [s for s in result if s["type"] != "unknown"]
+    unclassified = [s for s in result if s["type"] == "unknown" and s["row_count"] > 0]
+    logger.info(
+        f"Workbook '{filename}': {len(result)} sheets total, "
+        f"{len(classified)} classified, {len(unclassified)} unclassified with data"
+    )
+
     return result
 
 

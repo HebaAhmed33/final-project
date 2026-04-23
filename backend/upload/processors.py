@@ -97,13 +97,20 @@ async def process_assessment_upload(
     """
     # 1. Validate
     contents = await validate_assessment_upload(file)
+    print(f"[DEBUG] process_assessment_upload: validated, bytes={len(contents)}")
 
     # 2. Parse all sheets with normalized rows
     try:
+        print("[DEBUG] process_assessment_upload: calling parse_all_sheets...")
         all_sheets = parse_all_sheets(contents, file.filename or "unknown.xlsx")
-    except HTTPException:
+        print(f"[DEBUG] parse_all_sheets returned {len(all_sheets)} sheets:")
+        for s in all_sheets:
+            print(f"[DEBUG]   sheet='{s['name']}' type={s['type']} rows={s['row_count']} classification={s.get('classification','?')}")
+    except HTTPException as he:
+        print(f"[DEBUG] parse_all_sheets raised HTTPException: {he.detail}")
         raise  # re-raise validation errors directly
     except Exception as exc:
+        print(f"[DEBUG] parse_all_sheets raised Exception: {exc}")
         raise HTTPException(status_code=500, detail=f"Failed to parse workbook: {exc}")
 
     # 3. Route each sheet to the correct analysis path
@@ -203,13 +210,14 @@ async def process_assessment_upload(
             "id": record["id"],
             "assessment_name": record["assessment_name"],
             "framework": record["framework"],
-            "scope": record["scope"],
             "priority": record["priority"],
             "notes": record["notes"],
         },
         "errors": [],
         "sheet_detection": sheet_detection,
         "routed_analysis": routing,
+        "detection_summary": routing.get("detection_summary", []),
+        "warnings": routing.get("warnings", []),
     }
 
 

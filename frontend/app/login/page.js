@@ -29,7 +29,7 @@ export default function LoginPage() {
 
       if (data.success) {
         localStorage.setItem("smartisms_user", JSON.stringify(data.user));
-        router.push("/dashboard");
+        router.push("/upload");
       } else {
         setError(data.message || "Invalid credentials");
       }

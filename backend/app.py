@@ -272,14 +272,22 @@ async def upload_assessment(
     notes: str = Form(""),
 ):
     """Upload an Excel file for assessment processing."""
-    return await process_assessment_upload(
-        file=file,
-        assessment_name=assessment_name,
-        framework=framework,
-        scope=scope,
-        priority=priority,
-        notes=notes,
-    )
+    try:
+        print(f"[DEBUG] UPLOAD ENDPOINT HIT - file={file.filename}")
+        return await process_assessment_upload(
+            file=file,
+            assessment_name=assessment_name,
+            framework=framework,
+            scope=scope,
+            priority=priority,
+            notes=notes,
+        )
+    except HTTPException:
+        raise  # Let FastAPI handle validation errors with proper status codes
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal server error during upload: {exc}")
 
 
 @app.get("/upload/assessments")

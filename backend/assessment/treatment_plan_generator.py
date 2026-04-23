@@ -1,9 +1,10 @@
 def generate_treatment_plan(risks):
     actions = []
     for risk in risks:
-        level = risk["level"]
+        # Accept both 'level' and 'severity' keys for risk level
+        level = (risk.get("level") or risk.get("severity") or "medium").strip().lower()
 
-        if level == "high":
+        if level in ("high", "critical"):
             priority = "high"
             timeline = "30 days"
             action = "Immediate mitigation required"
@@ -17,8 +18,8 @@ def generate_treatment_plan(risks):
             action = "Monitor and improve control"
 
         actions.append({
-            "risk_id": risk["id"],
-            "risk_name": risk["name"],
+            "risk_id": risk.get("id") or risk.get("rule_id") or risk.get("control_id", ""),
+            "risk_name": risk.get("name") or risk.get("control_name", "Unknown"),
             "priority": priority,
             "action": action,
             "timeline": timeline,
