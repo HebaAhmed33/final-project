@@ -1,0 +1,95 @@
+"""
+HIPAA — Rule-Based Evaluation Rules.
+Covers Administrative, Physical, and Technical Safeguards.
+"""
+
+HIPAA_RULES: list[dict] = [
+    {
+        "rule_id": "HIPAA-RE-001", "control_ref": "§164.308(a)(1)",
+        "name": "Security Management Process", "domain": "Administrative Safeguards",
+        "description": "Verify that a security management process exists to prevent and correct security violations.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["security management", "risk analysis", "security policy"], "evidence_sources": ["governance", "risk_register"], "match_mode": "any"},
+        "remediation": "Establish a formal security management process including risk analysis and sanction policies.",
+    },
+    {
+        "rule_id": "HIPAA-RE-002", "control_ref": "§164.308(a)(3)",
+        "name": "Workforce Security", "domain": "Administrative Safeguards",
+        "description": "Verify appropriate workforce access to ePHI and revocation on termination.",
+        "severity": "high", "eval_type": "boolean",
+        "eval_config": {"signal": "has_employee_records", "expected": True},
+        "remediation": "Implement workforce authorization procedures. Track access levels and termination actions.",
+    },
+    {
+        "rule_id": "HIPAA-RE-003", "control_ref": "§164.308(a)(5)",
+        "name": "Security Awareness and Training", "domain": "Administrative Safeguards",
+        "description": "Verify a security awareness programme exists for all workforce members.",
+        "severity": "high", "eval_type": "threshold",
+        "eval_config": {"metric": "training_coverage_pct", "operator": "gte", "value": 80.0},
+        "remediation": "Implement HIPAA-specific security awareness training for all workforce members.",
+    },
+    {
+        "rule_id": "HIPAA-RE-004", "control_ref": "§164.308(a)(6)",
+        "name": "Security Incident Procedures", "domain": "Administrative Safeguards",
+        "description": "Verify procedures exist to identify, respond to, and report security incidents.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["incident response", "breach notification"], "evidence_sources": ["governance", "risk_register"], "match_mode": "any"},
+        "remediation": "Develop incident response procedures covering ePHI breach identification and notification.",
+    },
+    {
+        "rule_id": "HIPAA-RE-005", "control_ref": "§164.308(a)(7)",
+        "name": "Contingency Plan", "domain": "Administrative Safeguards",
+        "description": "Verify a contingency plan exists for emergencies affecting ePHI systems.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["contingency", "disaster recovery", "backup plan"], "evidence_sources": ["governance", "risk_register"], "match_mode": "any"},
+        "remediation": "Develop a contingency plan with backup, disaster recovery, and emergency mode procedures.",
+    },
+    {
+        "rule_id": "HIPAA-RE-006", "control_ref": "§164.308(b)(1)",
+        "name": "Business Associate Contracts", "domain": "Administrative Safeguards",
+        "description": "Verify BAAs exist for all vendors handling ePHI.",
+        "severity": "critical", "eval_type": "field_present",
+        "eval_config": {"required_fields": ["vendor_name", "compliance"], "evidence_sources": ["vendors"]},
+        "remediation": "Execute Business Associate Agreements with all vendors handling ePHI.",
+    },
+    {
+        "rule_id": "HIPAA-RE-007", "control_ref": "§164.310(a)(1)",
+        "name": "Facility Access Controls", "domain": "Physical Safeguards",
+        "description": "Verify physical access to ePHI facilities is controlled.",
+        "severity": "high", "eval_type": "boolean",
+        "eval_config": {"signal": "has_asset_inventory", "expected": True},
+        "remediation": "Implement facility access controls and visitor management.",
+    },
+    {
+        "rule_id": "HIPAA-RE-008", "control_ref": "§164.310(d)(1)",
+        "name": "Device and Media Controls", "domain": "Physical Safeguards",
+        "description": "Verify policies for hardware/media lifecycle exist.",
+        "severity": "high", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["media disposal", "sanitization", "decommission"], "evidence_sources": ["assets", "governance"], "match_mode": "any"},
+        "remediation": "Implement media disposal and device re-use policies.",
+    },
+    {
+        "rule_id": "HIPAA-RE-009", "control_ref": "§164.312(a)(1)",
+        "name": "Access Control", "domain": "Technical Safeguards",
+        "description": "Verify technical access controls restrict access to ePHI.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_access_levels", "expected": True},
+        "remediation": "Implement unique user IDs, emergency access, automatic logoff, and encryption.",
+    },
+    {
+        "rule_id": "HIPAA-RE-010", "control_ref": "§164.312(b)",
+        "name": "Audit Controls", "domain": "Technical Safeguards",
+        "description": "Verify audit logging is in place for ePHI system activity.",
+        "severity": "high", "eval_type": "boolean",
+        "eval_config": {"signal": "has_governance_activities", "expected": True},
+        "remediation": "Enable audit logging on all ePHI systems and implement log review.",
+    },
+    {
+        "rule_id": "HIPAA-RE-011", "control_ref": "§164.312(e)(1)",
+        "name": "Transmission Security", "domain": "Technical Safeguards",
+        "description": "Verify ePHI transmitted over networks is encrypted.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_network_rules", "expected": True},
+        "remediation": "Implement TLS/SSL encryption for all ePHI in transit.",
+    },
+]

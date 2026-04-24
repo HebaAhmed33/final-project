@@ -1,34 +1,94 @@
 [
-{
-"rule_id": "ISO-A8.21-01",
-"control": "A.8.21",
-"name": "Security of Network Services",
-"description": "Ensure that network services are identified, secured, and access to them is restricted using secure protocols.",
-"severity": "Medium",
-"required_evidence": "A8.21_network_services_security"
-},
-{
-"rule_id": "ISO-A8.22-01",
-"control": "A.8.22",
-"name": "Segregation in Networks",
-"description": "Ensure networks are segregated to reduce risks and limit the impact of security incidents.",
-"severity": "High",
-"required_evidence": "A8.22_network_segmentation"
-},
-{
-"rule_id": "ISO-A8.23-01",
-"control": "A.8.23",
-"name": "Web Filtering",
-"description": "Ensure access to external websites is filtered to reduce exposure to malicious or inappropriate content.",
-"severity": "Medium",
-"required_evidence": "A8.23_web_filtering"
-},
-{
-"rule_id": "ISO-A8.24-01",
-"control": "A.8.24",
-"name": "Use of Cryptography",
-"description": "Ensure cryptographic controls are implemented to protect the confidentiality, integrity, and authenticity of information.",
-"severity": "High",
-"required_evidence": "A8.24_cryptography_controls"
-}
+  {
+    "rule_id": "ISO-A8.21-01",
+    "control": "A.8.21",
+    "control_id": "A.8.21",
+    "name": "Security of Network Services",
+    "description": "Ensure that network services are identified, secured, and access to them is restricted using secure protocols.",
+    "severity": "Medium",
+    "required_evidence": "A8.21_network_services_security",
+    "data_sources": ["network_rules"],
+    "compliant_if": {
+      "condition": "network_rules_exist AND risky_rules_low",
+      "detail": "Network rules are documented and no overly permissive rules (ANY/wildcard) are present."
+    },
+    "partial_if": {
+      "condition": "network_rules_exist AND NOT risky_rules_low",
+      "detail": "Network rules exist but contain overly permissive entries that need review."
+    },
+    "missing_if": {
+      "condition": "NOT network_rules_exist",
+      "detail": "No network rules uploaded to verify network service security."
+    },
+    "remediation": "Document all network services. Review and restrict firewall rules to least-privilege access."
+  },
+  {
+    "rule_id": "ISO-A8.22-01",
+    "control": "A.8.22",
+    "control_id": "A.8.22",
+    "name": "Segregation in Networks",
+    "description": "Ensure networks are segregated to reduce risks and limit the impact of security incidents.",
+    "severity": "High",
+    "required_evidence": "A8.22_network_segmentation",
+    "data_sources": ["network_rules"],
+    "compliant_if": {
+      "condition": "network_rules_exist AND deny_rules_exist",
+      "detail": "Network rules include explicit deny rules confirming network segmentation is in place."
+    },
+    "partial_if": {
+      "condition": "network_rules_exist AND NOT deny_rules_exist",
+      "detail": "Network rules exist but no explicit deny rules found — segmentation may be incomplete."
+    },
+    "missing_if": {
+      "condition": "NOT network_rules_exist",
+      "detail": "No network rules uploaded to verify network segmentation."
+    },
+    "remediation": "Implement network segmentation with default-deny policy between security zones."
+  },
+  {
+    "rule_id": "ISO-A8.23-01",
+    "control": "A.8.23",
+    "control_id": "A.8.23",
+    "name": "Web Filtering",
+    "description": "Ensure access to external websites is filtered to reduce exposure to malicious or inappropriate content.",
+    "severity": "Medium",
+    "required_evidence": "A8.23_web_filtering",
+    "data_sources": ["network_rules"],
+    "compliant_if": {
+      "condition": "network_rules_exist AND deny_rules_exist",
+      "detail": "Network deny rules suggest web filtering or content restriction is active."
+    },
+    "partial_if": {
+      "condition": "network_rules_exist AND NOT deny_rules_exist",
+      "detail": "Network rules exist but no deny rules to confirm web content filtering."
+    },
+    "missing_if": {
+      "condition": "NOT network_rules_exist",
+      "detail": "No network rules uploaded to verify web filtering controls."
+    },
+    "remediation": "Implement web filtering to block malicious and inappropriate content. Document allowed categories."
+  },
+  {
+    "rule_id": "ISO-A8.24-01",
+    "control": "A.8.24",
+    "control_id": "A.8.24",
+    "name": "Use of Cryptography",
+    "description": "Ensure cryptographic controls are implemented to protect the confidentiality, integrity, and authenticity of information.",
+    "severity": "High",
+    "required_evidence": "A8.24_cryptography_controls",
+    "data_sources": ["network_rules", "governance"],
+    "compliant_if": {
+      "condition": "network_rules_exist AND governance_exist",
+      "detail": "Network and governance records confirm cryptographic controls and key management are documented."
+    },
+    "partial_if": {
+      "condition": "network_rules_exist OR governance_exist",
+      "detail": "Some evidence exists but cryptography policy is not fully documented across network and governance."
+    },
+    "missing_if": {
+      "condition": "NOT network_rules_exist AND NOT governance_exist",
+      "detail": "No network or governance records to verify cryptographic controls."
+    },
+    "remediation": "Define a cryptography policy covering encryption standards, key management, and certificate handling."
+  }
 ]

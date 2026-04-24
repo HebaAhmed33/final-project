@@ -863,19 +863,25 @@ def build_framework_aware_assessment(
     _builder_log.warning("[RUNTIME PROOF]   uploaded_controls: %d", len(uploaded_controls))
     _builder_log.warning("=" * 70)
 
-    # ── 4. Assess Controls (Hybrid Mode) ──────────────────────────────────
-    from services.evidence_inference import infer_all_controls
-    
+    # ── 4. Assess Controls (Rule-Based Engine — PRIMARY) ─────────────────
+    from services.rule_engine_bridge import evaluate_controls_with_rule_engine
+
+    _builder_log.warning("[RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH")
+    _builder_log.warning("[RUNTIME PROOF]   framework_id     : %s", framework_id)
+
+    relevant_controls = evaluate_controls_with_rule_engine(
+        framework_id=framework_id,
+        controls=relevant_controls,
+        routing=routing,
+        present_types=present_types,
+        all_sheets=all_sheets,
+    )
+
     if no_controls:
-        mode_label = "GRC Intelligence Assessment — Controls inferred from organizational data"
-        _builder_log.warning("[RUNTIME PROOF] >>> ENTERING INFERENCE PATH (evidence_inference)")
-        relevant_controls = infer_all_controls(relevant_controls, routing, present_types)
+        mode_label = "Rule-Based Assessment — Controls evaluated from rule engine + JSON config"
     else:
-        mode_label = "Hybrid Assessment — Inferred data with manual control overrides"
-        _builder_log.warning("[RUNTIME PROOF] >>> ENTERING HYBRID PATH (inference + direct mapping)")
-        # 1. First, infer everything from data
-        relevant_controls = infer_all_controls(relevant_controls, routing, present_types)
-        # 2. Then, override with explicit manual mappings
+        mode_label = "Hybrid Rule-Based Assessment — Rule engine + uploaded control overrides"
+        # Override with explicit manual mappings from uploaded controls sheet
         relevant_controls = _map_controls_to_framework(uploaded_controls, relevant_controls)
     # ── 4b. High-Risk sheet boost ────────────────────────────────────────
     #   If a High-Risk mapping sheet is present, use its ISO control

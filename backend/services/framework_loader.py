@@ -30,6 +30,11 @@ _STANDARDS_DIR = os.path.join(_BACKEND_DIR, "standards")
 
 ISO27001_SECTIONS = [
     {
+        "section_key": "A5",
+        "section_name": "Organizational Controls",
+        "file_name": "A5_organizational_controls.json",
+    },
+    {
         "section_key": "A6",
         "section_name": "People Controls",
         "file_name": "A6_people_controls.json",
@@ -46,10 +51,57 @@ ISO27001_SECTIONS = [
     },
 ]
 
-# Map of supported frameworks → their internal loader key
+# ---------------------------------------------------------------------------
+# HIPAA section registry
+# ---------------------------------------------------------------------------
+
+HIPAA_SECTIONS = [
+    {
+        "section_key": "HIPAA",
+        "section_name": "HIPAA Safeguards",
+        "file_name": "hipaa_safeguards.json",
+    },
+]
+
+# ---------------------------------------------------------------------------
+# PCI DSS section registry
+# ---------------------------------------------------------------------------
+
+PCI_DSS_SECTIONS = [
+    {
+        "section_key": "PCI",
+        "section_name": "PCI DSS Requirements",
+        "file_name": "pci_dss_requirements.json",
+    },
+]
+
+# ---------------------------------------------------------------------------
+# SAMA section registry
+# ---------------------------------------------------------------------------
+
+SAMA_SECTIONS = [
+    {
+        "section_key": "SAMA",
+        "section_name": "SAMA CSF Domains",
+        "file_name": "sama_domains.json",
+    },
+]
+
+# Map of supported frameworks → (internal key, section list, label)
 _FRAMEWORK_REGISTRY: dict[str, str] = {
     "iso27001": "iso27001",
     "iso 27001": "iso27001",
+    "hipaa": "hipaa",
+    "pci_dss": "pci_dss",
+    "pci dss": "pci_dss",
+    "pcidss": "pci_dss",
+    "sama": "sama",
+}
+
+_FRAMEWORK_META: dict[str, tuple[list[dict], str]] = {
+    "hipaa":   (HIPAA_SECTIONS,   "HIPAA"),
+    "pci_dss": (PCI_DSS_SECTIONS, "PCI DSS"),
+    "sama":    (SAMA_SECTIONS,    "SAMA CSF"),
 }
 
 
@@ -90,24 +142,21 @@ def _compute_severity_summary(controls: list[dict]) -> dict[str, int]:
 
 
 # ---------------------------------------------------------------------------
-# ISO 27001 loader
+# Generic section-based loader (works for ALL frameworks)
 # ---------------------------------------------------------------------------
 
-def load_iso27001_sections() -> dict:
+def _load_sections(framework_id: str, section_defs: list[dict], label: str) -> dict:
     """
-    Load all ISO 27001 grouped sections from disk.
+    Load grouped sections from disk for any framework.
 
-    Reads from: ``backend/standards/iso27001/``
-
-    Returns the full structured response with sections, controls, and metadata.
-    Gracefully handles missing or malformed files per-section.
+    Reads from: ``backend/standards/<framework_id>/``
     """
-    iso_dir = _get_framework_dir("iso27001")
+    fw_dir = _get_framework_dir(framework_id)
 
-    if not os.path.isdir(iso_dir):
+    if not os.path.isdir(fw_dir):
         raise ValueError(
-            f"ISO 27001 standards directory not found: {iso_dir}. "
-            f"Expected directory at backend/standards/iso27001/"
+            f"{label} standards directory not found: {fw_dir}. "
+            f"Expected directory at backend/standards/{framework_id}/"
         )
 
     sections = []
@@ -115,8 +164,8 @@ def load_iso27001_sections() -> dict:
     all_controls_flat: list[dict] = []
     errors: list[str] = []
 
-    for section_def in ISO27001_SECTIONS:
-        file_path = os.path.join(iso_dir, section_def["file_name"])
+    for section_def in section_defs:
+        file_path = os.path.join(fw_dir, section_def["file_name"])
         controls, err = _read_json_safe(file_path)
 
         if err:
@@ -141,13 +190,18 @@ def load_iso27001_sections() -> dict:
         })
 
     return {
-        "framework": "ISO27001",
+        "framework": label,
         "total_sections": len(sections),
         "total_controls": total_controls,
         "severity_summary": _compute_severity_summary(all_controls_flat),
         "sections": sections,
         "errors": errors,
     }
+
+
+def load_iso27001_sections() -> dict:
+    """Load all ISO 27001 grouped sections from disk."""
+    return _load_sections("iso27001", ISO27001_SECTIONS, "ISO27001")
 
 
 # ---------------------------------------------------------------------------
@@ -158,26 +212,21 @@ def load_framework(framework: str) -> dict:
     """
     Load a framework's control library by name.
 
-    Parameters
-    ----------
-    framework : str
-        Framework identifier (e.g. "ISO 27001", "iso27001").
-
-    Returns
-    -------
-    dict
-        Structured framework payload with sections and controls.
-
-    Raises
-    ------
-    ValueError
-        If the framework is not supported or directory is missing.
+    Supports: iso27001, hipaa, pci_dss, sama.
     """
     key = framework.strip().lower().replace("-", "").replace("_", " ")
     resolved = _FRAMEWORK_REGISTRY.get(key)
 
+    if not resolved:
+        # Try the raw value as-is
+        resolved = _FRAMEWORK_REGISTRY.get(framework.strip().lower())
+
     if resolved == "iso27001":
         return load_iso27001_sections()
+
+    if resolved and resolved in _FRAMEWORK_META:
+        section_defs, label = _FRAMEWORK_META[resolved]
+        return _load_sections(resolved, section_defs, label)
 
     raise ValueError(
         f"Unsupported framework: '{framework}'. "

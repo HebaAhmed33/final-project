@@ -1,0 +1,103 @@
+"""
+PCI DSS v4.0 — Rule-Based Evaluation Rules.
+Covers the 12 PCI DSS requirements for cardholder data protection.
+"""
+
+PCI_DSS_RULES: list[dict] = [
+    {
+        "rule_id": "PCI-RE-001", "control_ref": "Req 1",
+        "name": "Network Security Controls", "domain": "Network Security",
+        "description": "Verify firewall/router configs protect cardholder data environments.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_network_rules", "expected": True},
+        "remediation": "Deploy and document firewall rules protecting the cardholder data environment.",
+    },
+    {
+        "rule_id": "PCI-RE-002", "control_ref": "Req 1.3",
+        "name": "Network Segmentation", "domain": "Network Security",
+        "description": "Verify network segmentation isolates cardholder data environment.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_deny_rules", "expected": True},
+        "remediation": "Implement network segmentation with default-deny between CDE and other networks.",
+    },
+    {
+        "rule_id": "PCI-RE-003", "control_ref": "Req 1.4",
+        "name": "No Overly Permissive Rules", "domain": "Network Security",
+        "description": "Verify no ANY/wildcard rules exist in firewall configs.",
+        "severity": "high", "eval_type": "threshold",
+        "eval_config": {"metric": "risky_rule_pct", "operator": "lte", "value": 0.0},
+        "remediation": "Remove all ANY/wildcard rules. Apply least-privilege to all firewall entries.",
+    },
+    {
+        "rule_id": "PCI-RE-004", "control_ref": "Req 3",
+        "name": "Protect Stored Cardholder Data", "domain": "Data Protection",
+        "description": "Verify controls exist for stored cardholder data protection.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["encryption", "masking", "tokenization", "data retention"], "evidence_sources": ["governance", "assets"], "match_mode": "any"},
+        "remediation": "Implement data encryption, masking, and retention policies for stored cardholder data.",
+    },
+    {
+        "rule_id": "PCI-RE-005", "control_ref": "Req 4",
+        "name": "Encrypt Transmission of CHD", "domain": "Data Protection",
+        "description": "Verify cardholder data is encrypted during transmission over open networks.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["tls", "ssl", "encryption", "vpn", "ipsec"], "evidence_sources": ["network_rules", "governance"], "match_mode": "any"},
+        "remediation": "Use strong cryptography (TLS 1.2+) for all CHD transmissions over open networks.",
+    },
+    {
+        "rule_id": "PCI-RE-006", "control_ref": "Req 5",
+        "name": "Anti-Malware", "domain": "Endpoint Security",
+        "description": "Verify anti-malware solutions are deployed on all applicable systems.",
+        "severity": "high", "eval_type": "boolean",
+        "eval_config": {"signal": "has_asset_inventory", "expected": True},
+        "remediation": "Deploy and maintain anti-malware on all systems commonly affected by malware.",
+    },
+    {
+        "rule_id": "PCI-RE-007", "control_ref": "Req 7",
+        "name": "Restrict Access to CHD", "domain": "Access Control",
+        "description": "Verify access to cardholder data is restricted by business need-to-know.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_access_levels", "expected": True},
+        "remediation": "Implement role-based access control. Restrict CHD access to need-to-know only.",
+    },
+    {
+        "rule_id": "PCI-RE-008", "control_ref": "Req 8",
+        "name": "Identify Users and Authenticate Access", "domain": "Access Control",
+        "description": "Verify unique IDs and strong authentication for all system access.",
+        "severity": "high", "eval_type": "boolean",
+        "eval_config": {"signal": "has_employee_records", "expected": True},
+        "remediation": "Assign unique IDs to all users. Implement MFA for all CDE access.",
+    },
+    {
+        "rule_id": "PCI-RE-009", "control_ref": "Req 10",
+        "name": "Log and Monitor All Access", "domain": "Monitoring",
+        "description": "Verify logging is enabled for all access to network resources and CHD.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_governance_activities", "expected": True},
+        "remediation": "Enable centralized audit logging. Implement daily log review processes.",
+    },
+    {
+        "rule_id": "PCI-RE-010", "control_ref": "Req 12",
+        "name": "Information Security Policy", "domain": "Governance",
+        "description": "Verify a security policy addressing all PCI DSS requirements exists.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["security policy", "pci policy", "information security"], "evidence_sources": ["governance"], "match_mode": "any"},
+        "remediation": "Establish and maintain an information security policy addressing all PCI DSS requirements.",
+    },
+    {
+        "rule_id": "PCI-RE-011", "control_ref": "Req 12.8",
+        "name": "Third-Party Service Provider Management", "domain": "Supplier Management",
+        "description": "Verify policies for managing service providers with access to CHD.",
+        "severity": "high", "eval_type": "field_present",
+        "eval_config": {"required_fields": ["vendor_name", "risk_level"], "evidence_sources": ["vendors"]},
+        "remediation": "Maintain a list of all service providers. Require PCI compliance from each.",
+    },
+    {
+        "rule_id": "PCI-RE-012", "control_ref": "Req 12.10",
+        "name": "Incident Response Plan", "domain": "Incident Management",
+        "description": "Verify an incident response plan exists and is tested.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["incident response", "incident plan", "breach response"], "evidence_sources": ["governance", "risk_register"], "match_mode": "any"},
+        "remediation": "Develop and test an incident response plan covering cardholder data breaches.",
+    },
+]

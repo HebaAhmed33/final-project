@@ -1,66 +1,186 @@
 [
-{
-"rule_id": "ISO-A6.1-01",
-"control": "A.6.1",
-"name": "Screening",
-"description": "Ensure background verification checks are carried out for employees in accordance with applicable laws and regulations.",
-"severity": "Medium",
-"required_evidence": "A6.1_employee_screening"
-},
-{
-"rule_id": "ISO-A6.2-01",
-"control": "A.6.2",
-"name": "Terms and Conditions of Employment",
-"description": "Ensure employees understand and agree to information security responsibilities as part of their employment terms.",
-"severity": "Medium",
-"required_evidence": "A6.2_employment_terms"
-},
-{
-"rule_id": "ISO-A6.3-01",
-"control": "A.6.3",
-"name": "Information Security Awareness, Education and Training",
-"description": "Ensure employees receive appropriate information security awareness, education, and training.",
-"severity": "High",
-"required_evidence": "A6.3_security_training"
-},
-{
-"rule_id": "ISO-A6.4-01",
-"control": "A.6.4",
-"name": "Disciplinary Process",
-"description": "Ensure a formal disciplinary process exists to address violations of information security policies.",
-"severity": "Low",
-"required_evidence": "A6.4_disciplinary_process"
-},
-{
-"rule_id": "ISO-A6.5-01",
-"control": "A.6.5",
-"name": "Responsibilities after Termination or Change of Employment",
-"description": "Ensure information security responsibilities remain defined after termination or change of employment.",
-"severity": "High",
-"required_evidence": "A6.5_post_employment_controls"
-},
-{
-"rule_id": "ISO-A6.6-01",
-"control": "A.6.6",
-"name": "Confidentiality or Non-Disclosure Agreements",
-"description": "Ensure confidentiality or non-disclosure agreements are in place to protect organizational information.",
-"severity": "High",
-"required_evidence": "A6.6_nda_agreements"
-},
-{
-"rule_id": "ISO-A6.7-01",
-"control": "A.6.7",
-"name": "Remote Working",
-"description": "Ensure security measures are implemented to protect information during remote working.",
-"severity": "High",
-"required_evidence": "A6.7_remote_work_security"
-},
-{
-"rule_id": "ISO-A6.8-01",
-"control": "A.6.8",
-"name": "Information Security Event Reporting",
-"description": "Ensure employees are aware of and follow procedures for reporting information security events.",
-"severity": "Medium",
-"required_evidence": "A6.8_security_event_reporting"
-}
+  {
+    "rule_id": "ISO-A6.1-01",
+    "control": "A.6.1",
+    "control_id": "A.6.1",
+    "name": "Screening",
+    "description": "Ensure background verification checks are carried out for employees in accordance with applicable laws and regulations.",
+    "severity": "Medium",
+    "required_evidence": "A6.1_employee_screening",
+    "data_sources": ["employees"],
+    "compliant_if": {
+      "condition": "employees_exist",
+      "detail": "Employee records are present and contain screening or onboarding data."
+    },
+    "partial_if": {
+      "condition": "employees_exist AND training_records_missing",
+      "detail": "Employee records exist but no screening-specific evidence is documented."
+    },
+    "missing_if": {
+      "condition": "NOT employees_exist",
+      "detail": "No employee records uploaded to verify screening procedures."
+    },
+    "remediation": "Implement pre-employment background screening procedures for all employees and document results."
+  },
+  {
+    "rule_id": "ISO-A6.2-01",
+    "control": "A.6.2",
+    "control_id": "A.6.2",
+    "name": "Terms and Conditions of Employment",
+    "description": "Ensure employees understand and agree to information security responsibilities as part of their employment terms.",
+    "severity": "Medium",
+    "required_evidence": "A6.2_employment_terms",
+    "data_sources": ["employees", "governance"],
+    "compliant_if": {
+      "condition": "employees_exist AND governance_exist",
+      "detail": "Employee records and governance activities confirm employment terms include security responsibilities."
+    },
+    "partial_if": {
+      "condition": "employees_exist AND NOT governance_exist",
+      "detail": "Employee records exist but no governance evidence confirms security terms in employment contracts."
+    },
+    "missing_if": {
+      "condition": "NOT employees_exist",
+      "detail": "No employee records uploaded to verify employment terms."
+    },
+    "remediation": "Include information security responsibilities in all employment contracts and terms of engagement."
+  },
+  {
+    "rule_id": "ISO-A6.3-01",
+    "control": "A.6.3",
+    "control_id": "A.6.3",
+    "name": "Information Security Awareness, Education and Training",
+    "description": "Ensure employees receive appropriate information security awareness, education, and training.",
+    "severity": "High",
+    "required_evidence": "A6.3_security_training",
+    "data_sources": ["employees"],
+    "compliant_if": {
+      "condition": "employees_exist AND training_records_exist AND training_coverage >= 60%",
+      "detail": "Employee records show security training coverage of at least 60%."
+    },
+    "partial_if": {
+      "condition": "employees_exist AND training_records_exist AND training_coverage < 60%",
+      "detail": "Training records exist but coverage is below the 60% threshold."
+    },
+    "missing_if": {
+      "condition": "NOT employees_exist OR NOT training_records_exist",
+      "detail": "No employee or training records uploaded to verify awareness programme."
+    },
+    "remediation": "Implement a mandatory security awareness training programme for all employees with tracked completion."
+  },
+  {
+    "rule_id": "ISO-A6.4-01",
+    "control": "A.6.4",
+    "control_id": "A.6.4",
+    "name": "Disciplinary Process",
+    "description": "Ensure a formal disciplinary process exists to address violations of information security policies.",
+    "severity": "Low",
+    "required_evidence": "A6.4_disciplinary_process",
+    "data_sources": ["governance"],
+    "compliant_if": {
+      "condition": "governance_exist",
+      "detail": "Governance records confirm a disciplinary process is documented."
+    },
+    "partial_if": {
+      "condition": "employees_exist AND NOT governance_exist",
+      "detail": "Employee records exist but no formal disciplinary process is documented in governance."
+    },
+    "missing_if": {
+      "condition": "NOT governance_exist AND NOT employees_exist",
+      "detail": "No governance or employee records to verify disciplinary process."
+    },
+    "remediation": "Document a formal disciplinary process for information security policy violations."
+  },
+  {
+    "rule_id": "ISO-A6.5-01",
+    "control": "A.6.5",
+    "control_id": "A.6.5",
+    "name": "Responsibilities after Termination or Change of Employment",
+    "description": "Ensure information security responsibilities remain defined after termination or change of employment.",
+    "severity": "High",
+    "required_evidence": "A6.5_post_employment_controls",
+    "data_sources": ["employees", "governance"],
+    "compliant_if": {
+      "condition": "employees_exist AND governance_exist",
+      "detail": "Employee and governance records confirm post-employment security responsibilities are defined."
+    },
+    "partial_if": {
+      "condition": "employees_exist AND NOT governance_exist",
+      "detail": "Employee records exist but no formal post-employment security procedures documented."
+    },
+    "missing_if": {
+      "condition": "NOT employees_exist",
+      "detail": "No employee records uploaded to verify post-employment controls."
+    },
+    "remediation": "Define post-employment security responsibilities including access revocation and NDA continuation."
+  },
+  {
+    "rule_id": "ISO-A6.6-01",
+    "control": "A.6.6",
+    "control_id": "A.6.6",
+    "name": "Confidentiality or Non-Disclosure Agreements",
+    "description": "Ensure confidentiality or non-disclosure agreements are in place to protect organizational information.",
+    "severity": "High",
+    "required_evidence": "A6.6_nda_agreements",
+    "data_sources": ["employees", "vendors"],
+    "compliant_if": {
+      "condition": "employees_exist AND vendors_exist",
+      "detail": "Employee and vendor records confirm NDA/confidentiality agreements are tracked."
+    },
+    "partial_if": {
+      "condition": "employees_exist OR vendors_exist",
+      "detail": "Partial records exist but NDAs are not confirmed across both employees and vendors."
+    },
+    "missing_if": {
+      "condition": "NOT employees_exist AND NOT vendors_exist",
+      "detail": "No employee or vendor records uploaded to verify NDA status."
+    },
+    "remediation": "Require signed NDAs from all employees, contractors, and third-party vendors before granting access."
+  },
+  {
+    "rule_id": "ISO-A6.7-01",
+    "control": "A.6.7",
+    "control_id": "A.6.7",
+    "name": "Remote Working",
+    "description": "Ensure security measures are implemented to protect information during remote working.",
+    "severity": "High",
+    "required_evidence": "A6.7_remote_work_security",
+    "data_sources": ["network_rules", "governance"],
+    "compliant_if": {
+      "condition": "network_rules_exist AND governance_exist",
+      "detail": "Network rules and governance records confirm remote working security controls are in place."
+    },
+    "partial_if": {
+      "condition": "network_rules_exist OR governance_exist",
+      "detail": "Some evidence exists but remote working security is not fully documented across network and governance."
+    },
+    "missing_if": {
+      "condition": "NOT network_rules_exist AND NOT governance_exist",
+      "detail": "No network or governance records uploaded to verify remote working controls."
+    },
+    "remediation": "Define a Remote Working Security Policy covering VPN, endpoint protection, and secure data handling."
+  },
+  {
+    "rule_id": "ISO-A6.8-01",
+    "control": "A.6.8",
+    "control_id": "A.6.8",
+    "name": "Information Security Event Reporting",
+    "description": "Ensure employees are aware of and follow procedures for reporting information security events.",
+    "severity": "Medium",
+    "required_evidence": "A6.8_security_event_reporting",
+    "data_sources": ["governance", "risk_register"],
+    "compliant_if": {
+      "condition": "governance_exist",
+      "detail": "Governance records confirm security event reporting procedures are documented."
+    },
+    "partial_if": {
+      "condition": "risk_register_exist AND NOT governance_exist",
+      "detail": "Risk register exists but no formal event reporting procedure documented in governance."
+    },
+    "missing_if": {
+      "condition": "NOT governance_exist AND NOT risk_register_exist",
+      "detail": "No governance or risk register uploaded to verify event reporting procedures."
+    },
+    "remediation": "Document security event reporting procedures and train employees on when and how to report incidents."
+  }
 ]

@@ -1,0 +1,103 @@
+"""
+SAMA Cybersecurity Framework — Rule-Based Evaluation Rules.
+Covers SAMA CSF domains for Saudi Arabian financial institutions.
+"""
+
+SAMA_RULES: list[dict] = [
+    {
+        "rule_id": "SAMA-RE-001", "control_ref": "SAMA-CSF-1",
+        "name": "Cybersecurity Governance", "domain": "Governance",
+        "description": "Verify cybersecurity governance framework is established and maintained.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["cybersecurity governance", "security policy", "governance framework"], "evidence_sources": ["governance"], "match_mode": "any"},
+        "remediation": "Establish a cybersecurity governance framework aligned with SAMA CSF requirements.",
+    },
+    {
+        "rule_id": "SAMA-RE-002", "control_ref": "SAMA-CSF-2",
+        "name": "Cybersecurity Risk Management", "domain": "Risk Management",
+        "description": "Verify a cyber risk management process is implemented.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_risk_register", "expected": True},
+        "remediation": "Implement a formal cyber risk management process with regular risk assessments.",
+    },
+    {
+        "rule_id": "SAMA-RE-003", "control_ref": "SAMA-CSF-3",
+        "name": "Cybersecurity Compliance", "domain": "Compliance",
+        "description": "Verify compliance monitoring processes cover regulatory requirements.",
+        "severity": "high", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["compliance", "regulatory", "audit", "assessment"], "evidence_sources": ["governance", "risk_register"], "match_mode": "any"},
+        "remediation": "Establish compliance monitoring covering SAMA, NCA, and relevant regulatory requirements.",
+    },
+    {
+        "rule_id": "SAMA-RE-004", "control_ref": "SAMA-CSF-4",
+        "name": "Asset Management", "domain": "Asset Management",
+        "description": "Verify all information assets are identified, classified, and inventoried.",
+        "severity": "high", "eval_type": "boolean",
+        "eval_config": {"signal": "has_asset_inventory", "expected": True},
+        "remediation": "Maintain a complete asset inventory with classification and ownership assignment.",
+    },
+    {
+        "rule_id": "SAMA-RE-005", "control_ref": "SAMA-CSF-5",
+        "name": "Identity and Access Management", "domain": "Access Control",
+        "description": "Verify IAM controls for banking systems are in place.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_access_levels", "expected": True},
+        "remediation": "Implement identity and access management with MFA for all critical banking systems.",
+    },
+    {
+        "rule_id": "SAMA-RE-006", "control_ref": "SAMA-CSF-6",
+        "name": "Application Security", "domain": "Application Security",
+        "description": "Verify application security controls exist for banking applications.",
+        "severity": "high", "eval_type": "boolean",
+        "eval_config": {"signal": "has_applications", "expected": True},
+        "remediation": "Implement SDLC security. Perform code reviews and penetration testing on banking apps.",
+    },
+    {
+        "rule_id": "SAMA-RE-007", "control_ref": "SAMA-CSF-7",
+        "name": "Network Security Management", "domain": "Network Security",
+        "description": "Verify network security controls including firewalls and segmentation.",
+        "severity": "critical", "eval_type": "boolean",
+        "eval_config": {"signal": "has_network_rules", "expected": True},
+        "remediation": "Deploy firewall rules, IDS/IPS, and network segmentation for banking infrastructure.",
+    },
+    {
+        "rule_id": "SAMA-RE-008", "control_ref": "SAMA-CSF-8",
+        "name": "Security Event Monitoring", "domain": "Monitoring",
+        "description": "Verify logging and monitoring detect and respond to security events.",
+        "severity": "high", "eval_type": "boolean",
+        "eval_config": {"signal": "has_governance_activities", "expected": True},
+        "remediation": "Implement SIEM aligned to SAMA detection requirements. Enable 24/7 SOC monitoring.",
+    },
+    {
+        "rule_id": "SAMA-RE-009", "control_ref": "SAMA-CSF-9",
+        "name": "Third-Party Cybersecurity", "domain": "Supplier Management",
+        "description": "Verify third-party risk management programme covers all vendors.",
+        "severity": "high", "eval_type": "field_present",
+        "eval_config": {"required_fields": ["vendor_name", "risk_level"], "evidence_sources": ["vendors"]},
+        "remediation": "Establish a third-party risk management programme with vendor security assessments.",
+    },
+    {
+        "rule_id": "SAMA-RE-010", "control_ref": "SAMA-CSF-10",
+        "name": "Incident and Threat Management", "domain": "Incident Management",
+        "description": "Verify cyber incident response and crisis management procedures exist.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["incident response", "crisis management", "cyber incident"], "evidence_sources": ["governance", "risk_register"], "match_mode": "any"},
+        "remediation": "Document and test cyber incident response and crisis management procedures.",
+    },
+    {
+        "rule_id": "SAMA-RE-011", "control_ref": "SAMA-CSF-11",
+        "name": "Cybersecurity Awareness", "domain": "People Controls",
+        "description": "Verify cybersecurity awareness training exists for all staff.",
+        "severity": "high", "eval_type": "threshold",
+        "eval_config": {"metric": "training_coverage_pct", "operator": "gte", "value": 70.0},
+        "remediation": "Implement mandatory cybersecurity awareness training for all employees and contractors.",
+    },
+    {
+        "rule_id": "SAMA-RE-012", "control_ref": "SAMA-CSF-12",
+        "name": "Business Continuity Management", "domain": "Resilience",
+        "description": "Verify BCP/DR procedures are established and tested.",
+        "severity": "critical", "eval_type": "evidence_keyword",
+        "eval_config": {"keywords": ["business continuity", "disaster recovery", "backup"], "evidence_sources": ["governance", "risk_register"], "match_mode": "any"},
+        "remediation": "Establish and regularly test BCP/DR procedures for all critical banking services.",
+    },
+]
