@@ -23,9 +23,10 @@ export default function WorkspacePage() {
 
   const WORKSPACE_BLOCKS = [
     {
-      title: "Start Assessment",
-      desc: "Run full cross-framework compliance assessments against ISO 27001, NIST, and HIPAA standards.",
-      btnText: "New Assessment",
+      title: "Compliance Assessment",
+      desc: "Evaluate your organization against industry standards such as ISO 27001, NIST, and HIPAA to understand your compliance posture.",
+      helperText: "Best for audits, certifications, and governance tracking.",
+      btnText: "Start Assessment",
       href: "/upload",
       icon: (
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -34,25 +35,14 @@ export default function WorkspacePage() {
       )
     },
     {
-      title: "Upload Configuration",
-      desc: "Scan infrastructure blueprints and detect deep operational drift actively.",
-      btnText: "Analyze Config",
+      title: "Technical Configuration Analysis",
+      desc: "Upload infrastructure or system configurations to detect vulnerabilities, misconfigurations, and operational risks.",
+      helperText: "Best for engineers and security teams.",
+      btnText: "Upload & Analyze",
       href: "/config-analysis",
       icon: (
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      )
-    },
-
-    {
-      title: "Review Access Requests",
-      desc: "Review, approve, and authorize critical governance compliance workflows.",
-      btnText: "Approvals",
-      href: "/access-requests",
-      icon: (
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
         </svg>
       )
     }
@@ -64,11 +54,14 @@ export default function WorkspacePage() {
         <div className="max-w-[1100px] mx-auto">
           
           <div className="mb-12">
-            <h1 className="text-[36px] font-extrabold text-[var(--text-main)] mb-3 tracking-tight">
-              Welcome to <span className="bg-[var(--accent)] text-[#1a2340] rounded-[6px] px-3 py-1 inline-block">Aegis.One</span>
+            <h2 className="text-[18px] font-medium text-[var(--text-muted)] mb-1">
+              Welcome back, {companyName || "sparck"} 👋
+            </h2>
+            <h1 className="text-[36px] font-extrabold text-[var(--text-main)] mb-4 tracking-tight">
+              Your Security Workspace
             </h1>
             <p className="text-[18px] text-[var(--text-muted)] font-medium">
-              Welcome, <span className="text-[var(--text-main)] font-bold">{companyName || "Organization"}</span>. Start your workspace setup to manage compliance, assets, access workflows, and configuration reviews.
+              Start by choosing how you want to assess your organization — compliance-based or technical analysis.
             </p>
           </div>
 
@@ -79,11 +72,12 @@ export default function WorkspacePage() {
                 className="bg-[var(--bg-card)] rounded-2xl p-8 shadow-[var(--shadow-card)] border border-[var(--border-color)] flex flex-col justify-between hover:shadow-md transition-shadow duration-300"
               >
                 <div>
-                  <div className="w-12 h-12 bg-[var(--text-main)]/10 text-[var(--text-main)] rounded-xl flex items-center justify-center mb-6">
+                  <div className="w-12 h-12 bg-[var(--icon-bg)] text-[var(--primary)] rounded-xl flex items-center justify-center mb-6">
                     <div className="w-6 h-6">{block.icon}</div>
                   </div>
                   <h3 className="text-[20px] font-bold text-[var(--text-main)] mb-3">{block.title}</h3>
-                  <p className="text-[15px] text-[var(--text-muted)] leading-relaxed mb-8">{block.desc}</p>
+                  <p className="text-[15px] text-[var(--text-muted)] leading-relaxed mb-4">{block.desc}</p>
+                  <p className="text-[13px] text-[var(--text-muted)] italic mb-8">{block.helperText}</p>
                 </div>
                 
                 <Link 

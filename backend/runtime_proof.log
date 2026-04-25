@@ -54,3 +54,26 @@
 2026-04-24 21:00:19,073 RESULTS: compliant=59  partial=4  missing=0
 2026-04-24 21:00:19,073 BY_SOURCE: {'json_rule_config': 63}
 2026-04-24 21:00:19,073 ======================================================================
+2026-04-24 22:11:13,058 ======================================================================
+2026-04-24 22:11:13,058 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-24 22:11:13,058 [RUNTIME PROOF]   framework        : iso27001 (ISO27001)
+2026-04-24 22:11:13,058 [RUNTIME PROOF]   no_controls      : True
+2026-04-24 22:11:13,058 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-24 22:11:13,058 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-24 22:11:13,058 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-24 22:11:13,058 ======================================================================
+2026-04-24 22:11:13,059 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-24 22:11:13,060 [RUNTIME PROOF]   framework_id     : iso27001
+2026-04-24 22:11:13,060 ======================================================================
+2026-04-24 22:11:13,060 RULE_ENGINE_ACTIVE: iso27001
+2026-04-24 22:11:13,060 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-24 22:11:13,060 METRICS: {'training_coverage_pct': 75.0, 'risky_rule_pct': 25.0}
+2026-04-24 22:11:13,065 TOTAL_RULES_LOADED: 21
+2026-04-24 22:11:13,065 RULE_ENGINE_MATCHED: 17 controls
+2026-04-24 22:11:13,065 RULE_ENGINE_SCORE: 47.62%
+2026-04-24 22:11:13,065 JSON_CONDITION_EVALUATED: 46 controls
+2026-04-24 22:11:13,065 EVALUATED_CONTROLS: 63
+2026-04-24 22:11:13,065 SCORE_SOURCE: rule_engine
+2026-04-24 22:11:13,065 RESULTS: compliant=49  partial=3  missing=11
+2026-04-24 22:11:13,065 BY_SOURCE: {'rule_engine': 17, 'json_rule_config': 46}
+2026-04-24 22:11:13,065 ======================================================================
