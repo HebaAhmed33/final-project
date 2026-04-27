@@ -19,11 +19,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/login`, {
+      const res = await fetch(`http://localhost:8000/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      console.log("Content-Type:", res.headers.get("content-type"));
+      if (res.headers.get("content-type")?.includes("text/html")) {
+        console.error("API returned HTML instead of JSON for /login");
+        throw new Error("API returned HTML instead of JSON");
+      }
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("API ERROR RESPONSE:", text);
+        throw new Error("API request failed");
+      }
 
       const data = await res.json();
 

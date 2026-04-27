@@ -25,8 +25,17 @@ export default function ReportsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/reports/${companyId}`);
-      if (!res.ok) throw new Error(`Server responded with HTTP ${res.status}`);
+      const res = await fetch(`http://localhost:8000/reports/${companyId}`);
+      console.log("Content-Type:", res.headers.get("content-type"));
+      if (res.headers.get("content-type")?.includes("text/html")) {
+        console.error("API returned HTML instead of JSON for /reports");
+        throw new Error("API returned HTML instead of JSON");
+      }
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("API ERROR RESPONSE:", text);
+        throw new Error("API request failed");
+      }
       const data = await res.json();
       setReports(data.reports || []);
       setTotalReports(data.total_reports || 0);
@@ -41,12 +50,21 @@ export default function ReportsPage() {
     setExporting(true);
     setExportMsg(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/export-latest-report`, {
+      const res = await fetch(`http://localhost:8000/export-latest-report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ company_id: companyId }),
       });
-      if (!res.ok) throw new Error(`Server responded with HTTP ${res.status}`);
+      console.log("Content-Type:", res.headers.get("content-type"));
+      if (res.headers.get("content-type")?.includes("text/html")) {
+        console.error("API returned HTML instead of JSON for /export-latest-report");
+        throw new Error("API returned HTML instead of JSON");
+      }
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("API ERROR RESPONSE:", text);
+        throw new Error("API request failed");
+      }
       const data = await res.json();
       if (data.status === "success") {
         setExportMsg(`Success! Report saved to: ${data.output_path.split(/[/\\]/).pop()}`);

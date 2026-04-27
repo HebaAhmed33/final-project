@@ -124,12 +124,21 @@ export default function UploadPage() {
 
     try {
       // 1) Upload
-      const uploadRes = await fetch(`${API_BASE_URL}/upload/assessment`, {
+      const uploadRes = await fetch(`http://localhost:8000/upload/assessment`, {
         method: "POST",
         body: formData,
       });
+      console.log("Content-Type:", uploadRes.headers.get("content-type"));
+      if (uploadRes.headers.get("content-type")?.includes("text/html")) {
+        console.error("API returned HTML instead of JSON for upload/assessment");
+        throw new Error("API returned HTML instead of JSON");
+      }
+      if (!uploadRes.ok) {
+        const text = await uploadRes.text();
+        console.error("API ERROR RESPONSE:", text);
+        throw new Error("API request failed");
+      }
       const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.detail || uploadData.message || `HTTP ${uploadRes.status}`);
       setUploadResult(uploadData);
 
       // 2) The upload endpoint now runs the full GRC intelligence inference pipeline
@@ -140,7 +149,7 @@ export default function UploadPage() {
         sessionStorage.setItem("assessment_framework_output", JSON.stringify(uploadData.framework_assessment));
       } else if (isEnrichedFramework) {
         // Fallback for legacy mode just in case
-        const assessRes = await fetch(`${API_BASE_URL}/assess/${framework}`, {
+        const assessRes = await fetch(`http://localhost:8000/assess/${framework}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -150,6 +159,16 @@ export default function UploadPage() {
             use_uploaded_evidence: true,
           }),
         });
+        console.log("Content-Type:", assessRes.headers.get("content-type"));
+        if (assessRes.headers.get("content-type")?.includes("text/html")) {
+          console.error("API returned HTML instead of JSON for assess/" + framework);
+          throw new Error("API returned HTML instead of JSON");
+        }
+        if (!assessRes.ok) {
+          const text = await assessRes.text();
+          console.error("API ERROR RESPONSE:", text);
+          throw new Error("API request failed");
+        }
         if (assessRes.ok) {
           const assessData = await assessRes.json();
           setAssessmentResult(assessData);
@@ -192,12 +211,21 @@ export default function UploadPage() {
     formData.append("file", configFile);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/upload/configuration`, {
+      const res = await fetch(`http://localhost:8000/upload/configuration`, {
         method: "POST",
         body: formData,
       });
+      console.log("Content-Type:", res.headers.get("content-type"));
+      if (res.headers.get("content-type")?.includes("text/html")) {
+        console.error("API returned HTML instead of JSON for upload/configuration");
+        throw new Error("API returned HTML instead of JSON");
+      }
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("API ERROR RESPONSE:", text);
+        throw new Error("API request failed");
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || data.message || `HTTP ${res.status}`);
       setUploadResult(data);
       setConfigFile(null);
       if (configFileRef.current) configFileRef.current.value = "";
@@ -226,12 +254,13 @@ export default function UploadPage() {
       {/* Page Header */}
       <div style={{ padding: "0 0 2rem" }}>
         <h1 style={{ fontSize: "2.5rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: "0.5rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-          Welcome to <span style={{ backgroundColor: "var(--accent, #fce69a)", color: "#1a2340", borderRadius: "6px", padding: "0.2rem 0.5rem", display: "inline-block" }}>
-            Aegis.One
-          </span>
+          Workspace
         </h1>
-        <p style={{ color: "var(--text-muted)", fontSize: "1.05rem", maxWidth: "700px", lineHeight: "1.6", margin: 0 }}>
-          Welcome{companyName ? `, ${companyName}` : ""}. Start your workspace setup to manage compliance, assessments, and configuration reviews.
+        <p style={{ color: "var(--text-main)", fontSize: "1.1rem", fontWeight: 600, maxWidth: "700px", lineHeight: "1.6", margin: "0 0 0.25rem 0" }}>
+          Manage your assessments and configurations from one place.
+        </p>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", maxWidth: "700px", lineHeight: "1.6", margin: 0 }}>
+          Upload compliance evidence or analyze technical configurations.
         </p>
       </div>
 
@@ -239,8 +268,8 @@ export default function UploadPage() {
       <div className="card" style={{ padding: "0.5rem", marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           {[
-            { key: "assessment", label: "Assessment", desc: "Upload compliance evidence (Excel)" },
-            { key: "configuration", label: "Configuration", desc: "Upload technical configs (JSON, YAML, ENV)" },
+            { key: "assessment", label: "Assessment", desc: "Compliance-based (Excel uploads)" },
+            { key: "configuration", label: "Configuration", desc: "Technical configs (JSON, YAML, ENV)" },
           ].map((m) => (
             <button key={m.key} type="button" onClick={() => handleModeChange(m.key)}
               style={{

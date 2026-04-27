@@ -1,12 +1,10 @@
-"""
-SmartISMS News Aggregation Service.
-
-Fetches cybersecurity and GRC-related articles from GNews API,
-normalizes output fields, and categorizes articles.
-
-Includes a simple in-memory cache to avoid redundant API calls.
-Falls back to curated demo data when no API key is configured.
-"""
+# SmartISMS News Aggregation Service.
+#
+# Fetches cybersecurity and GRC-related articles from GNews API,
+# normalizes output fields, and categorizes articles.
+#
+# Includes a simple in-memory cache to avoid redundant API calls.
+# Falls back to curated demo data when no API key is configured.
 
 import os
 import time
@@ -267,6 +265,7 @@ DEMO_ARTICLES = [
 ]
 
 
+
 def fetch_news() -> dict:
     """
     Primary entry point for the news endpoint.
@@ -276,9 +275,10 @@ def fetch_news() -> dict:
         result = fetch_cybersecurity_news()
         # Fallback to demo if live fetch returned nothing
         if not result.get("articles"):
-            return {"articles": DEMO_ARTICLES}
+            return {"articles": DEMO_ARTICLES, "is_live": False}
+        result["is_live"] = True
         return result
-    return {"articles": DEMO_ARTICLES}
+    return {"articles": DEMO_ARTICLES, "is_live": False}
 
 
 # ---------------------------------------------------------------------------

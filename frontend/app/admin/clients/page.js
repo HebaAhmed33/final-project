@@ -10,8 +10,17 @@ export default function AdminClientsPage() {
   useEffect(() => {
     async function fetchClients() {
       try {
-        const res = await fetch("/api/onboarding");
-        if (!res.ok) throw new Error("Failed to fetch clients");
+        const res = await fetch("http://localhost:8000/api/onboarding");
+        console.log("Content-Type:", res.headers.get("content-type"));
+        if (res.headers.get("content-type")?.includes("text/html")) {
+          console.error("API returned HTML instead of JSON for /api/onboarding");
+          throw new Error("API returned HTML instead of JSON");
+        }
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("API ERROR RESPONSE:", text);
+          throw new Error("API request failed");
+        }
         const data = await res.json();
         setClients(data);
       } catch (err) {

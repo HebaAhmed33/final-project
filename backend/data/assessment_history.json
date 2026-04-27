@@ -1678,5 +1678,95 @@
       "compliance_score": 0.0
     },
     "created_at": "2026-04-23T20:23:43.983900+00:00"
+  },
+  {
+    "id": "2b9036bd-7df9-4199-9841-bbfe5e2eea3f",
+    "assessment_id": "84caf155-ecf8-4afb-b37f-87335d1da116",
+    "framework": "ISO27001",
+    "assessment_name": "Final-Verification-Test",
+    "scope": "",
+    "priority": "",
+    "evidence_used": true,
+    "evidence_source": "latest_upload",
+    "compliance_score": 0.0,
+    "compliant_controls": 0,
+    "partial_controls": 0,
+    "missing_controls": 63,
+    "total_controls": 63,
+    "severity_summary": {
+      "critical": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 5,
+        "total": 5
+      },
+      "high": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 29,
+        "total": 29
+      },
+      "medium": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 24,
+        "total": 24
+      },
+      "low": {
+        "compliant": 0,
+        "partial": 0,
+        "missing": 5,
+        "total": 5
+      }
+    },
+    "top_missing_high_risk": [
+      {
+        "rule_id": "ISO-A5.2-01",
+        "control": "A.5.2",
+        "name": "Information Security Roles and Responsibilities",
+        "section_key": "A5",
+        "section_name": "Organizational Controls"
+      },
+      {
+        "rule_id": "ISO-A5.3-01",
+        "control": "A.5.3",
+        "name": "Segregation of Duties",
+        "section_key": "A5",
+        "section_name": "Organizational Controls"
+      },
+      {
+        "rule_id": "ISO-A5.4-01",
+        "control": "A.5.4",
+        "name": "Management Responsibilities",
+        "section_key": "A5",
+        "section_name": "Organizational Controls"
+      },
+      {
+        "rule_id": "ISO-A5.7-01",
+        "control": "A.5.7",
+        "name": "Threat Intelligence",
+        "section_key": "A5",
+        "section_name": "Organizational Controls"
+      },
+      {
+        "rule_id": "ISO-A5.9-01",
+        "control": "A.5.9",
+        "name": "Inventory of Information and Other Associated Assets",
+        "section_key": "A5",
+        "section_name": "Organizational Controls"
+      }
+    ],
+    "insights_count": 34,
+    "most_compliant_section": {
+      "section_key": "A5",
+      "section_name": "Organizational Controls",
+      "compliance_score": 0.0
+    },
+    "least_compliant_section": {
+      "section_key": "A5",
+      "section_name": "Organizational Controls",
+      "compliance_score": 0.0
+    },
+    "created_at": "2026-04-26T23:06:27.780290+00:00"
   }
 ]

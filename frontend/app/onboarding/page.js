@@ -36,14 +36,27 @@ export default function OnboardingPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/onboarding", {
+      const res = await fetch("http://localhost:8000/request-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          company_name: formData.companyName,
+          email: formData.workEmail,
+          organization_type: formData.companyType,
+          sector: formData.country,
+          notes: formData.employeeName
+        }),
       });
 
+      console.log("Content-Type:", res.headers.get("content-type"));
+      if (res.headers.get("content-type")?.includes("text/html")) {
+        console.error("API returned HTML instead of JSON for /request-access");
+        throw new Error("API returned HTML instead of JSON");
+      }
       if (!res.ok) {
-        throw new Error("Failed to submit onboarding form");
+        const text = await res.text();
+        console.error("API ERROR RESPONSE:", text);
+        throw new Error("API request failed");
       }
       
       // Simulate typical SaaS behavior setting some user context

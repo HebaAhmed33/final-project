@@ -30,11 +30,19 @@ export default function AssessmentPage() {
   useEffect(() => {
     async function checkEvidence() {
       try {
-        const res = await fetch(`${API_BASE_URL}/assess/evidence-summary`);
-        if (res.ok) {
-          const data = await res.json();
-          setEvidenceSummary(data);
+        const res = await fetch(`http://localhost:8000/assess/evidence-summary`);
+        console.log("Content-Type:", res.headers.get("content-type"));
+        if (res.headers.get("content-type")?.includes("text/html")) {
+          console.error("API returned HTML instead of JSON for assess/evidence-summary");
+          throw new Error("API returned HTML instead of JSON");
         }
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("API ERROR RESPONSE:", text);
+          throw new Error("API request failed");
+        }
+        const data = await res.json();
+        setEvidenceSummary(data);
       } catch {
         // Silently fail — evidence check is non-critical
       } finally {
@@ -55,7 +63,7 @@ export default function AssessmentPage() {
     try {
       if (isEnriched) {
         // Enriched ISO 27001 path
-        const res = await fetch(`${API_BASE_URL}/assess/iso27001`, {
+        const res = await fetch(`http://localhost:8000/assess/iso27001`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -65,15 +73,21 @@ export default function AssessmentPage() {
             use_uploaded_evidence: true,
           }),
         });
+        console.log("Content-Type:", res.headers.get("content-type"));
+        if (res.headers.get("content-type")?.includes("text/html")) {
+          console.error("API returned HTML instead of JSON for assess/iso27001");
+          throw new Error("API returned HTML instead of JSON");
+        }
         if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.detail || errData.message || `Server responded with ${res.status}`);
+          const text = await res.text();
+          console.error("API ERROR RESPONSE:", text);
+          throw new Error("API request failed");
         }
         const data = await res.json();
         setResult({ type: "enriched", data });
       } else {
         // Legacy path
-        const res = await fetch(`${API_BASE_URL}/run-and-save-assessment`, {
+        const res = await fetch(`http://localhost:8000/run-and-save-assessment`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -83,7 +97,16 @@ export default function AssessmentPage() {
             config_standard_file: "backend/standards/config_baseline.json",
           }),
         });
-        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+        console.log("Content-Type:", res.headers.get("content-type"));
+        if (res.headers.get("content-type")?.includes("text/html")) {
+          console.error("API returned HTML instead of JSON for run-and-save-assessment");
+          throw new Error("API returned HTML instead of JSON");
+        }
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("API ERROR RESPONSE:", text);
+          throw new Error("API request failed");
+        }
         const data = await res.json();
         setResult({ type: "legacy", data });
       }

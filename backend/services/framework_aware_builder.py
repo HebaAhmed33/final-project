@@ -948,8 +948,40 @@ def build_framework_aware_assessment(
     uploaded_risk_register = _build_risk_register_from_routing(routing)
 
     # Generate additional risks from data patterns and control gaps
-    from services.evidence_inference import generate_risks_from_data
-    generated_risks = generate_risks_from_data(routing, relevant_controls, present_types)
+    from services.contextual_risk_generator import generate_risks_from_data
+    generated_risks = generate_risks_from_data(routing, relevant_controls, present_types, all_sheets=all_sheets, framework_id=framework_id)
+
+    # Normalize uploaded risks (if any)
+    uploaded_rr_entries = []
+    if all_sheets:
+        rr_sheet = next((s for s in all_sheets if s.get("type") == "risk_register"), None)
+        if rr_sheet:
+            for i, row in enumerate(rr_sheet.get("rows", [])):
+                stmt = (row.get("risk_statement") or row.get("risk_name") or "").strip()
+                threat = (row.get("threat") or "").strip()
+                ctrl = (row.get("mitigation") or row.get("control") or "").strip()
+                
+                # Filter out empty or generic rows per user request
+                if not stmt:
+                    continue
+                if threat == "Unspecified Threat":
+                    continue
+                if "Mapped via ISO" in ctrl:
+                    continue
+
+                uploaded_rr_entries.append({
+                    "risk_id": row.get("risk_id") or f"U{i+1}",
+                    "risk_statement": stmt,
+                    "asset": row.get("asset") or "Business Asset",
+                    "threat": threat or "Identified Risk",
+                    "likelihood": row.get("likelihood") or 3,
+                    "impact": row.get("impact") or 3,
+                    "risk_level": row.get("risk_level") or row.get("level") or "Medium",
+                    "control": ctrl or "Pending Mitigation",
+                    "owner": row.get("owner") or "Risk Owner",
+                    "source": "uploaded",
+                    "source_label": "Uploaded Risk Heatmap",
+                })
 
     # Merge: uploaded risks take priority, generated risks supplement
     all_risks = uploaded_risk_register.get("findings", []) if uploaded_risk_register.get("source") != "none" else []
@@ -967,7 +999,26 @@ def build_framework_aware_assessment(
         "untreated_risks": uploaded_risk_register.get("untreated_risks", []),
         "findings":        all_risks,
         "generated_risk_entries": generated_risks,
+        "uploaded_risk_entries": uploaded_rr_entries,
     }
+
+    def _is_placeholder(r) -> bool:
+        if not isinstance(r, dict):
+            return False
+        rid = str(r.get("risk_id", r.get("id", "")))
+        th = str(r.get("threat", ""))
+        ct = str(r.get("control", r.get("mitigation", "")))
+        ast = str(r.get("asset", ""))
+        if rid.startswith("RSK-"): return True
+        if th == "Identified Risk": return True
+        if "Mapped via ISO27001" in ct: return True
+        if ast == "Business Asset": return True
+        return False
+
+    risk_register["generated_risk_entries"] = [r for r in risk_register["generated_risk_entries"] if not _is_placeholder(r)]
+    risk_register["uploaded_risk_entries"] = [r for r in risk_register["uploaded_risk_entries"] if not _is_placeholder(r)]
+    risk_register["findings"] = [r for r in risk_register["findings"] if not _is_placeholder(r)]
+    risk_register["untreated_risks"] = [r for r in risk_register["untreated_risks"] if not _is_placeholder(r)]
 
     # ── 8. Treatment plan — applied to ALL risks (uploaded + generated)
     all_risks_for_treatment = [
@@ -984,7 +1035,7 @@ def build_framework_aware_assessment(
         and (c.get("severity") or "").lower() in ("critical", "high")
     ]
     # Add generated risks to treatment plan
-    for gr in generated_risks:
+    for gr in risk_register["generated_risk_entries"]:
         all_risks_for_treatment.append({
             "rule_id":      gr.get("risk_id", ""),
             "control_id":   gr.get("risk_id", ""),
@@ -1086,10 +1137,10 @@ def build_framework_aware_assessment(
         "governance_calendar": _build_governance_calendar(all_sheets),
 
         # 10. Cross-Framework Mapping (from High-Risk sheet)
-        "cross_framework_mapping": cross_framework_mapping,
-        "has_high_risk_data": len(cross_framework_mapping) > 0,
-        
-        # 10. Traceability
+        "cross_framework_mapping": [r for r in cross_framework_mapping if not _is_placeholder(r)],
+        "has_high_risk_data": len([r for r in cross_framework_mapping if not _is_placeholder(r)]) > 0,
+
+        # 12. Traceability
         "traceability": {
             "framework_id":       framework_id,
             "framework_label":    framework_label,

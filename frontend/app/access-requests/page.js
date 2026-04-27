@@ -17,8 +17,17 @@ export default function AccessRequestsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/access-requests`);
-      if (!res.ok) throw new Error(`Server responded with HTTP ${res.status}`);
+      const res = await fetch(`http://localhost:8000/access-requests`);
+      console.log("Content-Type:", res.headers.get("content-type"));
+      if (res.headers.get("content-type")?.includes("text/html")) {
+        console.error("API returned HTML instead of JSON for /access-requests");
+        throw new Error("API returned HTML instead of JSON");
+      }
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("API ERROR RESPONSE:", text);
+        throw new Error("API request failed");
+      }
       const data = await res.json();
       setRequests(data.requests || []);
     } catch (err) {

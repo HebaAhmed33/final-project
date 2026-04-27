@@ -10,10 +10,28 @@ export default function MarketingHomePage() {
   useEffect(() => {
     async function fetchNewsPreview() {
       try {
-        const res = await fetch("/api/news");
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+        const res = await fetch(`${API_BASE_URL}/news`);
+        console.log("Content-Type:", res.headers.get("content-type"));
+        if (res.headers.get("content-type")?.includes("text/html")) {
+          console.error("API returned HTML instead of JSON for /news");
+          throw new Error("API returned HTML instead of JSON");
+        }
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("API ERROR RESPONSE:", text);
+          throw new Error("API request failed");
+        }
         const data = await res.json();
-        if (Array.isArray(data)) {
-          setNews(data.slice(0, 4));
+        const articles = data.articles || data;
+        if (Array.isArray(articles)) {
+          // If not live, append (Demo) to the source to clearly indicate fallback
+          const isLive = data.is_live === true;
+          const processedArticles = articles.map(a => ({
+            ...a,
+            source: isLive ? a.source : `${a.source} (Demo Data)`
+          }));
+          setNews(processedArticles.slice(0, 4));
         }
       } catch (err) {
         console.error("Failed to fetch news preview:", err);
@@ -321,17 +339,17 @@ export default function MarketingHomePage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
                         {item.source || "Security Feed"}
                       </div>
-                      <span>{item.date ? new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}</span>
+                      <span>{(item.published_at || item.date) ? new Date(item.published_at || item.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}</span>
                     </div>
                   </div>
                 </a>
               )) : (
                 /* Fallback static cards if feed is empty */
                 [
-                  { title: "Google Blocks 8.3B Policy-Violating Ads in 2025, Launches Android 17 Privacy Overhaul", source: "The Hacker News", date: "Apr 17, 2026" },
-                  { title: "NIST Limits CVE Enrichment After 263% Surge in Vulnerability Submissions", source: "The Hacker News", date: "Apr 17, 2026" },
-                  { title: "Deterministic + Agentic AI: The Architecture Exposure Validation Requires", source: "The Hacker News", date: "Apr 15, 2026" },
-                  { title: "Google Adds Rust-Based DNS Parser into Pixel 10 Modem to Enhance Security", source: "The Hacker News", date: "Apr 14, 2026" },
+                  { title: "Google Blocks 8.3B Policy-Violating Ads in 2025, Launches Android 17 Privacy Overhaul", source: "The Hacker News (Demo Data)", date: "Apr 17, 2026" },
+                  { title: "NIST Limits CVE Enrichment After 263% Surge in Vulnerability Submissions", source: "The Hacker News (Demo Data)", date: "Apr 17, 2026" },
+                  { title: "Deterministic + Agentic AI: The Architecture Exposure Validation Requires", source: "The Hacker News (Demo Data)", date: "Apr 15, 2026" },
+                  { title: "Google Adds Rust-Based DNS Parser into Pixel 10 Modem to Enhance Security", source: "The Hacker News (Demo Data)", date: "Apr 14, 2026" },
                 ].map((item, idx) => (
                   <div key={idx} className="bg-white p-7 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
                     <h3 className="text-[16px] font-bold text-[#1a2340] mb-5 flex-1 leading-relaxed">

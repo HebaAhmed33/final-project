@@ -80,50 +80,92 @@ export default function AssessmentResultsPage() {
   // High Risk Logic
   const highRiskRows = [];
   const seenIds = new Set();
-  if (ad.cross_framework_mapping && ad.cross_framework_mapping.length > 0) {
-    ad.cross_framework_mapping.forEach((r) => {
-      const id = r.risk_id || `HR-${highRiskRows.length + 1}`;
-      if (!seenIds.has(id)) {
-        seenIds.add(id);
-        highRiskRows.push({
-          risk_id: id,
-          risk_statement: r.risk_statement || "—",
-          controls: (r.iso_controls || []).join(", ") || "—",
-          rationale: r.rationale || "Mapped from uploaded High-Risk sheet.",
-        });
-      }
-    });
-  }
-  if (ad.top_missing_high_risk && ad.top_missing_high_risk.length > 0) {
-    ad.top_missing_high_risk.forEach((r) => {
-      const id = r.rule_id || `GAP-${highRiskRows.length + 1}`;
-      if (!seenIds.has(id)) {
-        seenIds.add(id);
-        highRiskRows.push({
-          risk_id: id,
-          risk_statement: r.name || "—",
-          controls: r.rule_id || "—",
-          rationale: r.reason || `High-severity ${r.status || "missing"} control in ${r.domain || r.section_key || "framework"}.`,
-        });
-      }
-    });
-  }
   if (ad.risk_register) {
     const entries = [
-      ...(ad.risk_register.findings || []),
       ...(ad.risk_register.generated_risk_entries || []),
+      ...(ad.risk_register.uploaded_risk_entries || []),
     ];
     entries.forEach((r) => {
-      const level = (r.risk_level || r.level || "").toLowerCase();
-      if (level === "high" || level === "critical") {
-        const id = r.risk_id || r.rule_id || `RR-${highRiskRows.length + 1}`;
+      let rawL = parseFloat(r.likelihood);
+      let rawI = parseFloat(r.impact);
+      let level = (r.risk_level || r.level || "").toLowerCase();
+
+      let riskScore = 0;
+      if (!isNaN(rawL) && !isNaN(rawI)) {
+        riskScore = rawL * rawI;
+      }
+
+      if (riskScore >= 12) {
+        const id = String(r.risk_id || r.id || `HR-${highRiskRows.length + 1}`);
+
+        // Exclude placeholder IDs
+        if (id.startsWith("RSK-")) {
+            return;
+        }
+
+        // Exclude status-based controls
+        const rawControl = String(r.control || r.control_id || r.mitigation || "").toLowerCase();
+        if (rawControl.includes("in progress") || rawControl.includes("planned") || rawControl.includes("not started")) {
+            return;
+        }
+
+        // Exclude non-real risks (lacking threat context)
+        const rThreat = (r.threat || "").toLowerCase();
+        if (!rThreat || rThreat === "unspecified threat" || rThreat === "identified risk" || rThreat === "placeholder") {
+            return;
+        }
+
         if (!seenIds.has(id)) {
           seenIds.add(id);
+          const rStatement = r.risk_statement || r.description || r.title || r.name || r.risk_name || "—";
+          const rThreatSafe = (r.threat || r.vulnerability || r.rule_id || rStatement || "").toLowerCase();
+          
+          let controlsArr = r.control_id;
+          if (!controlsArr && r.iso_controls) controlsArr = r.iso_controls;
+          if (!controlsArr && r.control) controlsArr = [r.control];
+          if (!Array.isArray(controlsArr)) {
+             if (typeof controlsArr === "string") controlsArr = controlsArr.split(",").map(c => c.trim()).filter(Boolean);
+             else controlsArr = [];
+          }
+
+          let controls = controlsArr.join("; ");
+          
+          if (!controls || controls === "—") {
+             if (rThreatSafe.includes("sql injection") || rStatement.toLowerCase().includes("sql injection")) controls = "A.8.28";
+             else if (rThreatSafe.includes("api abuse") || rThreatSafe.includes("api") || rStatement.toLowerCase().includes("api")) controls = "A.8.23; A.8.28";
+             else if (rThreatSafe.includes("default") || rThreatSafe.includes("misconfiguration") || rStatement.toLowerCase().includes("misconfiguration")) controls = "A.8.9";
+             else if (rThreatSafe.includes("unpatched") || rThreatSafe.includes("vuln") || rThreatSafe.includes("remote code execution") || rThreatSafe.includes("patch") || rThreatSafe.includes("exploit") || rThreatSafe.includes("cve") || rStatement.toLowerCase().includes("unpatched") || rStatement.toLowerCase().includes("vulnerability") || rStatement.toLowerCase().includes("remote code execution")) controls = "A.8.8";
+             else if (rThreatSafe.includes("vendor") || rThreatSafe.includes("third") || rThreatSafe.includes("supply") || rThreatSafe.includes("supplier") || rThreatSafe.includes("compliance gap") || rThreatSafe.includes("review pending") || rStatement.toLowerCase().includes("vendor") || rStatement.toLowerCase().includes("supply chain")) controls = "A.5.19; A.5.20";
+             else if (rThreatSafe.includes("shadow it") || rThreatSafe.includes("unmanaged") || rStatement.toLowerCase().includes("shadow it") || rStatement.toLowerCase().includes("unmanaged")) controls = "A.5.9";
+             else if (rThreatSafe.includes("policy gap") || rThreatSafe.includes("policy") || rStatement.toLowerCase().includes("policy")) controls = "A.5.1";
+             else if (rThreatSafe.includes("data exfiltration") || (rThreatSafe.includes("data") && (rThreatSafe.includes("loss") || rThreatSafe.includes("leak") || rThreatSafe.includes("breach") || rThreatSafe.includes("exfil"))) || rStatement.toLowerCase().includes("data exfiltration")) controls = "A.8.12";
+             else if (rThreatSafe.includes("access") || rThreatSafe.includes("auth") || rThreatSafe.includes("credential") || rStatement.toLowerCase().includes("access")) controls = "A.8.3";
+             else if (rThreatSafe.includes("phish") || rThreatSafe.includes("social") || rThreatSafe.includes("train")) controls = "A.6.3";
+             else if (rThreatSafe.includes("malware") || rThreatSafe.includes("ransomware") || rThreatSafe.includes("virus")) controls = "A.8.7";
+             else if (rThreatSafe.includes("network") || rThreatSafe.includes("firewall") || rThreatSafe.includes("ddos") || rThreatSafe.includes("attack")) controls = "A.8.20";
+             else if (rThreatSafe.includes("physical") || rThreatSafe.includes("theft") || rThreatSafe.includes("unauthorized entry")) controls = "A.7.1; A.7.2";
+             else if (rThreatSafe.includes("backup") || rThreatSafe.includes("disaster") || rThreatSafe.includes("recover") || rThreatSafe.includes("business continuity") || rStatement.toLowerCase().includes("business continuity")) controls = "A.5.30";
+             else controls = "A.5.1; A.5.2";
+          }
+
+          let rationale = "";
+          if (rThreatSafe.includes("sql injection") || rStatement.toLowerCase().includes("sql injection")) rationale = "Secure coding/input validation prevents injection attacks.";
+          else if (rThreatSafe.includes("api abuse") || rThreatSafe.includes("api") || rStatement.toLowerCase().includes("api")) rationale = "API security and secure coding reduce endpoint abuse.";
+          else if (rThreatSafe.includes("unpatched") || rThreatSafe.includes("vuln") || rThreatSafe.includes("remote code execution") || rThreatSafe.includes("patch") || rThreatSafe.includes("exploit") || rThreatSafe.includes("cve") || rStatement.toLowerCase().includes("unpatched") || rStatement.toLowerCase().includes("vulnerability") || rStatement.toLowerCase().includes("remote code execution")) rationale = "Vulnerability management reduces exposure to known exploits through timely remediation.";
+          else if (rThreatSafe.includes("default") || rThreatSafe.includes("misconfiguration") || rStatement.toLowerCase().includes("misconfiguration")) rationale = "Configuration management reduces insecure settings and prevents misuse of default accounts.";
+          else if (rThreatSafe.includes("shadow it") || rThreatSafe.includes("unmanaged") || rStatement.toLowerCase().includes("shadow it") || rStatement.toLowerCase().includes("unmanaged")) rationale = "Asset inventory controls reduce unmanaged systems and improve visibility over the attack surface.";
+          else if (rThreatSafe.includes("policy gap") || rThreatSafe.includes("policy") || rStatement.toLowerCase().includes("policy")) rationale = "Security policies define ownership, requirements, and governance for managing this risk.";
+          else if (rThreatSafe.includes("broken access control") || rThreatSafe.includes("access") || rStatement.toLowerCase().includes("access")) rationale = "RBAC and access reviews reduce unauthorized access.";
+          else if (rThreatSafe.includes("supply chain") || rThreatSafe.includes("vendor") || rThreatSafe.includes("supplier") || rThreatSafe.includes("third-party") || rThreatSafe.includes("compliance gap") || rThreatSafe.includes("review pending") || rStatement.toLowerCase().includes("supply chain") || rStatement.toLowerCase().includes("vendor")) rationale = "Supplier security controls ensure third parties meet required security and compliance obligations.";
+          else if (rThreatSafe.includes("data exfiltration") || rThreatSafe.includes("leak") || rThreatSafe.includes("loss") || rStatement.toLowerCase().includes("data exfiltration")) rationale = "DLP and monitoring reduce leakage risk.";
+          else if (rThreatSafe.includes("business continuity") || rThreatSafe.includes("disaster") || rThreatSafe.includes("backup") || rThreatSafe.includes("outage") || rStatement.toLowerCase().includes("business continuity")) rationale = "DR and backup controls reduce outage impact.";
+          else rationale = "Relevant controls reduce likelihood or impact of this risk.";
+
           highRiskRows.push({
             risk_id: id,
-            risk_statement: r.risk_name || r.risk_statement || r.name || "—",
-            controls: (r.iso_controls || []).join(", ") || r.rule_id || "—",
-            rationale: r.rationale || r.reason || `${level.charAt(0).toUpperCase() + level.slice(1)}-level risk from risk register.`,
+            risk_statement: rStatement,
+            controls: controls,
+            rationale: rationale,
           });
         }
       }
@@ -255,7 +297,7 @@ export default function AssessmentResultsPage() {
                       <tr>
                         <th>Risk ID</th>
                         <th>Risk Statement</th>
-                        <th>Control(s)</th>
+                        <th>Annex A:2022 Control(s)</th>
                         <th>Rationale</th>
                       </tr>
                     </thead>
@@ -299,6 +341,137 @@ export default function AssessmentResultsPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* Risk Register Table */}
+                {(() => {
+                  const entries = [
+                    ...(ad.risk_register.generated_risk_entries || []),
+                    ...(ad.risk_register.uploaded_risk_entries || []),
+                  ];
+
+                  if (entries.length === 0) return null;
+
+                  const getScoreColorBg = (val) => {
+                    if (val <= 2) return "#dcfce7";
+                    if (val === 3) return "#fef3c7";
+                    if (val === 4) return "#ffedd5";
+                    return "#fee2e2";
+                  };
+                  const getScoreColorText = (val) => {
+                    if (val <= 2) return "#166534";
+                    if (val === 3) return "#92400e";
+                    if (val === 4) return "#9a3412";
+                    return "#991b1b";
+                  };
+
+                  const getRiskLevelScore = (likelihood, impact) => likelihood * impact;
+
+                  const getRiskLevelLabelAndColor = (score) => {
+                    if (score <= 5) return { label: "Low", bg: "#dcfce7", text: "#166534" };
+                    if (score <= 10) return { label: "Medium", bg: "#fef3c7", text: "#92400e" };
+                    if (score <= 15) return { label: "High", bg: "#ffedd5", text: "#9a3412" };
+                    return { label: "Extreme", bg: "#fee2e2", text: "#991b1b" };
+                  };
+
+                  const inferOwner = (assetType) => {
+                    if (!assetType) return "IT Team";
+                    const t = assetType.toLowerCase();
+                    if (t.includes("server") || t.includes("infrastructure") || t.includes("host")) return "IT Team";
+                    if (t.includes("auth") || t.includes("identity") || t.includes("access") || t.includes("iam")) return "IT Security";
+                    if (t.includes("db") || t.includes("database") || t.includes("storage")) return "DBA";
+                    if (t.includes("network") || t.includes("firewall") || t.includes("router")) return "DevOps";
+                    if (t.includes("vendor") || t.includes("third-party") || t.includes("supplier")) return "IT Security";
+                    return "IT Team";
+                  };
+
+                  return (
+                    <div className="card" style={{ padding: 0, overflow: "hidden", maxWidth: "100%" }}>
+                      <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none", width: "100%" }}>
+                        <table style={{ margin: 0, width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
+                          <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                            <tr style={{ background: "#f8fafc", borderBottom: "2px solid #d1d5db" }}>
+                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Risk ID</th>
+                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>Risk Statement</th>
+                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Asset</th>
+                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Threat</th>
+                              <th style={{ padding: "12px", textAlign: "center", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Likelihood</th>
+                              <th style={{ padding: "12px", textAlign: "center", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Impact</th>
+                              <th style={{ padding: "12px", textAlign: "center", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Risk Level</th>
+                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", maxWidth: "300px", wordBreak: "break-word", whiteSpace: "normal" }}>Control</th>
+                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", wordBreak: "break-word", whiteSpace: "normal" }}>Owner</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {entries.map((risk, idx) => {
+                              const rId = risk.risk_id || risk.id || `R${idx + 1}`;
+                              const rStatement = risk.risk_statement || risk.description || risk.title || risk.name || risk.risk_name || "—";
+                              const rAsset = risk.asset || risk.asset_type || "System";
+                              const rThreat = risk.threat || risk.vulnerability || risk.rule_id || "Unspecified Threat";
+                              
+                              let rawL = parseFloat(risk.likelihood);
+                              let rawI = parseFloat(risk.impact);
+
+                              if (isNaN(rawL) || isNaN(rawI)) {
+                                const level = (risk.risk_level || risk.level || "Medium").toLowerCase();
+                                if (level === "low") { rawL = 2; rawI = 2; }
+                                else if (level === "high") { rawL = 4; rawI = 3; }
+                                else if (level === "critical" || level === "extreme") { rawL = 5; rawI = 5; }
+                                else { rawL = 3; rawI = 3; }
+                              }
+
+                              const lScore = Math.max(1, Math.min(5, Math.round(rawL)));
+                              const iScore = Math.max(1, Math.min(5, Math.round(rawI)));
+                              const riskScore = getRiskLevelScore(lScore, iScore);
+                              const riskLevelMeta = getRiskLevelLabelAndColor(riskScore);
+                              
+                              let rControl = "—";
+                              if (risk.iso_controls && risk.iso_controls.length > 0) {
+                                rControl = risk.iso_controls.join(", ");
+                              } else if (risk.rule_id) {
+                                rControl = risk.rule_id;
+                              } else if (risk.controls) {
+                                rControl = risk.controls;
+                              } else if (ad.framework) {
+                                rControl = `Mapped via ${ad.framework}`;
+                              }
+                              
+                              const rOwner = risk.owner || inferOwner(rAsset);
+
+                              return (
+                                <tr key={rId} style={{ borderBottom: "1px solid #d1d5db", background: idx % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
+                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", fontWeight: 600, color: "#1e293b", wordBreak: "break-word", whiteSpace: "normal" }}>{rId}</td>
+                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", color: "#334155", maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>{rStatement}</td>
+                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", color: "#334155", wordBreak: "break-word", whiteSpace: "normal" }}>{rAsset}</td>
+                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", color: "#334155", wordBreak: "break-word", whiteSpace: "normal" }}>{rThreat}</td>
+                                  
+                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                    <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 700, background: getScoreColorBg(lScore), color: getScoreColorText(lScore) }}>
+                                      {lScore}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                    <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 700, background: getScoreColorBg(iScore), color: getScoreColorText(iScore) }}>
+                                      {iScore}
+                                    </span>
+                                  </td>
+                                  
+                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "6px 12px", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700, background: riskLevelMeta.bg, color: riskLevelMeta.text, border: `1px solid ${riskLevelMeta.text}33` }}>
+                                      {riskScore} {riskLevelMeta.label}
+                                    </span>
+                                  </td>
+                                  
+                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", color: "#334155", fontWeight: 500, maxWidth: "300px", wordBreak: "break-word", whiteSpace: "normal" }}>{rControl}</td>
+                                  <td style={{ padding: "12px", fontSize: "0.85rem", color: "#334155", wordBreak: "break-word", whiteSpace: "normal" }}>{rOwner}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })()}
               </>
             ) : (
               <div className="card" style={{ padding: "2rem", textAlign: "center" }}><p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0 }}>No risk register data found.</p></div>
