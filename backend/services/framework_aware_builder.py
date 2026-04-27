@@ -820,7 +820,6 @@ def build_framework_aware_assessment(
       insights                — framework-specific narrative summary
     """
     from services.framework_loader import load_framework
-    from assessment.treatment_plan_generator import generate_treatment_plan
 
     no_controls  = routing.get("no_controls_detected", True) or not uploaded_controls
     present_types = _get_present_sheet_types(routing)
@@ -1043,8 +1042,33 @@ def build_framework_aware_assessment(
             "name":         gr.get("risk_name", "Unknown"),
             "status":       "identified",
             "severity":     gr.get("risk_level", "medium"),
+            "threat":       gr.get("threat", ""),
+            "risk_statement": gr.get("risk_statement", ""),
+            "control":      gr.get("control", ""),
+            "asset":        gr.get("asset", "")
         })
-    treatment_plan = generate_treatment_plan(all_risks_for_treatment)
+
+    # ── 8. Risk-based treatment plan — one action per Risk Register row ──
+    #   Uses the new services/treatment_plan_generator which provides
+    #   framework-aware treatment text and severity-driven due dates.
+    from services.treatment_plan_generator import generate_treatment_plan as generate_risk_treatment
+    all_rr_entries = (
+        risk_register.get("generated_risk_entries", [])
+        + risk_register.get("uploaded_risk_entries", [])
+    )
+    risk_treatment_plan = generate_risk_treatment(
+        risks=all_rr_entries,
+        framework_id=framework_id,
+    )
+    
+    # Assign it to both for backward compatibility with older frontends,
+    # but using the new robust generator.
+    treatment_plan = {
+        "total_actions": len(risk_treatment_plan),
+        "framework": framework_id,
+        "remediation_source": "risk_driven",
+        "actions": risk_treatment_plan
+    }
 
     # ── 9. Contextual findings ────────────────────────────────────────────
     vendor_findings  = _extract_vendor_findings(routing)
@@ -1068,7 +1092,30 @@ def build_framework_aware_assessment(
     from services.evidence_inference import build_compliance_matrix
     compliance_matrix = build_compliance_matrix(relevant_controls, framework_label)
 
-    # ── 14. Assemble response ─────────────────────────────────────────────
+    # ── 14. Training Matrix (backend-generated, framework-aware) ──────────
+    from services.training_matrix_generator import generate_training_matrix
+    _emp_sheet = next((s for s in (all_sheets or []) if s.get("type") == "employees"), None)
+    _raw_employees = _emp_sheet.get("rows", []) if _emp_sheet else []
+    training_matrix_generated = generate_training_matrix(
+        employees=_raw_employees,
+        risks=(
+            risk_register.get("generated_risk_entries", [])
+            + risk_register.get("uploaded_risk_entries", [])
+        ),
+        framework_id=framework_id,
+    )
+
+    # ── 15. Governance Calendar (backend-generated, framework-aware) ──────
+    from services.governance_calendar_generator import generate_governance_calendar
+    governance_calendar_generated = generate_governance_calendar(
+        risks=(
+            risk_register.get("generated_risk_entries", [])
+            + risk_register.get("uploaded_risk_entries", [])
+        ),
+        framework_id=framework_id,
+    )
+
+    # ── 16. Assemble response ─────────────────────────────────────────────
     return {
         "success":          True,
         "message":          f"{framework_label} — {mode_label} completed.",
@@ -1113,6 +1160,9 @@ def build_framework_aware_assessment(
         # 3. Treatment plan — for high/critical framework gaps
         "treatment_plan": treatment_plan,
 
+        # 3b. Risk-based treatment plan — one action per Risk Register entry
+        "risk_treatment_plan": risk_treatment_plan,
+
         # 4. Contextual data findings
         "vendor_findings":  vendor_findings,
         "network_findings": network_findings,
@@ -1134,7 +1184,9 @@ def build_framework_aware_assessment(
         # 9. Extra matrices based on user request logic
         "vendor_checklist": _build_vendor_checklist(all_sheets),
         "training_matrix": _build_training_matrix(all_sheets),
+        "training_matrix_generated": training_matrix_generated,
         "governance_calendar": _build_governance_calendar(all_sheets),
+        "governance_calendar_generated": governance_calendar_generated,
 
         # 10. Cross-Framework Mapping (from High-Risk sheet)
         "cross_framework_mapping": [r for r in cross_framework_mapping if not _is_placeholder(r)],

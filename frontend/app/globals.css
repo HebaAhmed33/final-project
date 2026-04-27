@@ -1,10 +1,12 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   --bg-main: #F7F8FC;
   --bg-card: #FFFFFF;
   --bg-sidebar: #FFFFFF;
   --text-main: #111936;
+  --text-secondary: #4B5563;
   --text-muted: #6B7280;
   --border-color: #E5E7EB;
   --primary: #111936;
@@ -12,21 +14,29 @@
   --shadow-card: 0 10px 30px -10px rgba(17, 25, 54, 0.08);
   --accent: #F6E58D;
   --icon-bg: #EEF0F6;
+  --input-bg: #FFFFFF;
   --input-border: #D1D5DB;
   --input-text: #111827;
   --input-placeholder: #9CA3AF;
+  --logo-text: #151B3A;
 }
 
 [data-theme="dark"] {
   --bg-main: #0B1220;
   --bg-card: #111827;
   --bg-sidebar: #0F172A;
-  --text-main: #F3F4F6;
-  --text-muted: #9CA3AF;
-  --border-color: #1F2937;
+  --text-main: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --border-color: #243044;
   --primary: #3B82F6;
   --primary-hover: #60A5FA;
   --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --icon-bg: #1F2937;
+  --input-bg: #0F172A;
+  --input-text: #F8FAFC;
+  --input-placeholder: #94A3B8;
+  --logo-text: #F8FAFC;
 }
 
 * {
@@ -93,10 +103,15 @@ a {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--input-border, var(--border-color));
   border-radius: 0.375rem;
-  background-color: var(--bg-card);
+  background-color: var(--input-bg, var(--bg-card));
   color: var(--input-text, var(--text-main));
   font-size: 0.875rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+select.input-field option {
+  background-color: var(--input-bg, var(--bg-card));
+  color: var(--input-text, var(--text-main));
 }
 
 .input-field::placeholder {
@@ -170,4 +185,68 @@ a {
 .badge-blue {
   background-color: rgba(59, 130, 246, 0.1);
   color: var(--primary);
+}
+
+/* Dark Mode Global Overrides to fix hardcoded classes */
+[data-theme="dark"] label,
+[data-theme="dark"] .text-\[\#1a2340\],
+[data-theme="dark"] .text-\[\#111936\],
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-gray-900 {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .text-gray-600,
+[data-theme="dark"] .text-slate-500,
+[data-theme="dark"] .text-gray-500,
+[data-theme="dark"] .text-\[\#111827\],
+[data-theme="dark"] .text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .bg-\[\#f4f6f9\],
+[data-theme="dark"] .bg-\[\#F7F8FC\],
+[data-theme="dark"] .bg-slate-50,
+[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--bg-main) !important;
+}
+
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-\[\#FFFFFF\] {
+  background-color: var(--bg-card) !important;
+}
+
+[data-theme="dark"] .border-gray-100,
+[data-theme="dark"] .border-gray-200,
+[data-theme="dark"] .border-slate-200,
+[data-theme="dark"] .border-\[\#D1D5DB\] {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] select {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] select option {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+}
+
+/* Fix High Risk and Risk Register Table Headers */
+[data-theme="dark"] tr[style*="background: #111827"],
+[data-theme="dark"] tr[style*="background: #0f172a"] {
+  background-color: var(--bg-card) !important;
+}
+
+[data-theme="dark"] table[style*="background: #0f172a"] {
+  background-color: var(--bg-card) !important;
+}
+
+[data-theme="dark"] th[style*="color: #e5e7eb"],
+[data-theme="dark"] td[style*="color: #e5e7eb"] {
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
 }

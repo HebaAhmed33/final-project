@@ -329,20 +329,7 @@ export default function AssessmentResultsPage() {
             {ad.risk_register ? (
               <>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "1.5rem" }}>Compiled from your uploaded risk data context.</p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1.25rem", marginBottom: "1.5rem" }}>
-                  {[
-                    { label: "Total Risks", value: ad.risk_register.total_risks, color: "var(--primary)" },
-                    { label: "High / Critical", value: ad.risk_register.high_risks || 0, color: "#EF4444" },
-                    { label: "Untreated", value: ad.risk_register.untreated_count || 0, color: "#7C3AED" },
-                  ].map((m) => (
-                    <div key={m.label} className="card" style={{ padding: "1.25rem", borderLeft: `4px solid ${m.color}` }}>
-                      <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.4rem" }}>{m.label}</div>
-                      <div style={{ fontSize: "1.75rem", fontWeight: 800, color: m.color, lineHeight: "1" }}>{m.value}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Risk Register Table */}
+                {/* Risk Register Table & Metrics */}
                 {(() => {
                   const entries = [
                     ...(ad.risk_register.generated_risk_entries || []),
@@ -351,26 +338,62 @@ export default function AssessmentResultsPage() {
 
                   if (entries.length === 0) return null;
 
+                  let highCriticalCount = 0;
+                  let untreatedCount = 0;
+
+                  entries.forEach((risk) => {
+                    let rawL = parseFloat(risk.likelihood);
+                    let rawI = parseFloat(risk.impact);
+
+                    if (isNaN(rawL) || isNaN(rawI)) {
+                      const level = (risk.risk_level || risk.level || "Medium").toLowerCase();
+                      if (level === "low") { rawL = 2; rawI = 2; }
+                      else if (level === "high") { rawL = 4; rawI = 3; }
+                      else if (level === "critical" || level === "extreme") { rawL = 5; rawI = 5; }
+                      else { rawL = 3; rawI = 3; }
+                    }
+
+                    const lScore = Math.max(1, Math.min(5, Math.round(rawL)));
+                    const iScore = Math.max(1, Math.min(5, Math.round(rawI)));
+                    
+                    if (lScore * iScore >= 12) {
+                      highCriticalCount++;
+                    }
+
+                    let rControl = "—";
+                    if (risk.iso_controls && risk.iso_controls.length > 0) {
+                      rControl = risk.iso_controls.join(", ");
+                    } else if (risk.rule_id) {
+                      rControl = risk.rule_id;
+                    } else if (risk.controls) {
+                      rControl = risk.controls;
+                    } else if (ad.framework) {
+                      rControl = `Mapped via ${ad.framework}`;
+                    }
+
+                    if (!rControl || rControl === "—" || rControl.toLowerCase() === "pending mitigation") {
+                      untreatedCount++;
+                    }
+                  });
+
                   const getScoreColorBg = (val) => {
-                    if (val <= 2) return "#dcfce7";
-                    if (val === 3) return "#fef3c7";
-                    if (val === 4) return "#ffedd5";
-                    return "#fee2e2";
+                    if (val === 1) return "#14532d";
+                    if (val === 2) return "#166534";
+                    if (val === 3) return "#854d0e";
+                    if (val === 4) return "#9a3412";
+                    return "#7f1d1d";
                   };
                   const getScoreColorText = (val) => {
-                    if (val <= 2) return "#166534";
-                    if (val === 3) return "#92400e";
-                    if (val === 4) return "#9a3412";
-                    return "#991b1b";
+                    return "#ffffff";
                   };
 
                   const getRiskLevelScore = (likelihood, impact) => likelihood * impact;
 
                   const getRiskLevelLabelAndColor = (score) => {
-                    if (score <= 5) return { label: "Low", bg: "#dcfce7", text: "#166534" };
-                    if (score <= 10) return { label: "Medium", bg: "#fef3c7", text: "#92400e" };
-                    if (score <= 15) return { label: "High", bg: "#ffedd5", text: "#9a3412" };
-                    return { label: "Extreme", bg: "#fee2e2", text: "#991b1b" };
+                    if (score <= 5) return { label: "Low", bg: "#166534", text: "#ffffff" };
+                    if (score <= 10) return { label: "Medium", bg: "#854d0e", text: "#ffffff" };
+                    if (score <= 15) return { label: "High", bg: "#9a3412", text: "#ffffff" };
+                    return { label: "Extreme", bg: "#7f1d1d", text: "#ffffff" };
                   };
 
                   const inferOwner = (assetType) => {
@@ -385,20 +408,34 @@ export default function AssessmentResultsPage() {
                   };
 
                   return (
-                    <div className="card" style={{ padding: 0, overflow: "hidden", maxWidth: "100%" }}>
+                    <>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1.25rem", marginBottom: "1.5rem" }}>
+                        {[
+                          { label: "Total Risks", value: entries.length, color: "var(--primary)" },
+                          { label: "High / Critical", value: highCriticalCount, color: "#EF4444" },
+                          { label: "Untreated", value: untreatedCount, color: "#7C3AED" },
+                        ].map((m) => (
+                          <div key={m.label} className="card" style={{ padding: "1.25rem", borderLeft: `4px solid ${m.color}` }}>
+                            <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.4rem" }}>{m.label}</div>
+                            <div style={{ fontSize: "1.75rem", fontWeight: 800, color: m.color, lineHeight: "1" }}>{m.value}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="w-full rounded-xl overflow-hidden border border-slate-200 bg-white dark:bg-slate-950 dark:border-slate-800">
                       <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none", width: "100%" }}>
                         <table style={{ margin: 0, width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
                           <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
-                            <tr style={{ background: "#f8fafc", borderBottom: "2px solid #d1d5db" }}>
-                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Risk ID</th>
-                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>Risk Statement</th>
-                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Asset</th>
-                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Threat</th>
-                              <th style={{ padding: "12px", textAlign: "center", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Likelihood</th>
-                              <th style={{ padding: "12px", textAlign: "center", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Impact</th>
-                              <th style={{ padding: "12px", textAlign: "center", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", wordBreak: "break-word", whiteSpace: "normal" }}>Risk Level</th>
-                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", borderRight: "1px solid #d1d5db", maxWidth: "300px", wordBreak: "break-word", whiteSpace: "normal" }}>Control</th>
-                              <th style={{ padding: "12px", textAlign: "left", fontSize: "0.85rem", fontWeight: 700, color: "#475569", wordBreak: "break-word", whiteSpace: "normal" }}>Owner</th>
+                            <tr className="bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-white">
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", wordBreak: "break-word", whiteSpace: "normal" }}>Risk ID</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>Risk Statement</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", wordBreak: "break-word", whiteSpace: "normal" }}>Asset</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", wordBreak: "break-word", whiteSpace: "normal" }}>Threat</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>Likelihood</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>Impact</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>Risk Level</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", maxWidth: "300px", wordBreak: "break-word", whiteSpace: "normal" }}>Control</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", wordBreak: "break-word", whiteSpace: "normal" }}>Owner</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -438,38 +475,39 @@ export default function AssessmentResultsPage() {
                               const rOwner = risk.owner || inferOwner(rAsset);
 
                               return (
-                                <tr key={rId} style={{ borderBottom: "1px solid #d1d5db", background: idx % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
-                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", fontWeight: 600, color: "#1e293b", wordBreak: "break-word", whiteSpace: "normal" }}>{rId}</td>
-                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", color: "#334155", maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>{rStatement}</td>
-                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", color: "#334155", wordBreak: "break-word", whiteSpace: "normal" }}>{rAsset}</td>
-                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", color: "#334155", wordBreak: "break-word", whiteSpace: "normal" }}>{rThreat}</td>
+                                <tr key={rId} className="bg-white text-slate-800 border-slate-200 hover:bg-slate-50 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-800 dark:hover:bg-slate-900">
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ fontWeight: 600, wordBreak: "break-word", whiteSpace: "normal" }}>{rId}</td>
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>{rStatement}</td>
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ wordBreak: "break-word", whiteSpace: "normal" }}>{rAsset}</td>
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ wordBreak: "break-word", whiteSpace: "normal" }}>{rThreat}</td>
                                   
-                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
                                     <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 700, background: getScoreColorBg(lScore), color: getScoreColorText(lScore) }}>
                                       {lScore}
                                     </span>
                                   </td>
-                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
                                     <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 700, background: getScoreColorBg(iScore), color: getScoreColorText(iScore) }}>
                                       {iScore}
                                     </span>
                                   </td>
                                   
-                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
-                                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "6px 12px", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700, background: riskLevelMeta.bg, color: riskLevelMeta.text, border: `1px solid ${riskLevelMeta.text}33` }}>
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "6px 12px", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700, background: riskLevelMeta.bg, color: riskLevelMeta.text, border: `1px solid ${riskLevelMeta.bg}` }}>
                                       {riskScore} {riskLevelMeta.label}
                                     </span>
                                   </td>
                                   
-                                  <td style={{ padding: "12px", borderRight: "1px solid #d1d5db", fontSize: "0.85rem", color: "#334155", fontWeight: 500, maxWidth: "300px", wordBreak: "break-word", whiteSpace: "normal" }}>{rControl}</td>
-                                  <td style={{ padding: "12px", fontSize: "0.85rem", color: "#334155", wordBreak: "break-word", whiteSpace: "normal" }}>{rOwner}</td>
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ fontWeight: 500, maxWidth: "300px", wordBreak: "break-word", whiteSpace: "normal" }}>{rControl}</td>
+                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ wordBreak: "break-word", whiteSpace: "normal" }}>{rOwner}</td>
                                 </tr>
                               );
                             })}
                           </tbody>
                         </table>
                       </div>
-                    </div>
+                      </div>
+                    </>
                   );
                 })()}
               </>
@@ -480,14 +518,189 @@ export default function AssessmentResultsPage() {
         )}
         
         {/* TREATMENT PLAN TAB */}
-        {activeTab === "treatment_plan" && (
-          <div style={{ animation: "fadeIn 0.3s ease" }}>
-            <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "1rem" }}>Treatment Plan</h3>
-            <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0 }}>Treatment plan details will appear here based on risk register configuration.</p>
+        {activeTab === "treatment_plan" && (() => {
+          /* ---- Framework-specific treatment mappings ---- */
+          const TREATMENT_MAP_ISO27001 = {
+            application_security: "Mitigate: Implement parameterized queries, secure coding reviews, WAF protection, and regular DAST/SAST testing aligned with ISO 27001 application security controls.",
+            vulnerability_management: "Mitigate: Implement automated patch management, monthly vulnerability scanning, emergency patch SLAs for critical CVEs, and documented remediation tracking.",
+            identity_access: "Mitigate: Enforce MFA, strong password policy, privileged access reviews, and conditional access controls.",
+            encryption: "Mitigate: Enforce TLS, certificate lifecycle management, encryption at rest, key rotation, and cryptographic policy reviews.",
+            vendor_risk: "Mitigate: Perform vendor security assessments, review DPAs/SLAs, require security evidence, and monitor supplier compliance.",
+            default: "Mitigate: Apply relevant ISO 27001 controls, assign ownership, define remediation steps, and track closure evidence.",
+          };
+          const TREATMENT_MAP_HIPAA = {
+            identity_access: "Mitigate: Enforce unique user identification, MFA, role-based access, and periodic access reviews for systems handling ePHI.",
+            audit_logging: "Mitigate: Enable audit controls, log access to ePHI, monitor suspicious activity, and retain logs according to policy.",
+            encryption: "Mitigate: Protect ePHI using encryption in transit and at rest, enforce secure transmission controls, and review key management.",
+            resilience: "Mitigate: Maintain backup procedures, disaster recovery plans, emergency mode operations, and periodic restoration testing.",
+            vendor_risk: "Mitigate: Review Business Associate Agreements, validate security responsibilities, and monitor third-party handling of ePHI.",
+            default: "Mitigate: Apply relevant HIPAA Security Rule safeguards, assign responsibility, document remediation, and verify protection of ePHI.",
+          };
+          const TREATMENT_MAP_PCI_DSS = {
+            application_security: "Mitigate: Remediate injection weaknesses using secure coding, parameterized queries, code review, WAF rules, and PCI DSS application security testing.",
+            vulnerability_management: "Mitigate: Apply security patches, maintain vulnerability scans, remediate critical findings within SLA, and document evidence.",
+            identity_access: "Mitigate: Enforce MFA for administrative and cardholder data access, strong authentication, least privilege, and access reviews.",
+            network_security: "Mitigate: Review firewall rules, segment the cardholder data environment, restrict inbound/outbound traffic, and validate rule ownership.",
+            encryption: "Mitigate: Encrypt cardholder data in transit and at rest, manage keys securely, and validate cryptographic controls.",
+            default: "Mitigate: Apply relevant PCI DSS requirements, define remediation ownership, collect evidence, and validate closure.",
+          };
+
+          /* ---- Detect framework ---- */
+          const normaliseFramework = (raw) => {
+            if (!raw) return "iso27001";
+            const f = raw.toLowerCase().replace(/[^a-z0-9]/g, "");
+            if (f.includes("hipaa")) return "hipaa";
+            if (f.includes("pci")) return "pci_dss";
+            return "iso27001";
+          };
+          const fwKey = normaliseFramework(ad.framework);
+          const treatmentMap = fwKey === "hipaa" ? TREATMENT_MAP_HIPAA
+            : fwKey === "pci_dss" ? TREATMENT_MAP_PCI_DSS
+            : TREATMENT_MAP_ISO27001;
+
+          /* ---- Risk category detection ---- */
+          const CATEGORY_KEYWORDS = {
+            application_security: ["sql", "injection", "input validation", "xss", "cross-site", "secure coding", "sast", "dast"],
+            vulnerability_management: ["patch", "vulnerability", "cve", "unpatched", "exploit", "remote code execution", "outdated"],
+            identity_access: ["mfa", "password", "authentication", "access", "credential", "privilege", "identity", "iam", "auth"],
+            encryption: ["encryption", "tls", "certificate", "crypto", "ssl", "key management", "cipher", "cryptographic"],
+            vendor_risk: ["vendor", "supplier", "third party", "third-party", "dpa", "baa", "supply chain", "service provider"],
+            network_security: ["firewall", "network", "segmentation", "dmz", "ids", "ips", "router", "traffic", "perimeter"],
+            audit_logging: ["audit", "logging", "log", "monitor", "siem", "detection", "event", "alerting"],
+            resilience: ["backup", "recovery", "availability", "disaster", "continuity", "restoration", "failover"],
+          };
+          const detectCategory = (risk) => {
+            const text = [
+              risk.risk_statement, risk.description, risk.title,
+              risk.threat, risk.vulnerability, risk.asset,
+              risk.asset_type, risk.control, risk.rule_id,
+              risk.name, risk.risk_name,
+            ].filter(Boolean).join(" ").toLowerCase();
+            for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+              for (const kw of keywords) {
+                if (text.includes(kw)) return cat;
+              }
+            }
+            return "default";
+          };
+
+          /* ---- Risk score & due date ---- */
+          const computeScore = (risk) => {
+            let rawL = parseFloat(risk.likelihood);
+            let rawI = parseFloat(risk.impact);
+            if (!isNaN(rawL) && !isNaN(rawI) && rawL > 0 && rawI > 0) {
+              return Math.max(1, Math.min(5, Math.round(rawL))) * Math.max(1, Math.min(5, Math.round(rawI)));
+            }
+            const level = (risk.risk_level || risk.level || "medium").toLowerCase();
+            if (level === "critical" || level === "extreme") return 25;
+            if (level === "high") return 12;
+            if (level === "low") return 4;
+            return 9;
+          };
+          const calcDueDate = (score) => {
+            const now = new Date();
+            let days = 90;
+            if (score >= 15) days = 30;
+            else if (score >= 8) days = 60;
+            const due = new Date(now.getTime() + days * 86400000);
+            const dd = String(due.getDate()).padStart(2, "0");
+            const mm = String(due.getMonth() + 1).padStart(2, "0");
+            const yyyy = due.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+          };
+
+          /* ---- Build treatment rows: prefer backend, fallback to client ---- */
+          let treatmentRows = [];
+
+          // Prefer backend-generated risk_treatment_plan
+          const backendPlan = ad.risk_treatment_plan;
+          if (backendPlan && Array.isArray(backendPlan) && backendPlan.length > 0) {
+            treatmentRows = backendPlan.map((row) => ({
+              risk_id: String(row.risk_id || "—"),
+              treatment: row.treatment || "—",
+              due_date: (row.due_date || "").includes("/")
+                ? row.due_date
+                : (() => { // Convert YYYY-MM-DD → DD/MM/YYYY
+                    const p = (row.due_date || "").split("-");
+                    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : row.due_date || "—";
+                  })(),
+            }));
+          } else {
+            // Fallback: generate client-side from risk register
+            const entries = ad.risk_register ? [
+              ...(ad.risk_register.generated_risk_entries || []),
+              ...(ad.risk_register.uploaded_risk_entries || []),
+            ] : [];
+
+            treatmentRows = entries.map((risk, idx) => {
+              const riskId = String(risk.risk_id || risk.id || `R${idx + 1}`);
+              const category = detectCategory(risk);
+              const treatment = treatmentMap[category] || treatmentMap.default;
+              const score = computeScore(risk);
+              const dueDate = calcDueDate(score);
+              return { risk_id: riskId, treatment, due_date: dueDate };
+            });
+          }
+
+          /* ---- Due date badge color ---- */
+          const getDueBadge = (dueDateStr) => {
+            const parts = dueDateStr.split("/");
+            const dueMs = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
+            const nowMs = Date.now();
+            const daysLeft = Math.round((dueMs - nowMs) / 86400000);
+            if (daysLeft <= 30) return { bg: "#7f1d1d", text: "#ffffff" };
+            if (daysLeft <= 60) return { bg: "#854d0e", text: "#ffffff" };
+            return { bg: "#166534", text: "#ffffff" };
+          };
+
+          return (
+            <div style={{ animation: "fadeIn 0.3s ease" }}>
+              <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "0.25rem" }}>Treatment Plan</h3>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "1.5rem" }}>
+                One treatment action per risk, mapped to {ad.framework || "the selected framework"}.
+              </p>
+
+              {treatmentRows.length > 0 ? (
+                <div className="w-full rounded-xl overflow-hidden border border-slate-200 bg-white dark:bg-slate-950 dark:border-slate-800">
+                  <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none", width: "100%" }}>
+                    <table style={{ margin: 0, width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
+                      <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                        <tr className="bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-white">
+                          <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", width: "100px" }}>Risk ID</th>
+                          <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left" }}>Treatment</th>
+                          <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "center", width: "130px" }}>Due Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {treatmentRows.map((row, i) => {
+                          const badge = getDueBadge(row.due_date);
+                          return (
+                            <tr key={row.risk_id + "-" + i} className="bg-white text-slate-800 border-slate-200 hover:bg-slate-50 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-800 dark:hover:bg-slate-900">
+                              <td className="px-4 py-3 text-sm border-b border-slate-200 dark:border-slate-800" style={{ fontWeight: 600, wordBreak: "break-word", whiteSpace: "normal" }}>{row.risk_id}</td>
+                              <td className="px-4 py-3 text-sm border-b border-slate-200 dark:border-slate-800" style={{ wordBreak: "break-word", whiteSpace: "normal", lineHeight: "1.5" }}>{row.treatment}</td>
+                              <td className="px-4 py-3 text-sm border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "center" }}>
+                                <span style={{ display: "inline-block", padding: "4px 12px", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700, background: badge.bg, color: badge.text }}>
+                                  {row.due_date}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div style={{ padding: "0.6rem 1rem", fontSize: "0.8rem", color: "var(--text-muted)", borderTop: "1px solid var(--border-color)" }}>
+                    {treatmentRows.length} treatment action{treatmentRows.length !== 1 ? "s" : ""} generated for {ad.framework || "the selected framework"}
+                  </div>
+                </div>
+              ) : (
+                <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0 }}>No risks found in the Risk Register. Upload an assessment to generate treatment actions.</p>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* SOA TAB */}
         {activeTab === "soa" && (() => {
@@ -974,60 +1187,206 @@ export default function AssessmentResultsPage() {
         )}
 
         {/* TRAINING MATRIX TAB */}
-        {activeTab === "training" && (
-          <div style={{ animation: "fadeIn 0.3s ease" }}>
-            <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "1rem" }}>Training Matrix</h3>
-            {ad.training_matrix && ad.training_matrix.length > 0 ? (
-              <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-                <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none" }}>
-                  <table className="modern-table" style={{ margin: 0 }}>
-                    <thead><tr><th>Employee Role</th><th>Employee Name</th><th>Training Status</th><th>Required Modules</th></tr></thead>
-                    <tbody>
-                      {ad.training_matrix.map((row, i) => (
-                        <tr key={i}>
-                          <td style={{fontWeight:500}}>{row.role}</td>
-                          <td>{row.employee}</td>
-                          <td><span className={getBadgeClass(row.training_status)}>{row.training_status}</span></td>
-                          <td style={{color: "var(--text-secondary)"}}>{row.required_modules}</td>
+        {activeTab === "training" && (() => {
+          /* ── Prefer backend-generated data, fallback to client-side ──── */
+          const backendData = ad.training_matrix_generated;
+          const hasBackend = backendData && backendData.role_based_matrix && backendData.role_based_matrix.length > 0;
+
+          /* ── Role-Based Matrix ── */
+          let roleBasedMatrix;
+          if (hasBackend) {
+            roleBasedMatrix = backendData.role_based_matrix;
+          } else {
+            // Client-side fallback
+            const defaultRoleBasedMatrix = [
+              { role: "All Employees", content: "Security Awareness, Phishing & Data Privacy", frequency: "Annually", driver: "Social Engineering, Data Handling" },
+              { role: "IT & Operations", content: "Privileged Access, Incident Response, Cloud Security", frequency: "Bi-Annually", driver: "Privilege Escalation, Infrastructure Misconfigurations" },
+              { role: "Developers / Engineering", content: "Secure Coding, OWASP Top 10, API Security", frequency: "Annually", driver: "Application Vulnerabilities, Injection Attacks" },
+              { role: "HR & Finance", content: "BEC Prevention, Privacy (GDPR/HIPAA), Fraud Detection", frequency: "Annually", driver: "Business Email Compromise, Data Leakage" },
+              { role: "Executive Management", content: "Cyber Crisis Management, Executive Briefing", frequency: "Annually", driver: "Ransomware, Targeted Whaling Attacks" }
+            ];
+
+            const fallbackEmployees = ad.training_matrix || [];
+            if (fallbackEmployees.length > 0) {
+              const rolesSet = new Set(fallbackEmployees.map(r => r.role).filter(Boolean));
+              const uniqueRoles = Array.from(rolesSet);
+              const risks = ad.risk_register ? [
+                ...(ad.risk_register.generated_risk_entries || []),
+                ...(ad.risk_register.uploaded_risk_entries || [])
+              ] : [];
+              const riskText = risks.map(r => [r.threat, r.risk_statement, r.description].filter(Boolean).join(" ").toLowerCase()).join(" ");
+
+              roleBasedMatrix = uniqueRoles.map(role => {
+                const r = role.toLowerCase();
+                let content = "Security Awareness & General Data Privacy";
+                let frequency = "Annually";
+                let driver = "General Security Posture, Data Handling";
+                if (r.includes("it") || r.includes("admin") || r.includes("ops")) {
+                  content = "Privileged Access, Incident Response, Cloud Security"; frequency = "Bi-Annually";
+                  driver = "Privilege Escalation, System Misconfigurations";
+                  if (riskText.includes("ransomware") || riskText.includes("malware")) driver += ", Ransomware Threats";
+                } else if (r.includes("dev") || r.includes("eng")) {
+                  content = "Secure Coding, OWASP Top 10, API Security";
+                  driver = "Application Vulnerabilities, Injection Attacks";
+                  if (riskText.includes("sql") || riskText.includes("xss") || riskText.includes("api")) driver += ", API Abuse, Web Exploits";
+                } else if (r.includes("hr") || r.includes("fin") || r.includes("account") || r.includes("legal")) {
+                  content = "BEC Prevention, Data Privacy, Fraud Detection";
+                  driver = "Business Email Compromise, Data Leakage";
+                  if (riskText.includes("phish") || riskText.includes("social")) driver += ", Social Engineering";
+                } else if (r.includes("exec") || r.includes("dir") || r.includes("vp") || r.includes("chief") || r.includes("c-suite")) {
+                  content = "Cyber Crisis Management, Executive Briefing";
+                  driver = "Targeted Whaling Attacks, Reputational Risk";
+                } else {
+                  if (riskText.includes("phish") || riskText.includes("social")) driver += ", Social Engineering";
+                  if (riskText.includes("loss") || riskText.includes("leak") || riskText.includes("data exfiltration")) driver += ", Data Leakage";
+                }
+                return { role, content, frequency, driver };
+              });
+              if (roleBasedMatrix.length === 0) roleBasedMatrix = defaultRoleBasedMatrix;
+            } else {
+              roleBasedMatrix = defaultRoleBasedMatrix;
+            }
+          }
+
+          /* ── Employee Tracker: backend first, then raw training_matrix ── */
+          const backendTraining = ad.training_matrix_generated || {};
+          const trackerData = backendTraining.employee_tracker || backendTraining.employee_training_tracker || [];
+
+          return (
+            <div style={{ animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", gap: "2rem" }}>
+              <div>
+                <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "0.5rem" }}>Training Matrix</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "1.25rem" }}>
+                  {hasBackend
+                    ? `Framework-aware training requirements generated for ${backendData.framework?.toUpperCase() || ad.framework || "the selected framework"}.`
+                    : "Standardized security training requirements mapped to organizational roles and risk drivers."}
+                </p>
+                <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+                  <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none" }}>
+                    <table className="modern-table" style={{ margin: 0 }}>
+                      <thead>
+                        <tr>
+                          <th>Role / Group</th>
+                          <th>Training Content</th>
+                          <th>Frequency</th>
+                          <th>Risk / Incident Driver</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {roleBasedMatrix.map((row, i) => (
+                          <tr key={i}>
+                            <td style={{ fontWeight: 600, color: "var(--text-main)" }}>{row.role}</td>
+                            <td style={{ color: "var(--text-main)" }}>{row.content}</td>
+                            <td style={{ color: "var(--text-secondary)", whiteSpace: "nowrap" }}>{row.frequency}</td>
+                            <td style={{ color: "var(--text-secondary)" }}>{row.driver}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div className="card" style={{ padding: "2rem", textAlign: "center" }}><p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0 }}>No training matrix data found.</p></div>
-            )}
-          </div>
-        )}
+
+              <div>
+                <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "0.5rem" }}>Employee Training Tracker</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "1.25rem" }}>Current compliance status for individual employee training requirements.</p>
+                {trackerData.length > 0 ? (
+                  <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+                    <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none" }}>
+                      <table className="modern-table" style={{ margin: 0 }}>
+                        <thead>
+                          <tr>
+                            <th>Employee Name</th>
+                            <th>Role</th>
+                            <th>Assigned Training</th>
+                            <th>Status</th>
+                            <th>Last Training Date</th>
+                            <th>Next Due Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {trackerData.map((row, i) => (
+                            <tr key={i}>
+                              <td style={{ fontWeight: 500, color: "var(--text-main)" }}>{row.employee || row.employee_name || row.name || "Unknown"}</td>
+                              <td style={{ color: "var(--text-secondary)" }}>{row.role || "Employee"}</td>
+                              <td style={{ color: "var(--text-main)" }}>{row.assigned_training || row.required_modules || "Security Awareness"}</td>
+                              <td><span className={getBadgeClass(row.status || row.training_status || "Pending")}>{row.status || row.training_status || "Pending"}</span></td>
+                              <td style={{ color: "var(--text-secondary)" }}>{row.last_training_date || "—"}</td>
+                              <td style={{ color: "var(--text-secondary)" }}>{row.next_due_date || "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="card" style={{ padding: "3rem 2rem", textAlign: "center", border: "1px dashed var(--border-color)", background: "var(--bg-main)" }}>
+                    <svg style={{ width: "48px", height: "48px", color: "var(--text-muted)", margin: "0 auto 1rem", opacity: 0.5 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <h4 style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--text-main)", marginBottom: "0.5rem" }}>No Employee Data Found</h4>
+                    <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0, maxWidth: "400px", marginLeft: "auto", marginRight: "auto" }}>Upload HR records or a training matrix spreadsheet to populate employee tracking.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* GOVERNANCE CALENDAR TAB */}
-        {activeTab === "governance" && (
-          <div style={{ animation: "fadeIn 0.3s ease" }}>
-            <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "1rem" }}>Governance Calendar</h3>
-            {ad.governance_calendar && ad.governance_calendar.length > 0 ? (
-              <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-                <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none" }}>
-                  <table className="modern-table" style={{ margin: 0 }}>
-                    <thead><tr><th>Recurring Activity</th><th>Cadence</th><th>Responsible Party</th><th>Status</th></tr></thead>
-                    <tbody>
-                      {ad.governance_calendar.map((row, i) => (
-                        <tr key={i}>
-                          <td style={{fontWeight:500}}>{row.activity}</td>
-                          <td>{row.cadence}</td>
-                          <td>{row.responsible}</td>
-                          <td><span className={getBadgeClass(row.status)}>{row.status}</span></td>
+        {activeTab === "governance" && (() => {
+          const generatedCal = ad.governance_calendar_generated;
+          const hasGenerated = Array.isArray(generatedCal) && generatedCal.length > 0;
+
+          const legacyCal = ad.governance_calendar;
+          const hasLegacy = Array.isArray(legacyCal) && legacyCal.length > 0;
+
+          const calendarRows =
+            hasGenerated
+              ? generatedCal
+              : hasLegacy
+                ? legacyCal.map((row, i) => ({
+                    month: `Month ${i + 1}`,
+                    governance_activity: row.activity || row.governance_activity || "—",
+                  }))
+                : [];
+
+          return (
+            <div style={{ animation: "fadeIn 0.3s ease" }}>
+              <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "0.5rem" }}>Governance Calendar</h3>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "1.25rem" }}>
+                {hasGenerated
+                  ? `Framework-aware governance activities generated for ${ad.framework || "the selected framework"}.`
+                  : "Governance activities schedule for recurring compliance and security reviews."}
+                {!hasGenerated && hasLegacy && (
+                  <span style={{ color: "orange", marginLeft: "0.5rem" }}>(Using legacy governance calendar)</span>
+                )}
+              </p>
+              {calendarRows.length > 0 ? (
+                <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+                  <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none" }}>
+                    <table className="modern-table" style={{ margin: 0 }}>
+                      <thead>
+                        <tr>
+                          <th>Month</th>
+                          <th>Governance Activity</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {calendarRows.map((row, i) => (
+                          <tr key={i}>
+                            <td style={{ fontWeight: 600, color: "var(--text-main)", whiteSpace: "nowrap" }}>{row.month}</td>
+                            <td style={{ color: "var(--text-main)" }}>{row.governance_activity}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="card" style={{ padding: "2rem", textAlign: "center" }}><p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0 }}>No governance calendar data found.</p></div>
-            )}
-          </div>
-        )}
+              ) : (
+                <div className="card" style={{ padding: "2rem", textAlign: "center" }}><p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0 }}>No governance calendar data found.</p></div>
+              )}
+            </div>
+          );
+        })()}
 
       </div>
     </PageContainer>

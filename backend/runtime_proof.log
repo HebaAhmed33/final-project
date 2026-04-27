@@ -344,3 +344,322 @@ on_profile', 'risk_register', 'vendors']
 2026-04-27 04:36:27,054 RESULTS: compliant=55  partial=8  missing=0
 2026-04-27 04:36:27,054 BY_SOURCE: {'json_rule_config': 63}
 2026-04-27 04:36:27,054 ======================================================================
+2026-04-27 04:39:21,220 ======================================================================
+2026-04-27 04:39:21,221 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 04:39:21,221 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 04:39:21,221 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 04:39:21,221 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 04:39:21,221 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 04:39:21,221 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 04:39:21,221 ======================================================================
+2026-04-27 04:39:21,223 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 04:39:21,224 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 04:39:21,226 ======================================================================
+2026-04-27 04:39:21,226 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 04:39:21,226 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 04:39:21,226 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 04:39:21,237 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 04:39:21,238 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 04:39:21,238 EVALUATED_CONTROLS: 63
+2026-04-27 04:39:21,238 SCORE_SOURCE: rule_engine
+2026-04-27 04:39:21,238 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 04:39:21,238 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 04:39:21,238 ======================================================================
+2026-04-27 05:36:44,839 ======================================================================
+2026-04-27 05:36:44,839 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 05:36:44,839 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 05:36:44,839 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 05:36:44,840 [RUNTIME PROOF]   present_types    : ['assets', 'controls', 'employees', 'vendors']
+2026-04-27 05:36:44,840 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 05:36:44,840 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 05:36:44,840 ======================================================================
+2026-04-27 05:36:44,842 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 05:36:44,842 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 05:36:44,843 ======================================================================
+2026-04-27 05:36:44,843 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 05:36:44,843 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_employee_records': True, 'has_high_risk_vendors': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False}
+2026-04-27 05:36:44,843 METRICS: {'training_coverage_pct': 0.0}
+2026-04-27 05:36:44,853 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 05:36:44,854 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 05:36:44,854 EVALUATED_CONTROLS: 63
+2026-04-27 05:36:44,854 SCORE_SOURCE: rule_engine
+2026-04-27 05:36:44,854 RESULTS: compliant=11  partial=23  missing=29
+2026-04-27 05:36:44,854 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 05:36:44,854 ======================================================================
+2026-04-27 20:33:08,739 ======================================================================
+2026-04-27 20:33:08,740 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 20:33:08,740 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 20:33:08,741 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 20:33:08,741 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 20:33:08,741 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 20:33:08,741 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 20:33:08,742 ======================================================================
+2026-04-27 20:33:08,745 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 20:33:08,745 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 20:33:08,750 ======================================================================
+2026-04-27 20:33:08,750 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 20:33:08,751 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 20:33:08,751 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 20:33:08,771 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 20:33:08,773 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 20:33:08,773 EVALUATED_CONTROLS: 63
+2026-04-27 20:33:08,774 SCORE_SOURCE: rule_engine
+2026-04-27 20:33:08,774 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 20:33:08,774 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 20:33:08,774 ======================================================================
+2026-04-27 21:27:18,754 ======================================================================
+2026-04-27 21:27:18,755 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 21:27:18,755 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 21:27:18,756 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 21:27:18,756 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 21:27:18,756 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 21:27:18,756 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 21:27:18,756 ======================================================================
+2026-04-27 21:27:18,756 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 21:27:18,756 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 21:27:18,756 ======================================================================
+2026-04-27 21:27:18,756 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 21:27:18,756 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 21:27:18,758 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 21:27:18,758 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 21:27:18,758 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 21:27:18,759 EVALUATED_CONTROLS: 63
+2026-04-27 21:27:18,760 SCORE_SOURCE: rule_engine
+2026-04-27 21:27:18,760 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 21:27:18,760 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 21:27:18,760 ======================================================================
+2026-04-27 21:32:51,473 ======================================================================
+2026-04-27 21:32:51,473 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 21:32:51,474 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 21:32:51,475 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 21:32:51,475 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 21:32:51,475 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 21:32:51,475 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 21:32:51,475 ======================================================================
+2026-04-27 21:32:51,475 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 21:32:51,475 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 21:32:51,475 ======================================================================
+2026-04-27 21:32:51,475 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 21:32:51,476 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 21:32:51,476 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 21:32:51,476 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 21:32:51,476 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 21:32:51,476 EVALUATED_CONTROLS: 63
+2026-04-27 21:32:51,478 SCORE_SOURCE: rule_engine
+2026-04-27 21:32:51,478 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 21:32:51,478 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 21:32:51,478 ======================================================================
+2026-04-27 21:37:27,127 ======================================================================
+2026-04-27 21:37:27,127 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 21:37:27,128 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 21:37:27,128 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 21:37:27,128 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 21:37:27,128 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 21:37:27,128 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 21:37:27,128 ======================================================================
+2026-04-27 21:37:27,128 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 21:37:27,128 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 21:37:27,128 ======================================================================
+2026-04-27 21:37:27,129 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 21:37:27,129 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 21:37:27,129 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 21:37:27,129 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 21:37:27,130 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 21:37:27,130 EVALUATED_CONTROLS: 63
+2026-04-27 21:37:27,132 SCORE_SOURCE: rule_engine
+2026-04-27 21:37:27,132 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 21:37:27,132 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 21:37:27,132 ======================================================================
+2026-04-27 21:41:47,466 ======================================================================
+2026-04-27 21:41:47,466 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 21:41:47,466 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 21:41:47,468 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 21:41:47,468 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 21:41:47,468 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 21:41:47,468 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 21:41:47,469 ======================================================================
+2026-04-27 21:41:47,469 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 21:41:47,469 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 21:41:47,469 ======================================================================
+2026-04-27 21:41:47,469 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 21:41:47,469 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 21:41:47,469 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 21:41:47,469 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 21:41:47,471 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 21:41:47,471 EVALUATED_CONTROLS: 63
+2026-04-27 21:41:47,471 SCORE_SOURCE: rule_engine
+2026-04-27 21:41:47,471 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 21:41:47,471 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 21:41:47,472 ======================================================================
+2026-04-27 21:47:32,694 ======================================================================
+2026-04-27 21:47:32,694 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 21:47:32,695 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 21:47:32,695 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 21:47:32,695 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 21:47:32,695 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 21:47:32,696 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 21:47:32,696 ======================================================================
+2026-04-27 21:47:32,696 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 21:47:32,696 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 21:47:32,696 ======================================================================
+2026-04-27 21:47:32,697 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 21:47:32,697 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 21:47:32,697 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 21:47:32,697 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 21:47:32,698 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 21:47:32,699 EVALUATED_CONTROLS: 63
+2026-04-27 21:47:32,699 SCORE_SOURCE: rule_engine
+2026-04-27 21:47:32,699 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 21:47:32,699 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 21:47:32,700 ======================================================================
+2026-04-27 21:52:49,086 ======================================================================
+2026-04-27 21:52:49,086 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 21:52:49,086 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 21:52:49,086 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 21:52:49,086 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 21:52:49,086 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 21:52:49,086 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 21:52:49,086 ======================================================================
+2026-04-27 21:52:49,086 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 21:52:49,088 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 21:52:49,088 ======================================================================
+2026-04-27 21:52:49,088 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 21:52:49,088 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 21:52:49,088 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 21:52:49,089 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 21:52:49,089 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 21:52:49,089 EVALUATED_CONTROLS: 63
+2026-04-27 21:52:49,090 SCORE_SOURCE: rule_engine
+2026-04-27 21:52:49,091 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 21:52:49,091 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 21:52:49,091 ======================================================================
+2026-04-27 23:00:01,256 ======================================================================
+2026-04-27 23:00:01,256 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 23:00:01,256 [RUNTIME PROOF]   framework        : iso27001 (ISO27001)
+2026-04-27 23:00:01,256 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 23:00:01,256 [RUNTIME PROOF]   present_types    : ['controls']
+2026-04-27 23:00:01,256 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 23:00:01,256 [RUNTIME PROOF]   uploaded_controls: 3
+2026-04-27 23:00:01,257 ======================================================================
+2026-04-27 23:00:01,258 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 23:00:01,258 [RUNTIME PROOF]   framework_id     : iso27001
+2026-04-27 23:00:01,261 ======================================================================
+2026-04-27 23:00:01,261 RULE_ENGINE_ACTIVE: iso27001
+2026-04-27 23:00:01,261 SIGNALS: {}
+2026-04-27 23:00:01,261 METRICS: {}
+2026-04-27 23:00:01,269 TOTAL_RULES_LOADED: 21
+2026-04-27 23:00:01,269 RULE_ENGINE_MATCHED: 17 controls
+2026-04-27 23:00:01,269 RULE_ENGINE_SCORE: 0.00%
+2026-04-27 23:00:01,269 JSON_CONDITION_EVALUATED: 46 controls
+2026-04-27 23:00:01,269 EVALUATED_CONTROLS: 63
+2026-04-27 23:00:01,269 SCORE_SOURCE: rule_engine
+2026-04-27 23:00:01,269 RESULTS: compliant=0  partial=0  missing=63
+2026-04-27 23:00:01,269 BY_SOURCE: {'rule_engine': 17, 'json_rule_config': 46}
+2026-04-27 23:00:01,269 ======================================================================
+2026-04-27 23:01:31,474 ======================================================================
+2026-04-27 23:01:31,475 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 23:01:31,475 [RUNTIME PROOF]   framework        : iso27001 (ISO27001)
+2026-04-27 23:01:31,475 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 23:01:31,475 [RUNTIME PROOF]   present_types    : ['controls']
+2026-04-27 23:01:31,475 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 23:01:31,475 [RUNTIME PROOF]   uploaded_controls: 3
+2026-04-27 23:01:31,475 ======================================================================
+2026-04-27 23:01:31,476 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 23:01:31,476 [RUNTIME PROOF]   framework_id     : iso27001
+2026-04-27 23:01:31,476 ======================================================================
+2026-04-27 23:01:31,476 RULE_ENGINE_ACTIVE: iso27001
+2026-04-27 23:01:31,476 SIGNALS: {}
+2026-04-27 23:01:31,476 METRICS: {}
+2026-04-27 23:01:31,479 TOTAL_RULES_LOADED: 21
+2026-04-27 23:01:31,480 RULE_ENGINE_MATCHED: 17 controls
+2026-04-27 23:01:31,480 RULE_ENGINE_SCORE: 0.00%
+2026-04-27 23:01:31,480 JSON_CONDITION_EVALUATED: 46 controls
+2026-04-27 23:01:31,480 EVALUATED_CONTROLS: 63
+2026-04-27 23:01:31,480 SCORE_SOURCE: rule_engine
+2026-04-27 23:01:31,480 RESULTS: compliant=0  partial=0  missing=63
+2026-04-27 23:01:31,480 BY_SOURCE: {'rule_engine': 17, 'json_rule_config': 46}
+2026-04-27 23:01:31,480 ======================================================================
+2026-04-27 23:21:08,903 ======================================================================
+2026-04-27 23:21:08,903 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 23:21:08,903 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 23:21:08,903 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 23:21:08,904 [RUNTIME PROOF]   present_types    : ['controls']
+2026-04-27 23:21:08,904 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 23:21:08,904 [RUNTIME PROOF]   uploaded_controls: 3
+2026-04-27 23:21:08,904 ======================================================================
+2026-04-27 23:21:08,905 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 23:21:08,905 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 23:21:08,906 ======================================================================
+2026-04-27 23:21:08,906 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 23:21:08,906 SIGNALS: {}
+2026-04-27 23:21:08,906 METRICS: {}
+2026-04-27 23:21:08,910 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 23:21:08,910 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 23:21:08,910 EVALUATED_CONTROLS: 63
+2026-04-27 23:21:08,911 SCORE_SOURCE: rule_engine
+2026-04-27 23:21:08,911 RESULTS: compliant=0  partial=0  missing=63
+2026-04-27 23:21:08,911 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 23:21:08,911 ======================================================================
+2026-04-27 23:29:01,757 ======================================================================
+2026-04-27 23:29:01,757 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-27 23:29:01,757 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-27 23:29:01,757 [RUNTIME PROOF]   no_controls      : False
+2026-04-27 23:29:01,757 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-27 23:29:01,757 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-27 23:29:01,757 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-27 23:29:01,757 ======================================================================
+2026-04-27 23:29:01,759 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-27 23:29:01,759 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-27 23:29:01,760 ======================================================================
+2026-04-27 23:29:01,760 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-27 23:29:01,760 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-27 23:29:01,760 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-27 23:29:01,766 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-27 23:29:01,766 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-27 23:29:01,767 EVALUATED_CONTROLS: 63
+2026-04-27 23:29:01,767 SCORE_SOURCE: rule_engine
+2026-04-27 23:29:01,767 RESULTS: compliant=59  partial=4  missing=0
+2026-04-27 23:29:01,767 BY_SOURCE: {'json_rule_config': 63}
+2026-04-27 23:29:01,767 ======================================================================
+2026-04-28 01:30:57,974 ======================================================================
+2026-04-28 01:30:57,975 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 01:30:57,975 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-28 01:30:57,975 [RUNTIME PROOF]   no_controls      : False
+2026-04-28 01:30:57,975 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-28 01:30:57,976 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-28 01:30:57,976 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-28 01:30:57,976 ======================================================================
+2026-04-28 01:30:57,978 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 01:30:57,980 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-28 01:30:57,981 ======================================================================
+2026-04-28 01:30:57,981 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-28 01:30:57,981 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 01:30:57,982 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-28 01:30:57,995 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-28 01:30:57,996 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-28 01:30:57,996 EVALUATED_CONTROLS: 63
+2026-04-28 01:30:57,996 SCORE_SOURCE: rule_engine
+2026-04-28 01:30:57,996 RESULTS: compliant=59  partial=4  missing=0
+2026-04-28 01:30:57,997 BY_SOURCE: {'json_rule_config': 63}
+2026-04-28 01:30:57,997 ======================================================================
+2026-04-28 01:59:56,128 ======================================================================
+2026-04-28 01:59:56,129 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 01:59:56,129 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-28 01:59:56,129 [RUNTIME PROOF]   no_controls      : False
+2026-04-28 01:59:56,129 [RUNTIME PROOF]   present_types    : ['applications', 'assets', 'controls', 'employees', 'governance', 'network_rules', 'organization_profile', 'risk_register', 'vendors']
+2026-04-28 01:59:56,129 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-28 01:59:56,129 [RUNTIME PROOF]   uploaded_controls: 4
+2026-04-28 01:59:56,129 ======================================================================
+2026-04-28 01:59:56,130 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 01:59:56,131 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-28 01:59:56,133 ======================================================================
+2026-04-28 01:59:56,133 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-28 01:59:56,133 SIGNALS: {'has_access_levels': True, 'has_applications': True, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': True, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': True, 'has_some_training': True, 'has_vendor_compliance': True, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 01:59:56,133 METRICS: {'training_coverage_pct': 100.0, 'risky_rule_pct': 20.0}
+2026-04-28 01:59:56,147 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-28 01:59:56,147 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-28 01:59:56,147 EVALUATED_CONTROLS: 63
+2026-04-28 01:59:56,147 SCORE_SOURCE: rule_engine
+2026-04-28 01:59:56,148 RESULTS: compliant=59  partial=4  missing=0
+2026-04-28 01:59:56,148 BY_SOURCE: {'json_rule_config': 63}
+2026-04-28 01:59:56,148 ======================================================================

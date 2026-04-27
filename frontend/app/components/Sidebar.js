@@ -81,7 +81,7 @@ export default function Sidebar({ isCollapsed = false, setIsCollapsed = () => {}
             </svg>
           </div>
           {!isCollapsed && (
-            <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "#151B3A", letterSpacing: "-0.02em" }}>
+            <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--logo-text)", letterSpacing: "-0.02em" }}>
               Aegis.One
             </span>
           )}
