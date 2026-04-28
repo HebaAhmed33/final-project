@@ -14,208 +14,54 @@ import re
 # ---------------------------------------------------------------------------
 
 TREATMENT_MAP_ISO27001 = {
-    "application_security": (
-        "Mitigate: Implement parameterized queries, secure coding reviews, "
-        "WAF protection, and regular DAST/SAST testing aligned with ISO 27001 "
-        "application security controls."
-    ),
-    "access_control": (
-        "Mitigate: Enforce role-based access control (RBAC), conduct periodic "
-        "access reviews, implement least-privilege principles, and document "
-        "authorization matrices per ISO 27001 Annex A.8.3."
-    ),
-    "api_security": (
-        "Mitigate: Implement API gateway controls, enforce OAuth/token-based "
-        "authentication, apply rate limiting, input validation on all endpoints, "
-        "and conduct regular API security testing per ISO 27001 Annex A.8.23."
-    ),
-    "malware": (
-        "Mitigate: Deploy endpoint detection and response (EDR), enforce "
-        "anti-malware controls, conduct phishing awareness training, implement "
-        "email filtering, and maintain incident response procedures per ISO 27001 "
-        "Annex A.8.7 and A.6.3."
-    ),
-    "vulnerability_management": (
-        "Mitigate: Implement automated patch management, monthly vulnerability "
-        "scanning, emergency patch SLAs for critical CVEs, and documented "
-        "remediation tracking."
-    ),
-    "misconfiguration": (
-        "Mitigate: Establish secure configuration baselines, remove default "
-        "credentials, implement configuration management processes, and conduct "
-        "periodic hardening reviews per ISO 27001 Annex A.8.9."
-    ),
-    "encryption": (
-        "Mitigate: Enforce TLS, certificate lifecycle management, encryption "
-        "at rest, key rotation, and cryptographic policy reviews."
-    ),
-    "vendor_risk": (
-        "Mitigate: Perform vendor security assessments, review DPAs/SLAs, "
-        "require security evidence, and monitor supplier compliance."
-    ),
-    "network_security": (
-        "Mitigate: Review firewall rules, implement network segmentation, "
-        "restrict unnecessary traffic, deploy IDS/IPS, and validate perimeter "
-        "controls per ISO 27001 Annex A.8.20–A.8.22."
-    ),
-    "policy_governance": (
-        "Mitigate: Develop and enforce information security policies, assign "
-        "control ownership, conduct management reviews, and track compliance "
-        "gaps per ISO 27001 Annex A.5.1–A.5.4."
-    ),
-    "business_continuity": (
-        "Mitigate: Develop and test business continuity plans, implement "
-        "disaster recovery procedures, maintain backup schedules, and conduct "
-        "periodic restoration testing per ISO 27001 Annex A.5.29–A.5.30."
-    ),
-    "audit_logging": (
-        "Mitigate: Enable centralized logging, configure SIEM alerting, "
-        "retain audit logs per policy, monitor for anomalous activity, and "
-        "conduct periodic log reviews per ISO 27001 Annex A.8.15–A.8.16."
-    ),
-    "identity_access": (
-        "Mitigate: Enforce MFA, strong password policy, privileged access "
-        "reviews, and conditional access controls."
-    ),
-    "default": (
-        "Mitigate: Apply relevant ISO 27001 controls, assign ownership, "
-        "define remediation steps, and track closure evidence."
-    ),
+    "application_security": "Mitigate: Implement parameterized queries, secure coding reviews, WAF protection, and regular DAST/SAST testing for '{asset}' aligned with ISO 27001 application security controls.",
+    "access_control": "Mitigate: Enforce role-based access control (RBAC) on '{asset}', conduct periodic access reviews, implement least-privilege principles, and document authorization matrices per ISO 27001 Annex A.8.3.",
+    "api_security": "Mitigate: Implement API gateway controls for '{asset}', enforce OAuth/token-based authentication, apply rate limiting, and conduct regular API security testing per ISO 27001 Annex A.8.23.",
+    "malware": "Mitigate: Deploy endpoint detection and response (EDR) to '{asset}', enforce anti-malware controls, and maintain incident response procedures per ISO 27001 Annex A.8.7.",
+    "vulnerability_management": "Mitigate: Implement automated patch management for '{asset}', execute monthly vulnerability scanning, and enforce emergency patch SLAs for critical CVEs.",
+    "misconfiguration": "Mitigate: Establish secure configuration baselines on '{asset}', remove default credentials, and conduct periodic hardening reviews per ISO 27001 Annex A.8.9.",
+    "encryption": "Mitigate: Enforce TLS, encryption at rest, key rotation, and cryptographic policy reviews for '{asset}' data.",
+    "vendor_risk": "Mitigate: Perform vendor security assessment for '{asset}', require ISO 27001 or equivalent security certifications, and establish continuous third-party monitoring.",
+    "network_security": "Mitigate: Review firewall rules protecting '{asset}', implement network segmentation, deploy IDS/IPS, and validate perimeter controls per ISO 27001 Annex A.8.20–A.8.22.",
+    "policy_governance": "Mitigate: Develop and enforce information security policies covering '{asset}', assign control ownership, and track compliance gaps per ISO 27001 Annex A.5.1.",
+    "business_continuity": "Mitigate: Develop and test disaster recovery procedures for '{asset}', maintain backup schedules, and conduct restoration testing per ISO 27001 Annex A.5.29.",
+    "audit_logging": "Mitigate: Enable centralized logging on '{asset}', configure SIEM alerting, retain audit logs, and monitor for anomalous activity per ISO 27001 Annex A.8.15.",
+    "identity_access": "Mitigate: Enforce MFA, strong password policy, and privileged access reviews for '{asset}'.",
+    "default": "Mitigate: Conduct root cause analysis on '{asset}', document a formal remediation plan with technical controls, assign accountable ownership, and establish a monitoring schedule.",
 }
 
 TREATMENT_MAP_HIPAA = {
-    "application_security": (
-        "Mitigate: Remediate application vulnerabilities affecting ePHI systems, "
-        "implement secure coding practices, and validate input handling per "
-        "HIPAA Technical Safeguards."
-    ),
-    "access_control": (
-        "Mitigate: Implement role-based access to ePHI, enforce least-privilege, "
-        "conduct periodic access reviews, and document authorization procedures "
-        "per HIPAA §164.312(a)(1)."
-    ),
-    "api_security": (
-        "Mitigate: Secure APIs handling ePHI with authentication, rate limiting, "
-        "input validation, and encrypted transmission per HIPAA transmission "
-        "security requirements."
-    ),
-    "malware": (
-        "Mitigate: Deploy anti-malware on systems handling ePHI, conduct phishing "
-        "awareness training for workforce, implement email security controls, and "
-        "maintain malware incident response procedures per HIPAA §164.308(a)(5)."
-    ),
-    "vulnerability_management": (
-        "Mitigate: Scan ePHI systems for vulnerabilities, apply patches within "
-        "defined SLAs, document remediation, and validate through re-scanning."
-    ),
-    "misconfiguration": (
-        "Mitigate: Harden ePHI system configurations, remove default accounts, "
-        "apply CIS benchmarks, and document configuration standards per HIPAA "
-        "Technical Safeguards."
-    ),
-    "identity_access": (
-        "Mitigate: Enforce unique user identification, MFA, role-based access, "
-        "and periodic access reviews for systems handling ePHI."
-    ),
-    "audit_logging": (
-        "Mitigate: Enable audit controls, log access to ePHI, monitor "
-        "suspicious activity, and retain logs according to policy."
-    ),
-    "encryption": (
-        "Mitigate: Protect ePHI using encryption in transit and at rest, "
-        "enforce secure transmission controls, and review key management."
-    ),
-    "vendor_risk": (
-        "Mitigate: Review Business Associate Agreements, validate security "
-        "responsibilities, and monitor third-party handling of ePHI."
-    ),
-    "network_security": (
-        "Mitigate: Segment networks handling ePHI, review firewall rules, "
-        "restrict traffic to authorized systems, and monitor network activity "
-        "per HIPAA Technical Safeguards."
-    ),
-    "policy_governance": (
-        "Mitigate: Develop ePHI security policies, assign a Security Officer, "
-        "conduct risk analyses, and maintain documentation per HIPAA "
-        "§164.308(a)(1)–(a)(2)."
-    ),
-    "business_continuity": (
-        "Mitigate: Maintain backup procedures, disaster recovery plans, "
-        "emergency mode operations, and periodic restoration testing."
-    ),
-    "default": (
-        "Mitigate: Apply relevant HIPAA Security Rule safeguards, assign "
-        "responsibility, document remediation, and verify protection of ePHI."
-    ),
+    "application_security": "Mitigate: Remediate application vulnerabilities affecting '{asset}', implement secure coding practices, and validate input handling per HIPAA Technical Safeguards.",
+    "access_control": "Mitigate: Implement role-based access to '{asset}', enforce least-privilege, conduct periodic access reviews, and document authorization procedures per HIPAA §164.312(a)(1).",
+    "api_security": "Mitigate: Secure '{asset}' APIs with strong authentication, rate limiting, and encrypted transmission per HIPAA transmission security requirements.",
+    "malware": "Mitigate: Deploy robust anti-malware on '{asset}', conduct phishing awareness training, and maintain malware incident response procedures per HIPAA §164.308(a)(5).",
+    "vulnerability_management": "Mitigate: Scan '{asset}' for vulnerabilities, apply patches within defined SLAs, and document remediation.",
+    "misconfiguration": "Mitigate: Harden '{asset}' configurations, remove default accounts, apply industry benchmarks, and document configuration standards per HIPAA Technical Safeguards.",
+    "identity_access": "Mitigate: Enforce unique user identification, MFA, role-based access, and periodic access reviews for '{asset}'.",
+    "audit_logging": "Mitigate: Enable audit controls on '{asset}', log access to ePHI, monitor suspicious activity, and retain logs according to policy.",
+    "encryption": "Mitigate: Protect '{asset}' using encryption in transit and at rest, enforce secure transmission controls, and review key management.",
+    "vendor_risk": "Mitigate: Execute a Business Associate Agreement (BAA) with '{asset}', mandate HIPAA-compliant security protocols, and enforce annual third-party risk assessments.",
+    "network_security": "Mitigate: Segment networks protecting '{asset}', review firewall rules, restrict traffic to authorized systems, and monitor network activity per HIPAA Technical Safeguards.",
+    "policy_governance": "Mitigate: Develop targeted security policies for '{asset}', assign a Security Officer, conduct risk analyses, and maintain documentation per HIPAA §164.308(a)(1).",
+    "business_continuity": "Mitigate: Maintain backup procedures, disaster recovery plans, and emergency mode operations for '{asset}'.",
+    "default": "Mitigate: Conduct root cause analysis on '{asset}', document a formal remediation plan with technical controls, assign accountable ownership, and establish a monitoring schedule.",
 }
 
 TREATMENT_MAP_PCI_DSS = {
-    "application_security": (
-        "Mitigate: Remediate injection weaknesses using secure coding, "
-        "parameterized queries, code review, WAF rules, and PCI DSS "
-        "application security testing."
-    ),
-    "access_control": (
-        "Mitigate: Restrict access to cardholder data on a need-to-know basis, "
-        "implement RBAC, conduct quarterly access reviews, and document "
-        "authorization per PCI DSS Requirement 7."
-    ),
-    "api_security": (
-        "Mitigate: Secure payment APIs with token-based authentication, "
-        "rate limiting, input validation, and encrypted channels per PCI DSS "
-        "Requirement 6."
-    ),
-    "malware": (
-        "Mitigate: Deploy anti-malware on all systems in the cardholder data "
-        "environment, maintain current signatures, conduct phishing awareness "
-        "training, and log malware events per PCI DSS Requirement 5."
-    ),
-    "vulnerability_management": (
-        "Mitigate: Apply security patches, maintain vulnerability scans, "
-        "remediate critical findings within SLA, and document evidence."
-    ),
-    "misconfiguration": (
-        "Mitigate: Remove default credentials, harden system configurations, "
-        "apply vendor security guidelines, and validate against PCI DSS "
-        "Requirement 2."
-    ),
-    "identity_access": (
-        "Mitigate: Enforce MFA for administrative and cardholder data access, "
-        "strong authentication, least privilege, and access reviews."
-    ),
-    "network_security": (
-        "Mitigate: Review firewall rules, segment the cardholder data "
-        "environment, restrict inbound/outbound traffic, and validate "
-        "rule ownership."
-    ),
-    "encryption": (
-        "Mitigate: Encrypt cardholder data in transit and at rest, manage "
-        "keys securely, and validate cryptographic controls."
-    ),
-    "vendor_risk": (
-        "Mitigate: Assess third-party service providers handling cardholder "
-        "data, validate PCI DSS compliance, review contractual security "
-        "obligations, and monitor ongoing compliance."
-    ),
-    "policy_governance": (
-        "Mitigate: Maintain a formal security policy covering all PCI DSS "
-        "requirements, assign ownership, conduct annual reviews, and track "
-        "compliance evidence per Requirement 12."
-    ),
-    "business_continuity": (
-        "Mitigate: Implement backup and recovery procedures for cardholder "
-        "data systems, test disaster recovery plans, and document restoration "
-        "evidence per PCI DSS operational requirements."
-    ),
-    "audit_logging": (
-        "Mitigate: Enable logging on all CDE systems, retain audit trails, "
-        "review logs daily, deploy automated alerting, and validate per "
-        "PCI DSS Requirement 10."
-    ),
-    "default": (
-        "Mitigate: Apply relevant PCI DSS requirements, define remediation "
-        "ownership, collect evidence, and validate closure."
-    ),
+    "application_security": "Mitigate: Remediate injection weaknesses in '{asset}' using secure coding, WAF rules, and PCI DSS application security testing.",
+    "access_control": "Mitigate: Restrict access to '{asset}' on a need-to-know basis, implement RBAC, and conduct quarterly access reviews per PCI DSS Requirement 7.",
+    "api_security": "Mitigate: Secure '{asset}' APIs with token-based authentication, rate limiting, and encrypted channels per PCI DSS Requirement 6.",
+    "malware": "Mitigate: Deploy anti-malware on '{asset}', maintain current signatures, and log malware events per PCI DSS Requirement 5.",
+    "vulnerability_management": "Mitigate: Apply security patches to '{asset}', maintain vulnerability scans, and remediate critical findings within SLA.",
+    "misconfiguration": "Mitigate: Remove default credentials from '{asset}', harden system configurations, and validate against PCI DSS Requirement 2.",
+    "identity_access": "Mitigate: Enforce MFA for administrative access to '{asset}', strong authentication, and strict access reviews.",
+    "network_security": "Mitigate: Review firewall rules protecting '{asset}', segment the cardholder data environment, and restrict inbound/outbound traffic.",
+    "encryption": "Mitigate: Encrypt cardholder data stored or processed by '{asset}' in transit and at rest, and validate cryptographic controls.",
+    "vendor_risk": "Mitigate: Validate PCI DSS compliance for third-party '{asset}', review contractual data protection clauses, and enforce continuous security monitoring.",
+    "policy_governance": "Mitigate: Maintain a formal security policy covering '{asset}', assign ownership, and track compliance evidence per Requirement 12.",
+    "business_continuity": "Mitigate: Implement backup and recovery procedures for '{asset}', test disaster recovery plans, and document restoration evidence.",
+    "audit_logging": "Mitigate: Enable logging on '{asset}', retain audit trails, review logs daily, deploy automated alerting, and validate per PCI DSS Requirement 10.",
+    "default": "Mitigate: Conduct root cause analysis on '{asset}', document a formal remediation plan with technical controls, assign accountable ownership, and establish a monitoring schedule.",
 }
 
 # Map normalised framework id → treatment dictionary
@@ -483,6 +329,27 @@ def _due_date(risk_score: int, base_date: datetime = None) -> str:
     return (base_date + timedelta(days=delta)).strftime("%d/%m/%Y")
 
 
+def _format_treatment(template: str, risk: dict) -> str:
+    asset_raw = str(risk.get("asset") or "").strip()
+    asset = asset_raw if asset_raw else "the affected system"
+    asset_lower = asset.lower()
+    
+    # Base formatting
+    text = template.replace("{asset}", asset)
+    
+    # Context-aware injection
+    if "ehr" in asset_lower or "medical record" in asset_lower:
+        text += " Ensure strict protection of patient data and ePHI."
+    elif "billing" in asset_lower or "claim" in asset_lower or "financ" in asset_lower:
+        text += " Enforce strict financial controls and transaction monitoring."
+    elif "telehealth" in asset_lower:
+        text += " Secure all remote access vectors and telehealth APIs."
+    elif "network" in asset_lower or "firewall" in asset_lower:
+        text += " Implement robust network segmentation."
+        
+    return text
+
+
 def generate_treatment_plan(risks: list, framework_id: str = "iso27001",
                             base_date: datetime = None) -> list:
     """
@@ -516,7 +383,8 @@ def generate_treatment_plan(risks: list, framework_id: str = "iso27001",
 
         category = _detect_category(risk)
         print(f"{risk_id} -> {category}")
-        treatment_text = treatment_map.get(category, treatment_map["default"])
+        treatment_template = treatment_map.get(category, treatment_map["default"])
+        treatment_text = _format_treatment(treatment_template, risk)
 
         score = _compute_risk_score(risk)
         due = _due_date(score, base_date)

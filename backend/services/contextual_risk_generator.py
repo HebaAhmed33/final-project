@@ -32,55 +32,7 @@ def _get(row: dict, *keys: str, default: str = "") -> str:
     return default
 
 
-# ---------------------------------------------------------------------------
-# Framework priority — controls wording alignment
-# ---------------------------------------------------------------------------
-# Priority order: ISO 27001 > HIPAA > PCI DSS > NIST > CIS
 
-_FRAMEWORK_PRIORITY = ["iso27001", "hipaa", "pci_dss", "nist", "cis", "sama"]
-
-_FRAMEWORK_CONTROL_SUFFIXES: dict[str, dict[str, str]] = {
-    "iso27001": {
-        "access":  "per ISO 27001 Annex A.8.3 (Access Rights)",
-        "patch":   "per ISO 27001 Annex A.8.8 (Technical Vulnerability Management)",
-        "encrypt": "per ISO 27001 Annex A.8.24 (Use of Cryptography)",
-        "monitor": "per ISO 27001 Annex A.8.16 (Monitoring Activities)",
-        "incident": "per ISO 27001 Annex A.5.24 (Incident Response Planning)",
-        "vendor":  "per ISO 27001 Annex A.5.19–5.22 (Supplier Relationships)",
-        "backup":  "per ISO 27001 Annex A.8.13 (Information Backup)",
-        "audit":   "per ISO 27001 Clause 9.2 (Internal Audit)",
-    },
-    "hipaa": {
-        "access":  "per HIPAA §164.312(a) (Access Control)",
-        "encrypt": "per HIPAA §164.312(a)(2)(iv) (Encryption)",
-        "monitor": "per HIPAA §164.312(b) (Audit Controls)",
-        "incident": "per HIPAA §164.308(a)(6) (Security Incident Procedures)",
-        "backup":  "per HIPAA §164.308(a)(7) (Contingency Plan)",
-    },
-    "pci_dss": {
-        "access":  "per PCI DSS Req. 7 (Restrict Access)",
-        "patch":   "per PCI DSS Req. 6.3.3 (Security Patches)",
-        "encrypt": "per PCI DSS Req. 3.4 (Render PAN Unreadable)",
-        "monitor": "per PCI DSS Req. 10 (Track and Monitor Access)",
-        "network": "per PCI DSS Req. 1 (Network Security Controls)",
-    },
-    "nist": {
-        "access":  "per NIST CSF PR.AC (Identity Management / Access Control)",
-        "monitor": "per NIST CSF DE.AE (Anomalies and Events)",
-        "incident": "per NIST CSF RS.RP (Response Planning)",
-    },
-}
-
-
-def _fw_control_suffix(framework_id: str, keyword: str) -> str:
-    """Return framework-specific control reference suffix, if available."""
-    # Try the active framework first, then fall back by priority
-    order = [framework_id] + [f for f in _FRAMEWORK_PRIORITY if f != framework_id]
-    for fw in order:
-        suffixes = _FRAMEWORK_CONTROL_SUFFIXES.get(fw, {})
-        if keyword in suffixes:
-            return " — " + suffixes[keyword]
-    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -171,9 +123,9 @@ _THREAT_MAP: dict[str, list[dict]] = {
     ],
     "Endpoint": [
         {"threat_label": "Ransomware",
-         "statement_tpl": "Ransomware infection on {asset} via phishing or malicious download leading to data encryption",
+         "statement_tpl": "Ransomware infection on {asset} via phishing or malicious download, resulting in severe service disruption and data unavailability",
          "control": "Deploy EDR, enforce application whitelisting, and enable email attachment sandboxing",
-         "impact": "Workstation encryption and potential lateral spread"},
+         "impact": "Workstation encryption leading to operational downtime, potential lateral spread, and patient safety impact if critical systems are affected"},
         {"threat_label": "Data Leakage",
          "statement_tpl": "Sensitive data exfiltration from {asset} through removable media or unauthorized cloud sync",
          "control": "Implement DLP policies, restrict USB access, and block unapproved cloud storage",
@@ -196,10 +148,22 @@ _THREAT_MAP: dict[str, list[dict]] = {
          "impact": "Exposure of historical data including deleted records"},
     ],
     "IT Asset": [
-        {"threat_label": "Shadow IT",
-         "statement_tpl": "Unmonitored attack surface from unmanaged asset {asset} bypassing security controls",
+        {"threat_label": "Unmanaged Asset Exposure",
+         "statement_tpl": "Unmonitored attack surface from unmanaged IT asset '{asset}' bypassing security controls",
          "control": "Maintain automated asset discovery and enforce CMDB onboarding policies",
          "impact": "Unmonitored attack surface expanding organizational risk"},
+        {"threat_label": "Unauthorized System Deployment",
+         "statement_tpl": "Unauthorized deployment of '{asset}' creating an undocumented entry point into the environment",
+         "control": "Implement network access control (NAC) and strict provisioning workflows",
+         "impact": "Unauthorized access vectors bypassing perimeter defenses"},
+        {"threat_label": "Asset Visibility Gap",
+         "statement_tpl": "Lack of security monitoring and visibility on untracked asset '{asset}'",
+         "control": "Deploy agent-based or network-level discovery tools to ensure comprehensive asset coverage",
+         "impact": "Delayed threat detection and unmitigated vulnerabilities"},
+        {"threat_label": "Untracked SaaS Usage",
+         "statement_tpl": "Unapproved utilization of SaaS platform '{asset}' leading to unmonitored data flows outside the corporate boundary",
+         "control": "Deploy CASB and enforce cloud application discovery and governance",
+         "impact": "Data exposure and compliance violations from shadow cloud adoption"},
     ],
 }
 
@@ -227,20 +191,20 @@ _OWNER_MAP: dict[str, str] = {
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _lh(text: str) -> int:
-    t = text.lower()
-    if any(k in t for k in ("critical", "high", "remote code", "ransomware", "injection", "hijack")):
+def _lh(threat: str, impact: str) -> int:
+    t = (threat + " " + impact).lower()
+    if any(k in t for k in ("remote code", "ransomware", "active exposure")):
         return 4
-    if any(k in t for k in ("medium", "unauthorized", "excessive", "default")):
+    if any(k in t for k in ("injection", "credential", "misconfiguration", "breach")):
         return 3
     return 2
 
 
-def _imp(text: str) -> int:
-    t = text.lower()
-    if any(k in t for k in ("breach", "exfiltration", "compromise", "destruction", "takeover", "ransomware")):
+def _imp(threat: str, impact: str) -> int:
+    t = (threat + " " + impact).lower()
+    if any(k in t for k in ("destruction", "takeover", "ransomware", "safety")):
         return 5
-    if any(k in t for k in ("disruption", "exposure", "non-compliance", "theft")):
+    if any(k in t for k in ("breach", "exfiltration", "compromise")):
         return 4
     return 3
 
@@ -270,7 +234,7 @@ def _risk_entry(rid: int, statement: str, asset: str, threat_label: str,
         "Misconfiguration": ["A.8.9"],
         "Data Exfiltration": ["A.8.12"],
         "Supply Chain Attack": ["A.5.19"],
-        "Compliance Gap": ["A.5.1", "A.5.20"],
+        "Third-Party Compliance Risk": ["A.5.1", "A.5.20"],
         "Business Continuity Failure": ["A.5.30"]
     }
     
@@ -396,6 +360,7 @@ def generate_risks_from_data(
       4. Network rule weaknesses
       5. Missing/partial high-severity controls
     """
+    framework_id = framework_id.lower()
     risks: list[dict] = []
     rid = 1
     seen_sigs: set[str] = set()  # dedup key
@@ -405,6 +370,43 @@ def generate_risks_from_data(
         key = sig or f"{r['asset']}|{r['threat']}"
         if key in seen_sigs:
             return
+        
+        # Light contextual enrichment based on framework
+        if framework_id == "hipaa":
+            stmt = r["risk_statement"]
+            asset_str = str(r.get("asset", "")).lower()
+            
+            health_keywords = {
+                "patient", "ehr", "lab", "pacs", "billing", 
+                "claims", "medical records", "pharmacy", 
+                "telehealth", "backup"
+            }
+            
+            combined_text = f"{stmt} {asset_str}".lower()
+            if any(kw in combined_text for kw in health_keywords):
+                if " data " in stmt or " data" in stmt or "Data " in stmt:
+                    stmt = stmt.replace(" data ", " ePHI/patient data ").replace(" data", " ePHI/patient data").replace("Data ", "ePHI/Patient Data ")
+                
+                if "unmanaged IT asset" in stmt or "untracked asset" in stmt:
+                    if "ehr" in asset_str or "medical records" in asset_str:
+                        stmt = stmt.replace("IT asset", "clinical system").replace("untracked asset", "untracked clinical system")
+                    elif "billing" in asset_str or "claims" in asset_str:
+                        stmt = stmt.replace("IT asset", "billing system").replace("untracked asset", "untracked billing system")
+                    elif "telehealth" in asset_str:
+                        stmt = stmt.replace("IT asset", "patient care platform").replace("untracked asset", "untracked patient care platform")
+                    elif "pacs" in asset_str or "lab" in asset_str or "pharmacy" in asset_str:
+                        stmt = stmt.replace("IT asset", "diagnostic system").replace("untracked asset", "untracked diagnostic system")
+
+                if "Unauthorized deployment" in stmt:
+                    if "ehr" in asset_str or "medical records" in asset_str:
+                        stmt = stmt.replace("environment", "clinical environment")
+                    elif "billing" in asset_str or "claims" in asset_str:
+                        stmt = stmt.replace("environment", "financial environment")
+                    elif "telehealth" in asset_str:
+                        stmt = stmt.replace("environment", "patient care environment")
+                
+                r["risk_statement"] = stmt
+
         seen_sigs.add(key)
         risks.append(r)
         rid += 1
@@ -455,21 +457,21 @@ def generate_risks_from_data(
         cls = _classify_asset(name, atype, os_f)
         threats = _THREAT_MAP.get(cls, _THREAT_MAP["IT Asset"])
 
+        # Cycle through IT Asset threats based on asset name length to diversify
+        if cls == "IT Asset" and len(threats) > 2:
+            shift = len(name) % len(threats)
+            threats = threats[shift:] + threats[:shift]
+
         # Pick 1-2 threats per asset depending on criticality
         pick = 2 if crit in ("high", "critical") else 1
 
         for tinfo in threats[:pick]:
-            lh = _lh(tinfo["impact"])
+            lh = _lh(tinfo["threat_label"], tinfo["impact"])
             if crit in ("high", "critical"):
-                lh = min(5, lh + 1)
-            imp = _imp(tinfo["impact"])
+                lh = min(4, lh + 1)
+            imp = _imp(tinfo["threat_label"], tinfo["impact"])
 
             ctrl_text = tinfo["control"]
-            # Append framework-specific reference if available
-            for kw in ("patch", "access", "encrypt", "monitor", "backup"):
-                if kw in tinfo["threat_label"].lower() or kw in ctrl_text.lower():
-                    ctrl_text += _fw_control_suffix(framework_id, kw)
-                    break
 
             stmt = tinfo["statement_tpl"].format(asset=name)
             detail = f"Asset: {name} ({cls}). {tinfo['impact']}."
@@ -516,7 +518,7 @@ def generate_risks_from_data(
                     rid,
                     f"High-dependency risk on vendor '{vname}' ({vservice}) — compliant but critical to operations",
                     vname, "Vendor Dependency",
-                    2, 3,
+                    1, 3,
                     "Monitor vendor SLA performance and maintain contingency plan for service disruption",
                     "IT Security / Procurement", "Vendor", "vendor_analysis",
                     f"Vendor '{vname}' is compliant but classified as high-criticality — monitor dependency.",
@@ -529,17 +531,21 @@ def generate_risks_from_data(
                 rid,
                 f"Supply chain compromise through non-compliant vendor '{vname}' providing {vservice}",
                 vname, "Supply Chain Attack",
-                4, 5,
+                3, 4,
                 "Conduct immediate vendor security assessment and enforce contractual security clauses",
                 "IT Security / Procurement", "Vendor", "vendor_analysis",
                 f"Vendor '{vname}' is non-compliant for {vservice} — critical supply chain risk.",
             ))
+            v_control = "Require SOC 2 / ISO 27001 attestation or equivalent certification from vendor"
+            if framework_id == "hipaa":
+                v_control = "Require signed Business Associate Agreement (BAA) and SOC 2 / HITRUST attestation from vendor"
+                
             _add(_risk_entry(
                 rid,
                 f"Regulatory exposure from non-compliant vendor '{vname}' handling regulated data",
-                vname, "Compliance Gap",
-                4, 4,
-                "Require SOC 2 / ISO 27001 attestation or equivalent certification from vendor",
+                vname, "Third-Party Compliance Risk",
+                2, 4,
+                v_control,
                 "IT Security / Procurement", "Vendor", "vendor_analysis",
                 f"Vendor '{vname}' has no valid compliance certification on record.",
             ))
@@ -550,8 +556,8 @@ def generate_risks_from_data(
             _add(_risk_entry(
                 rid,
                 f"Unverified compliance posture for vendor '{vname}' ({vservice}) — review pending",
-                vname, "Compliance Gap",
-                3, 4,
+                vname, "Third-Party Compliance Risk",
+                2, 3,
                 "Expedite vendor compliance review and establish interim monitoring controls",
                 "IT Security / Procurement", "Vendor", "vendor_analysis",
                 f"Vendor '{vname}' compliance status is pending review.",
@@ -573,7 +579,7 @@ def generate_risks_from_data(
                 rid,
                 f"Increased phishing susceptibility across workforce — {no_train} of {total} employees ({pct}%) lack security awareness training",
                 "Workforce", "Phishing",
-                4 if pct > 50 else 3, 4,
+                3 if pct > 50 else 2, 4,
                 "Deploy mandatory security awareness training with quarterly phishing simulations",
                 "IT Security / HR", "User", "employee_analysis",
                 f"{no_train} employees have no recorded security training.",
@@ -581,12 +587,12 @@ def generate_risks_from_data(
 
             _add(_risk_entry(
                 rid,
-                f"Elevated insider threat due to weak security culture — {pct}% of staff untrained",
+                f"Elevated insider threat behavior risk — {pct}% of staff untrained, increasing likelihood of privilege misuse or unmonitored data access",
                 "Workforce", "Insider Threat",
-                3, 3,
-                "Implement role-based training program and enforce acceptable use policies",
+                2, 4,
+                "Implement role-based training program, enforce acceptable use policies, and deploy behavior monitoring",
                 "IT Security / HR", "User", "employee_analysis",
-                f"Large untrained workforce increases accidental breach probability.",
+                f"Large untrained workforce increases probability of behavioral risk and privilege misuse.",
             ), sig="people|insider_culture")
 
         if priv > 0:
@@ -594,7 +600,7 @@ def generate_risks_from_data(
                 rid,
                 f"Critical credential compromise risk — {priv} users hold admin/privileged access without enhanced controls",
                 "Privileged Accounts", "Credential Theft",
-                4, 5,
+                3, 5,
                 "Enforce PAM solution, MFA on all admin accounts, and quarterly access reviews",
                 "IT Security", "User", "employee_analysis",
                 f"{priv} users hold privileged access; compromise = full environment takeover.",
@@ -614,7 +620,7 @@ def generate_risks_from_data(
                 rid,
                 f"Lateral movement risk enabled by {risky} overly permissive firewall rules using ANY/wildcard patterns",
                 "Network Perimeter", "Misconfiguration",
-                4, 4,
+                3, 4,
                 "Replace wildcard rules with explicit source/destination/port definitions",
                 "Network / DevOps", "Network", "network_analysis",
                 f"{risky} rules use ANY/wildcard — attackers can traverse network segments.",
@@ -624,7 +630,7 @@ def generate_risks_from_data(
                 rid,
                 "Covert data exfiltration channel through unrestricted outbound firewall rules",
                 "Network Perimeter", "Data Exfiltration",
-                3, 4,
+                2, 4,
                 "Implement egress filtering and deploy outbound traffic anomaly monitoring",
                 "Network / DevOps", "Network", "network_analysis",
                 "Unrestricted outbound rules allow attackers to exfiltrate data undetected.",
@@ -635,7 +641,7 @@ def generate_risks_from_data(
                 rid,
                 "Unrestricted network access due to default-allow posture with no explicit deny rules",
                 "Network Infrastructure", "Misconfiguration",
-                4, 4,
+                3, 4,
                 "Implement default-deny firewall policy with explicit allow-list exceptions",
                 "Network / DevOps", "Network", "network_analysis",
                 "No deny rules detected — default-allow posture assumed.",
@@ -690,8 +696,8 @@ def generate_risks_from_data(
         "malware": ("Malware",
                     "Malware propagation across unprotected endpoints and servers",
                     "Deploy next-generation antimalware with behavioral detection and automated response"),
-        "asset": ("Shadow IT",
-                  "Expanding attack surface from untracked and unmanaged shadow IT assets",
+        "asset": ("Unmanaged Asset Exposure",
+                  "Expanding attack surface from untracked and unmanaged IT assets",
                   "Maintain automated asset discovery and enforce CMDB onboarding policies"),
     }
 
@@ -704,7 +710,7 @@ def generate_risks_from_data(
         domain = ctrl.get("domain") or ctrl.get("section_name", "General")
         ctrl_lower = ctrl_name.lower() + " " + domain.lower()
 
-        threat_label = "Policy Gap"
+        threat_label = "Governance Control Gap"
         stmt_text = f"Operational risk from missing '{ctrl_name}' control in {domain}"
         control_text = f"Define, approve, and implement '{ctrl_name}' with assigned ownership and evidence collection"
 
@@ -712,11 +718,14 @@ def generate_risks_from_data(
             if keyword in ctrl_lower:
                 threat_label = tl
                 stmt_text = st
-                control_text = ct + _fw_control_suffix(framework_id, keyword)
+                control_text = ct
                 break
 
-        lh = 4 if sev == "critical" else 3
-        imp = 4
+        lh = 3 if sev == "critical" else 2
+        imp = 4 if sev == "critical" else 3
+        
+        if ctrl.get("status") == "partial":
+            lh = max(1, lh - 1)
 
         _add(_risk_entry(
             rid, stmt_text, domain, threat_label, lh, imp,
@@ -734,7 +743,7 @@ def generate_risks_from_data(
                 rid,
                 "Unauthorized system modifications due to absent change management process",
                 "IT Environment", "Unauthorized Change",
-                3, 4,
+                2, 3,
                 "Implement formal change advisory board (CAB) and automated change management workflow",
                 "IT Governance", "Governance", "cross_cutting",
                 "No change management evidence found; unauthorized changes may go undetected.",
@@ -746,7 +755,7 @@ def generate_risks_from_data(
                 rid,
                 "Extended business disruption due to absent disaster recovery and continuity planning",
                 "Business Operations", "Business Continuity Failure",
-                3, 5,
+                2, 5,
                 "Develop and test BCP/DR plans with defined RTOs, RPOs, and annual tabletop exercises",
                 "IT Governance", "Governance", "cross_cutting",
                 "No business continuity / disaster recovery controls evidenced.",

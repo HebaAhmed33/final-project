@@ -657,35 +657,111 @@ def _build_insights(
 # SoA builder
 # ---------------------------------------------------------------------------
 
-def _build_soa(relevant_controls: list[dict]) -> dict:
+def _build_soa(relevant_controls: list[dict], framework_id: str = "") -> dict:
+    print("USING UPDATED SOA GENERATOR")
+    is_hipaa = (framework_id.lower() == "hipaa")
     entries = []
     for ctrl in relevant_controls:
         status = ctrl.get("status", "missing")
-        implementation = {
-            "compliant": "Fully Implemented",
-            "partial":   "Partially Implemented",
-        }.get(status, "Not Implemented")
-
         ev  = ctrl.get("evidence_row", {})
-        ref = (
-            ev.get("reference")
-            or ev.get("evidence_reference")
-            or ("Uploaded evidence" if ctrl.get("has_evidence") else "—")
-        )
+        has_evidence = ctrl.get("has_evidence", False)
+
+        applicable = "Yes"
+        remarks = ctrl.get("reason", "")
+        
+        sec_key = ctrl.get('section_key', '').strip()
+        sec_name = ctrl.get('section_name', '').strip()
+        
+        if is_hipaa and sec_key and sec_name and sec_key.lower() in sec_name.lower():
+            section_str = sec_name
+        elif is_hipaa and sec_key and sec_name and sec_name.lower() in sec_key.lower():
+            section_str = sec_key
+        else:
+            section_str = f"{sec_key} {sec_name}".strip()
+        
+        if is_hipaa:
+            # 1. Dynamic Implementation Overview
+            if status == "compliant":
+                cname = ctrl.get("name", "").lower()
+                cdomain = (ctrl.get("domain") or "").lower()
+                if "access" in cname:
+                    implementation = "Role-based access control (RBAC) is enforced across clinical systems with periodic access reviews"
+                elif "audit" in cname:
+                    implementation = "Audit logging is enabled for systems handling ePHI, with monitoring of suspicious activities"
+                elif "transmission" in cname or "encrypt" in cname:
+                    implementation = "Secure transmission protocols and encryption are enforced for data in transit"
+                elif "workforce" in cname or "workforce" in cdomain:
+                    implementation = "Workforce access and authorization processes are maintained using employee records and role assignments."
+                elif "training" in cname or "awareness" in cname:
+                    implementation = "Security awareness training is tracked through employee training records and pending training gaps are monitored."
+                elif "associate" in cname or "vendor" in cname or "associate" in cdomain:
+                    implementation = "Business Associate relationships are tracked through vendor records and BAA agreement evidence."
+                elif "device" in cname or "media" in cname:
+                    implementation = "Asset inventory supports device and media accountability for systems handling patient data."
+                else:
+                    implementation = "Technical and administrative safeguards are fully implemented to protect ePHI"
+            elif status == "partial":
+                cname = ctrl.get("name", "").lower()
+                if "contingency" in cname or "backup" in cname or "recovery" in cname:
+                    implementation = "Backup and disaster recovery procedures are defined but require testing and validation"
+                else:
+                    implementation = "Safeguards are partially implemented; further enhancements required to fully protect patient data"
+            else:
+                implementation = "Not Implemented"
+                
+            # 3. Applicable = No
+            if not has_evidence and status == "missing":
+                applicable = "No"
+                remarks = f"No {ctrl.get('name', 'relevant control').lower()} processes identified in uploaded data"
+                
+            # 2. Dynamic Evidence References
+            if not has_evidence and applicable == "No":
+                ref = "—"
+            elif ev.get("reference") and ev.get("reference") != "System Inference Engine":
+                ref = ev.get("reference")
+            else:
+                domain = (ctrl.get("domain") or "").lower()
+                cname = ctrl.get("name", "").lower()
+                if "employee" in domain or "training" in cname or "workforce" in cname:
+                    ref = "HR Records / Training Data"
+                elif "asset" in domain or "device" in cname or "workstation" in cname:
+                    ref = "Asset Inventory"
+                elif "network" in domain or "transmission" in cname:
+                    ref = "Network Configuration"
+                elif "vendor" in domain or "third-party" in cname or "business associate" in cname:
+                    ref = "Vendor Records / BAA Agreements"
+                elif "policy" in domain or "governance" in cname or "management" in cname:
+                    ref = "Policies & Procedures"
+                else:
+                    ref = "System Configuration / Logs"
+        else:
+            implementation = {
+                "compliant": "Fully Implemented",
+                "partial":   "Partially Implemented",
+            }.get(status, "Not Implemented")
+            
+            ref = (
+                ev.get("reference")
+                or ev.get("evidence_reference")
+                or ("Uploaded evidence" if ctrl.get("has_evidence") else "—")
+            )
+
         entries.append({
-            "section":       f"{ctrl.get('section_key','')} {ctrl.get('section_name','')}".strip(),
+            "section":       section_str,
             "control_no":    ctrl.get("rule_id", ""),
             "control_title": ctrl.get("name", ""),
-            "applicable":    "Yes",
-            "remarks":       ctrl.get("reason", ""),
+            "applicable":    applicable,
+            "remarks":       remarks,
             "implementation": implementation,
             "reference":     ref,
+            "status":        status,
             "source":        ctrl.get("source", "framework_derived"),
         })
+        
     return {
         "total_controls":    len(entries),
-        "applicable_count":  len(entries),
-        "not_applicable_count": 0,
+        "applicable_count":  sum(1 for e in entries if e["applicable"] == "Yes"),
+        "not_applicable_count": sum(1 for e in entries if e["applicable"] == "No"),
         "entries":           entries,
     }
 
@@ -1086,7 +1162,7 @@ def build_framework_aware_assessment(
     )
 
     # ── 12. SoA ───────────────────────────────────────────────────────────
-    soa = _build_soa(relevant_controls)
+    soa = _build_soa(relevant_controls, framework_id)
 
     # ── 13. Compliance Matrix ─────────────────────────────────────────────
     from services.evidence_inference import build_compliance_matrix

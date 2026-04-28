@@ -663,3 +663,213 @@ on_profile', 'risk_register', 'vendors']
 2026-04-28 01:59:56,148 RESULTS: compliant=59  partial=4  missing=0
 2026-04-28 01:59:56,148 BY_SOURCE: {'json_rule_config': 63}
 2026-04-28 01:59:56,148 ======================================================================
+2026-04-28 13:09:13,413 ======================================================================
+2026-04-28 13:09:13,415 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 13:09:13,415 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 13:09:13,416 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 13:09:13,416 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 13:09:13,416 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 13:09:13,416 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 13:09:13,416 ======================================================================
+2026-04-28 13:09:13,420 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 13:09:13,420 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 13:09:13,426 ======================================================================
+2026-04-28 13:09:13,426 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 13:09:13,426 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 13:09:13,426 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 13:09:13,452 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 13:09:13,452 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 13:09:13,452 EVALUATED_CONTROLS: 11
+2026-04-28 13:09:13,452 SCORE_SOURCE: rule_engine
+2026-04-28 13:09:13,452 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 13:09:13,452 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 13:09:13,452 ======================================================================
+2026-04-28 14:00:45,976 ======================================================================
+2026-04-28 14:00:45,978 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:00:45,978 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 14:00:45,978 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:00:45,979 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:00:45,979 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 14:00:45,979 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:00:45,980 ======================================================================
+2026-04-28 14:00:45,984 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:00:45,985 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 14:00:45,989 ======================================================================
+2026-04-28 14:00:45,989 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 14:00:45,989 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:00:45,989 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:00:46,011 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 14:00:46,012 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 14:00:46,012 EVALUATED_CONTROLS: 11
+2026-04-28 14:00:46,014 SCORE_SOURCE: rule_engine
+2026-04-28 14:00:46,014 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 14:00:46,014 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 14:00:46,014 ======================================================================
+2026-04-28 14:11:38,949 ======================================================================
+2026-04-28 14:11:38,950 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:11:38,951 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-28 14:11:38,951 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:11:38,951 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:11:38,952 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-28 14:11:38,952 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:11:38,952 ======================================================================
+2026-04-28 14:11:38,956 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:11:38,956 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-28 14:11:38,960 ======================================================================
+2026-04-28 14:11:38,961 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-28 14:11:38,961 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:11:38,962 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:11:38,978 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-28 14:11:38,980 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-28 14:11:38,980 EVALUATED_CONTROLS: 63
+2026-04-28 14:11:38,980 SCORE_SOURCE: rule_engine
+2026-04-28 14:11:38,981 RESULTS: compliant=53  partial=10  missing=0
+2026-04-28 14:11:38,981 BY_SOURCE: {'json_rule_config': 63}
+2026-04-28 14:11:38,981 ======================================================================
+2026-04-28 14:14:06,436 ======================================================================
+2026-04-28 14:14:06,436 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:14:06,436 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-28 14:14:06,436 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:14:06,436 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:14:06,436 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-28 14:14:06,436 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:14:06,436 ======================================================================
+2026-04-28 14:14:06,438 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:14:06,438 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-28 14:14:06,438 ======================================================================
+2026-04-28 14:14:06,438 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-28 14:14:06,438 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:14:06,438 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:14:06,438 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-28 14:14:06,439 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-28 14:14:06,439 EVALUATED_CONTROLS: 63
+2026-04-28 14:14:06,440 SCORE_SOURCE: rule_engine
+2026-04-28 14:14:06,440 RESULTS: compliant=53  partial=10  missing=0
+2026-04-28 14:14:06,440 BY_SOURCE: {'json_rule_config': 63}
+2026-04-28 14:14:06,440 ======================================================================
+2026-04-28 14:16:43,372 ======================================================================
+2026-04-28 14:16:43,372 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:16:43,373 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-28 14:16:43,373 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:16:43,373 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:16:43,373 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-28 14:16:43,374 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:16:43,374 ======================================================================
+2026-04-28 14:16:43,376 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:16:43,377 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-28 14:16:43,379 ======================================================================
+2026-04-28 14:16:43,379 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-28 14:16:43,379 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:16:43,380 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:16:43,394 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-28 14:16:43,395 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-28 14:16:43,395 EVALUATED_CONTROLS: 63
+2026-04-28 14:16:43,396 SCORE_SOURCE: rule_engine
+2026-04-28 14:16:43,396 RESULTS: compliant=53  partial=10  missing=0
+2026-04-28 14:16:43,396 BY_SOURCE: {'json_rule_config': 63}
+2026-04-28 14:16:43,396 ======================================================================
+2026-04-28 14:22:57,694 ======================================================================
+2026-04-28 14:22:57,695 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:22:57,695 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-28 14:22:57,695 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:22:57,696 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:22:57,696 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-28 14:22:57,696 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:22:57,696 ======================================================================
+2026-04-28 14:22:57,700 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:22:57,700 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-28 14:22:57,704 ======================================================================
+2026-04-28 14:22:57,704 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-28 14:22:57,704 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:22:57,704 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:22:57,718 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-28 14:22:57,720 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-28 14:22:57,720 EVALUATED_CONTROLS: 63
+2026-04-28 14:22:57,720 SCORE_SOURCE: rule_engine
+2026-04-28 14:22:57,720 RESULTS: compliant=53  partial=10  missing=0
+2026-04-28 14:22:57,720 BY_SOURCE: {'json_rule_config': 63}
+2026-04-28 14:22:57,721 ======================================================================
+2026-04-28 14:25:53,291 ======================================================================
+2026-04-28 14:25:53,291 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:25:53,291 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 14:25:53,292 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:25:53,292 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:25:53,292 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 14:25:53,292 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:25:53,292 ======================================================================
+2026-04-28 14:25:53,292 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:25:53,292 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 14:25:53,294 ======================================================================
+2026-04-28 14:25:53,294 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 14:25:53,294 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:25:53,294 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:25:53,294 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 14:25:53,295 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 14:25:53,295 EVALUATED_CONTROLS: 11
+2026-04-28 14:25:53,295 SCORE_SOURCE: rule_engine
+2026-04-28 14:25:53,295 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 14:25:53,295 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 14:25:53,296 ======================================================================
+2026-04-28 14:34:51,757 ======================================================================
+2026-04-28 14:34:51,757 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:34:51,757 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 14:34:51,757 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:34:51,757 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:34:51,759 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 14:34:51,759 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:34:51,759 ======================================================================
+2026-04-28 14:34:51,761 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:34:51,761 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 14:34:51,763 ======================================================================
+2026-04-28 14:34:51,763 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 14:34:51,763 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:34:51,763 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:34:51,774 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 14:34:51,774 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 14:34:51,774 EVALUATED_CONTROLS: 11
+2026-04-28 14:34:51,774 SCORE_SOURCE: rule_engine
+2026-04-28 14:34:51,774 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 14:34:51,775 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 14:34:51,775 ======================================================================
+2026-04-28 14:42:07,726 ======================================================================
+2026-04-28 14:42:07,728 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:42:07,728 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 14:42:07,728 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:42:07,728 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:42:07,728 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 14:42:07,728 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:42:07,728 ======================================================================
+2026-04-28 14:42:07,729 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:42:07,730 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 14:42:07,731 ======================================================================
+2026-04-28 14:42:07,731 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 14:42:07,731 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:42:07,732 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:42:07,740 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 14:42:07,740 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 14:42:07,740 EVALUATED_CONTROLS: 11
+2026-04-28 14:42:07,741 SCORE_SOURCE: rule_engine
+2026-04-28 14:42:07,741 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 14:42:07,741 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 14:42:07,741 ======================================================================
+2026-04-28 14:46:56,892 ======================================================================
+2026-04-28 14:46:56,892 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 14:46:56,892 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 14:46:56,892 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 14:46:56,894 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 14:46:56,894 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 14:46:56,894 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 14:46:56,894 ======================================================================
+2026-04-28 14:46:56,896 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 14:46:56,896 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 14:46:56,900 ======================================================================
+2026-04-28 14:46:56,901 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 14:46:56,901 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 14:46:56,901 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 14:46:56,911 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 14:46:56,911 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 14:46:56,911 EVALUATED_CONTROLS: 11
+2026-04-28 14:46:56,911 SCORE_SOURCE: rule_engine
+2026-04-28 14:46:56,911 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 14:46:56,911 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 14:46:56,911 ======================================================================

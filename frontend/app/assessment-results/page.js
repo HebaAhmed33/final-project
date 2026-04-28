@@ -148,6 +148,40 @@ export default function AssessmentResultsPage() {
              else controls = "A.5.1; A.5.2";
           }
 
+          const isHipaa = ad.framework_id === "hipaa" || String(ad.framework).toLowerCase() === "hipaa";
+          if (isHipaa) {
+             if (rThreatSafe.includes("sql injection") || rStatement.toLowerCase().includes("sql injection")) controls = "§164.312(c)";
+             else if (rThreatSafe.includes("api abuse") || rThreatSafe.includes("api") || rStatement.toLowerCase().includes("api")) controls = "§164.312(c); §164.312(e)";
+             else if (rThreatSafe.includes("default") || rThreatSafe.includes("misconfiguration") || rStatement.toLowerCase().includes("misconfiguration")) controls = "§164.312(c); §164.308(a)(1)";
+             else if (rThreatSafe.includes("unpatched") || rThreatSafe.includes("vuln") || rThreatSafe.includes("remote code execution") || rThreatSafe.includes("patch") || rThreatSafe.includes("exploit") || rThreatSafe.includes("cve") || rStatement.toLowerCase().includes("unpatched") || rStatement.toLowerCase().includes("vulnerability") || rStatement.toLowerCase().includes("remote code execution")) controls = "§164.308(a)(1)";
+             else if (rThreatSafe.includes("vendor") || rThreatSafe.includes("third") || rThreatSafe.includes("supply") || rThreatSafe.includes("supplier") || rThreatSafe.includes("compliance gap") || rThreatSafe.includes("review pending") || rStatement.toLowerCase().includes("vendor") || rStatement.toLowerCase().includes("supply chain")) controls = "§164.308(b)(1)";
+             else if (rThreatSafe.includes("shadow it") || rThreatSafe.includes("unmanaged") || rStatement.toLowerCase().includes("shadow it") || rStatement.toLowerCase().includes("unmanaged")) controls = "§164.312(a)(1)";
+             else if (rThreatSafe.includes("policy gap") || rThreatSafe.includes("policy") || rStatement.toLowerCase().includes("policy") || rThreatSafe.includes("governance control gap") || rStatement.toLowerCase().includes("governance control gap")) controls = "§164.308(a)(1)";
+             else if (rThreatSafe.includes("data exfiltration") || (rThreatSafe.includes("data") && (rThreatSafe.includes("loss") || rThreatSafe.includes("leak") || rThreatSafe.includes("breach") || rThreatSafe.includes("exfil"))) || rStatement.toLowerCase().includes("data exfiltration")) controls = "§164.312(e)";
+             else if (rThreatSafe.includes("access") || rThreatSafe.includes("auth") || rThreatSafe.includes("credential") || rStatement.toLowerCase().includes("access")) controls = "§164.312(a)(1); §164.312(d)";
+             else if (rThreatSafe.includes("phish") || rThreatSafe.includes("social") || rThreatSafe.includes("train")) controls = "§164.308(a)(5)";
+             else if (rThreatSafe.includes("malware") || rThreatSafe.includes("ransomware") || rThreatSafe.includes("virus")) controls = "§164.308(a)(6)";
+             else if (rThreatSafe.includes("network") || rThreatSafe.includes("firewall") || rThreatSafe.includes("ddos") || rThreatSafe.includes("attack")) controls = "§164.312(e)";
+             else if (rThreatSafe.includes("physical") || rThreatSafe.includes("theft") || rThreatSafe.includes("unauthorized entry")) controls = "§164.310(a)(1)";
+             else if (rThreatSafe.includes("backup") || rThreatSafe.includes("disaster") || rThreatSafe.includes("recover") || rThreatSafe.includes("business continuity") || rStatement.toLowerCase().includes("business continuity")) controls = "§164.308(a)(7)";
+             else if (controls.includes("A.")) {
+                controls = controls.replace(/A\.8\.3/g, "§164.312(a)(1)")
+                                   .replace(/A\.8\.12/g, "§164.312(e)")
+                                   .replace(/A\.8\.28/g, "§164.312(c)")
+                                   .replace(/A\.8\.7/g, "§164.308(a)(6)")
+                                   .replace(/A\.8\.9/g, "§164.312(c); §164.308(a)(1)")
+                                   .replace(/A\.8\.20/g, "§164.312(e)")
+                                   .replace(/A\.5\.19/g, "§164.308(b)(1)")
+                                   .replace(/A\.5\.20/g, "§164.308(b)(1)")
+                                   .replace(/A\.5\.1/g, "§164.308(a)(1)")
+                                   .replace(/A\.5\.30/g, "§164.308(a)(7)")
+                                   .replace(/A\.\d+\.\d+/g, "§164.308(a)(1)");
+                
+                controls = Array.from(new Set(controls.split("; ").map(s=>s.trim()))).join("; ");
+             }
+             if (!controls || controls === "—") controls = "§164.308(a)(1)";
+          }
+
           let rationale = "";
           if (rThreatSafe.includes("sql injection") || rStatement.toLowerCase().includes("sql injection")) rationale = "Secure coding/input validation prevents injection attacks.";
           else if (rThreatSafe.includes("api abuse") || rThreatSafe.includes("api") || rStatement.toLowerCase().includes("api")) rationale = "API security and secure coding reduce endpoint abuse.";
@@ -297,7 +331,7 @@ export default function AssessmentResultsPage() {
                       <tr>
                         <th>Risk ID</th>
                         <th>Risk Statement</th>
-                        <th>Annex A:2022 Control(s)</th>
+                        <th>{ad.framework_id === "hipaa" || String(ad.framework).toLowerCase() === "hipaa" ? "HIPAA Security Rule" : "Annex A:2022 Control(s)"}</th>
                         <th>Rationale</th>
                       </tr>
                     </thead>
@@ -704,65 +738,85 @@ export default function AssessmentResultsPage() {
 
         {/* SOA TAB */}
         {activeTab === "soa" && (() => {
-          // Build SOA rows from the existing evaluated controls in ad.sections
-          // NO scoring/logic changes — display-only mapping
-          const soaRows = [];
-          let rowId = 1;
-          (ad.sections || []).forEach((section) => {
-            (section.controls || []).forEach((ctrl) => {
-              const status = (ctrl.status || "").toLowerCase();
+          let soaRows = [];
+          const isHipaa = ad.framework && ad.framework.toLowerCase() === "hipaa";
+          
+          if (isHipaa && ad.soa && ad.soa.entries && ad.soa.entries.length > 0) {
+            soaRows = ad.soa.entries.map((entry, idx) => ({
+              id: idx + 1,
+              section: entry.section || "—",
+              control_no: (() => {
+                const raw = entry.control_no || "";
+                const m = raw.match(/[Aa](\d+\.\d+)/);
+                return m ? `A.${m[1]}` : (raw || "—");
+              })(),
+              control_title: entry.control_title || "—",
+              applicable: entry.applicable || "Yes",
+              remarks: entry.remarks || "N/A",
+              implemented: entry.implementation || "Not Implemented",
+              reference: entry.reference || "—",
+              status: entry.status || "missing",
+            }));
+          } else {
+            // Build SOA rows from the existing evaluated controls in ad.sections
+            // NO scoring/logic changes — display-only mapping
+            let rowId = 1;
+            (ad.sections || []).forEach((section) => {
+              (section.controls || []).forEach((ctrl) => {
+                const status = (ctrl.status || "").toLowerCase();
 
-              // Col 5: Applicable — all evaluated controls = "Yes"
-              const applicable = "Yes";
+                // Col 5: Applicable — all evaluated controls = "Yes"
+                const applicable = "Yes";
 
-              // Col 6: Remarks — "N/A" when applicable (per spec)
-              const remarks = "N/A";
+                // Col 6: Remarks — "N/A" when applicable (per spec)
+                const remarks = "N/A";
 
-              // Col 7: Implemented — map from existing status
-              let implemented = "Control is not implemented; no supporting evidence found";
-              if (status === "compliant") implemented = "Control is implemented and supported by available evidence";
-              else if (status === "partial") implemented = "Control is partially implemented; improvements required";
+                // Col 7: Implemented — map from existing status
+                let implemented = "Control is not implemented; no supporting evidence found";
+                if (status === "compliant") implemented = "Control is implemented and supported by available evidence";
+                else if (status === "partial") implemented = "Control is partially implemented; improvements required";
 
-              // Col 8: Reference — mapped from ISO Annex A section (A5/A6/A7/A8) + vendor/missing fallback
-              // Display-only — no scoring or inference changes
-              const domainHint = (ctrl.domain || section.section_name || section.section_key || "").toLowerCase();
-              const ruleHint = (ctrl.rule_id || "").toLowerCase();
-              let reference = "System Inference Engine";
-              if (status === "missing" && !ctrl.has_evidence) {
-                reference = "System Inference Engine / No supporting evidence";
-              } else if (domainHint.includes("vendor") || domainHint.includes("supplier") || ruleHint.includes("vendor")) {
-                reference = "Vendor Records / Third-Party Data";
-              } else if (domainHint.includes("people") || domainHint.includes("a6") || ruleHint.startsWith("iso-a6")) {
-                reference = "HR / Employee Data; Training Matrix";
-              } else if (domainHint.includes("physical") || domainHint.includes("a7") || ruleHint.startsWith("iso-a7")) {
-                reference = "Asset Inventory / Facilities Data";
-              } else if (domainHint.includes("technological") || domainHint.includes("a8") || ruleHint.startsWith("iso-a8")) {
-                reference = "Network Rules / Configurations / Systems";
-              } else if (domainHint.includes("organizational") || domainHint.includes("a5") || ruleHint.startsWith("iso-a5")) {
-                reference = "Policies / Governance / Risk Register";
-              } else if (ctrl.has_evidence) {
-                reference = "System Inference Engine";
-              }
+                // Col 8: Reference — mapped from ISO Annex A section (A5/A6/A7/A8) + vendor/missing fallback
+                // Display-only — no scoring or inference changes
+                const domainHint = (ctrl.domain || section.section_name || section.section_key || "").toLowerCase();
+                const ruleHint = (ctrl.rule_id || "").toLowerCase();
+                let reference = "System Inference Engine";
+                if (status === "missing" && !ctrl.has_evidence) {
+                  reference = "System Inference Engine / No supporting evidence";
+                } else if (domainHint.includes("vendor") || domainHint.includes("supplier") || ruleHint.includes("vendor")) {
+                  reference = "Vendor Records / Third-Party Data";
+                } else if (domainHint.includes("people") || domainHint.includes("a6") || ruleHint.startsWith("iso-a6")) {
+                  reference = "HR / Employee Data; Training Matrix";
+                } else if (domainHint.includes("physical") || domainHint.includes("a7") || ruleHint.startsWith("iso-a7")) {
+                  reference = "Asset Inventory / Facilities Data";
+                } else if (domainHint.includes("technological") || domainHint.includes("a8") || ruleHint.startsWith("iso-a8")) {
+                  reference = "Network Rules / Configurations / Systems";
+                } else if (domainHint.includes("organizational") || domainHint.includes("a5") || ruleHint.startsWith("iso-a5")) {
+                  reference = "Policies / Governance / Risk Register";
+                } else if (ctrl.has_evidence) {
+                  reference = "System Inference Engine";
+                }
 
-              soaRows.push({
-                id: rowId++,
-                section: section.section_name || section.section_key || "—",
-                // Normalise raw rule_id: "ISO-A6.1-01" → "A.6.1"
-                control_no: (() => {
-                  const raw = ctrl.rule_id || "";
-                  // Match the annex letter + dotted number part: A6.1, A7.10, A8.24
-                  const m = raw.match(/[Aa](\d+\.\d+)/);
-                  return m ? `A.${m[1]}` : (raw || "—");
-                })(),
-                control_title: ctrl.name || "—",
-                applicable,
-                remarks,
-                implemented,
-                reference,
-                status,
+                soaRows.push({
+                  id: rowId++,
+                  section: section.section_name || section.section_key || "—",
+                  // Normalise raw rule_id: "ISO-A6.1-01" → "A.6.1"
+                  control_no: (() => {
+                    const raw = ctrl.rule_id || "";
+                    // Match the annex letter + dotted number part: A6.1, A7.10, A8.24
+                    const m = raw.match(/[Aa](\d+\.\d+)/);
+                    return m ? `A.${m[1]}` : (raw || "—");
+                  })(),
+                  control_title: ctrl.name || "—",
+                  applicable,
+                  remarks,
+                  implemented,
+                  reference,
+                  status,
+                });
               });
             });
-          });
+          }
 
           return (
             <div>
