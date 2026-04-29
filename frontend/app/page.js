@@ -371,8 +371,11 @@ export default function MarketingHomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 text-center bg-white text-slate-400 text-sm font-bold tracking-wide">
+      <footer className="py-12 text-center bg-white text-slate-400 text-sm font-bold tracking-wide relative">
         © {new Date().getFullYear()} Aegis.One by SmartISMS. Enterprise GRC & Security Intelligence. All rights reserved.
+        <Link href="/admin-login" className="absolute bottom-4 right-4 text-slate-300 hover:text-slate-500 transition-colors text-xs font-normal">
+          Admin
+        </Link>
       </footer>
     </div>
   );

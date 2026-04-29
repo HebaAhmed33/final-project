@@ -1506,7 +1506,7 @@ def build_framework_aware_assessment(
 
         # ── OVERRIDE PCI RISK TREATMENT PLAN (1:1 with Risk Register) ──
         pci_treatment_actions = []
-        from datetime import datetime, timedelta
+        from datetime import timedelta
         import re
         
         for r in final_risks:

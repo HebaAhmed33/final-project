@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from integration.full_combined_runner import run_full_combined_analysis
@@ -21,7 +22,6 @@ from isms_core.rule_engine import evaluate
 from config_analysis.config_input_mapper import map_config_input
 from config_analysis.technical_findings_formatter import format_technical_findings
 from config_analysis.technical_risk_engine import create_technical_risks
-from reporting.report_export_service import export_company_latest_report_pdf
 from news.news_service import fetch_news
 from upload.processors import process_assessment_upload, process_config_upload
 from upload.storage import (
@@ -32,6 +32,11 @@ from services.framework_loader import load_framework, get_supported_frameworks
 from services.assessment_builder import build_assessment
 from services.assessment_history import (
     save_assessment_run, get_assessment_history, prepare_export_payload,
+)
+from services.export_service import (
+    get_latest_completed_assessment,
+    build_excel_workbook,
+    build_pdf_report,
 )
 
 
@@ -62,10 +67,6 @@ class RunAndSaveRequest(BaseModel):
     config_standard_file: str
 
 
-class ExportReportRequest(BaseModel):
-    company_id: str
-
-
 class ConfigAnalysisRequest(BaseModel):
     raw_config_data: dict
     config_standard_file: str
@@ -76,12 +77,7 @@ class LoginRequest(BaseModel):
     password: str
 
 
-class RequestAccessRequest(BaseModel):
-    company_name: str
-    email: str
-    organization_type: str
-    sector: str = ""
-    notes: str = ""
+
 
 
 # Hardcoded demo user
@@ -130,53 +126,7 @@ def login(request: LoginRequest):
     return {"success": False, "message": "Invalid credentials"}
 
 
-# ---------------------------------------------------------------------------
-# Access-request persistence helpers
-# ---------------------------------------------------------------------------
 
-_ACCESS_REQUESTS_FILE = os.path.join(
-    os.path.dirname(__file__), "data", "access_requests.json"
-)
-
-
-def _load_access_requests() -> list[dict]:
-    """Read the access-requests JSON file, returning [] if missing."""
-    if not os.path.exists(_ACCESS_REQUESTS_FILE):
-        return []
-    with open(_ACCESS_REQUESTS_FILE, "r", encoding="utf-8") as fh:
-        return json.load(fh)
-
-
-def _save_access_requests(requests: list[dict]) -> None:
-    """Write the full list back to disk, creating the directory if needed."""
-    os.makedirs(os.path.dirname(_ACCESS_REQUESTS_FILE), exist_ok=True)
-    with open(_ACCESS_REQUESTS_FILE, "w", encoding="utf-8") as fh:
-        json.dump(requests, fh, indent=2, ensure_ascii=False)
-
-
-@app.post("/request-access")
-def request_access(request: RequestAccessRequest):
-    """Persist a SaaS access request to local JSON storage."""
-    entry = {
-        "id": str(uuid.uuid4()),
-        "company_name": request.company_name,
-        "email": request.email,
-        "organization_type": request.organization_type,
-        "sector": request.sector,
-        "notes": request.notes,
-        "status": "pending",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    all_requests = _load_access_requests()
-    all_requests.append(entry)
-    _save_access_requests(all_requests)
-    return {"success": True, "message": "Request received. Our team will contact you shortly."}
-
-
-@app.get("/access-requests")
-def list_access_requests():
-    """Return every access request on file."""
-    return {"requests": _load_access_requests()}
 
 
 @app.post("/run-full-analysis")
@@ -213,27 +163,7 @@ def run_and_save_assessment(request: RunAndSaveRequest):
     return stored_report
 
 
-@app.get("/reports/{company_id}")
-def get_company_reports(company_id: str):
-    """Return all saved reports for a company."""
-    reports = get_reports(company_id)
-    return {"company_id": company_id, "total_reports": len(reports), "reports": reports}
 
-
-@app.post("/export-latest-report")
-def export_latest_report(request: ExportReportRequest):
-    """Generate a PDF from the latest saved report for a company."""
-    output_dir = os.path.join(os.path.dirname(__file__), "exports")
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, f"{request.company_id}_executive_report.pdf")
-
-    result = export_company_latest_report_pdf(request.company_id, output_path)
-    if result is None:
-        return {"status": "error", "message": f"No report found for company '{request.company_id}'."}
-    return {"status": "success", "output_path": result}
-
-
-# ---------------------------------------------------------------------------
 # Run: uvicorn backend.app:app --reload
 # ---------------------------------------------------------------------------
 
@@ -453,3 +383,41 @@ def export_assessment(request: ISO27001AssessmentRequest):
         return {"success": True, "export_payload": prepare_export_payload(result)}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# Export download endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/export/latest/excel")
+def export_latest_excel():
+    """Download an Excel workbook of the latest completed assessment."""
+    fa = get_latest_completed_assessment()
+    if not fa:
+        raise HTTPException(
+            status_code=404,
+            detail="No completed assessment results found. Run an assessment first.",
+        )
+    buf, filename = build_excel_workbook(fa)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.get("/export/latest/pdf")
+def export_latest_pdf():
+    """Download a PDF report of the latest completed assessment."""
+    fa = get_latest_completed_assessment()
+    if not fa:
+        raise HTTPException(
+            status_code=404,
+            detail="No completed assessment results found. Run an assessment first.",
+        )
+    buf, filename = build_pdf_report(fa)
+    return StreamingResponse(
+        buf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

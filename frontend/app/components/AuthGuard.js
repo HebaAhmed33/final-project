@@ -10,7 +10,7 @@ export default function AuthGuard({ children }) {
   useEffect(() => {
     const user = localStorage.getItem("smartisms_user");
     if (!user) {
-      router.replace("/login");
+      router.replace("/");
     } else {
       setChecked(true);
     }

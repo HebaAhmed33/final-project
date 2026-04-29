@@ -6,7 +6,6 @@ import Link from "next/link";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/assessment", label: "Assessment" },
-  { href: "/reports", label: "Reports" },
 ];
 
 export default function Navbar() {

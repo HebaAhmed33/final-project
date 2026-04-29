@@ -20,16 +20,10 @@ const NAV_LINKS = [
     label: "Workspace",
     icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
   },
-
-  { 
-    href: "/reports", 
-    label: "Executive Reports",
-    icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-  },
-  { 
-    href: "/access-requests", 
-    label: "Access Requests",
-    icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+  {
+    href: "/exports",
+    label: "Exports",
+    icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a2 2 0 002 2h14a2 2 0 002-2v-3M16 6l-4-4m0 0L8 6m4-4v12" /></svg>
   },
 ];
 
@@ -53,7 +47,8 @@ export default function Sidebar({ isCollapsed = false, setIsCollapsed = () => {}
 
   const handleLogout = () => {
     localStorage.removeItem("smartisms_user");
-    router.push("/login");
+    localStorage.removeItem("admin_user");
+    router.push("/");
   };
 
   return (

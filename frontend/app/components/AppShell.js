@@ -6,12 +6,17 @@ import AuthGuard from "./AuthGuard";
 
 import TopNavbar from "./TopNavbar";
 
-const PUBLIC_ROUTES = ["/", "/login", "/request-access", "/news", "/about", "/onboarding"];
+const PUBLIC_ROUTES = ["/", "/admin-login", "/news", "/about", "/onboarding"];
 
 export default function AppShell({ children }) {
   const pathname = usePathname();
   const isPublic = PUBLIC_ROUTES.includes(pathname);
+  const isAdminDashboard = pathname === "/admin" || pathname.startsWith("/admin/");
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  if (isAdminDashboard) {
+    return <>{children}</>;
+  }
 
   if (isPublic) {
     return (
