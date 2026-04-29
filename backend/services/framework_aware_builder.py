@@ -657,17 +657,22 @@ def _build_insights(
 # SoA builder
 # ---------------------------------------------------------------------------
 
-def _build_soa(relevant_controls: list[dict], framework_id: str = "") -> dict:
+def _build_soa(relevant_controls: list[dict], framework_id: str = "", risks: list[dict] | None = None) -> dict:
     print("USING UPDATED SOA GENERATOR")
     is_hipaa = (framework_id.lower() == "hipaa")
+    is_pci = False  # Bypassed old PCI SoA logic
     entries = []
     for ctrl in relevant_controls:
         status = ctrl.get("status", "missing")
         ev  = ctrl.get("evidence_row", {})
         has_evidence = ctrl.get("has_evidence", False)
 
-        applicable = "Yes"
-        remarks = ctrl.get("reason", "")
+        if has_evidence:
+            applicable = "Yes"
+            remarks = ctrl.get("reason", "")
+        else:
+            applicable = "No"
+            remarks = "No supporting evidence found in uploaded data"
         
         sec_key = ctrl.get('section_key', '').strip()
         sec_name = ctrl.get('section_name', '').strip()
@@ -709,11 +714,7 @@ def _build_soa(relevant_controls: list[dict], framework_id: str = "") -> dict:
             else:
                 implementation = "Not Implemented"
                 
-            # 3. Applicable = No
-            if not has_evidence and status == "missing":
-                applicable = "No"
-                remarks = f"No {ctrl.get('name', 'relevant control').lower()} processes identified in uploaded data"
-                
+
             # 2. Dynamic Evidence References
             if not has_evidence and applicable == "No":
                 ref = "—"
@@ -770,21 +771,124 @@ def _build_soa(relevant_controls: list[dict], framework_id: str = "") -> dict:
 # Extra Matrices / Calendars
 # ---------------------------------------------------------------------------
 
-def _build_vendor_checklist(all_sheets: list[dict] | None) -> list[dict]:
-    if not all_sheets: return []
+def _build_vendor_checklist(
+    all_sheets: list[dict] | None,
+    framework_id: str = "",
+) -> list[dict]:
+    """
+    Build vendor / business-associate checklist with full security evaluation.
+
+    Each row is enriched with deterministic fields derived from the vendor's
+    service_type and compliance status:
+      certifications, agreement, encryption, sla, monitoring, risk_level
+    """
+    if not all_sheets:
+        return []
     sheet = next((s for s in all_sheets if s.get("type") == "vendors"), None)
-    if not sheet: return []
-    checklist = []
+    if not sheet:
+        return []
+
+    # --- keyword sets for service-type categorisation ---
+    _CLOUD_KW   = {"cloud", "saas", "iaas", "paas", "aws", "azure", "gcp", "hosting"}
+    _EHR_KW     = {"ehr", "emr", "electronic health", "clinical", "patient record"}
+    _BILLING_KW = {"billing", "revenue", "claims", "payment", "financial", "accounting", "rcm"}
+    _BACKUP_KW  = {"backup", "storage", "disaster", "recovery", "archive", "dr"}
+    _TELE_KW    = {"telehealth", "telemedicine", "remote care", "virtual visit", "video"}
+    _INTEG_KW   = {"integration", "api", "middleware", "interoperability", "hl7", "fhir"}
+
+    def _matches(svc_lower: str, keywords: set[str]) -> bool:
+        return any(k in svc_lower for k in keywords)
+
+    checklist: list[dict] = []
     for row in sheet.get("rows", []):
+        raw_vendor = row.get("vendor_name", row.get("vendor", row.get("vendor_id", "")))
+        vendor_name = str(raw_vendor).strip() if raw_vendor is not None else ""
+        
+        # ── 1. Filter invalid rows ──
+        row_text = " ".join(str(v).lower() for v in row.values() if v is not None)
+        
+        skip_phrases = [
+            "evidence for third-party",
+            "evidence for third party",
+            "service provider risk",
+            "pci should flag",
+            "system should infer",
+            "evidence input only",
+            "vendor id"
+        ]
+        if any(phrase in row_text for phrase in skip_phrases):
+            print("SKIPPED INVALID VENDOR ROW:", row)
+            continue
+
+        skip_names = [
+            "vendor id", "services", "none", "n/a", "unknown", ""
+        ]
+        if not vendor_name or len(vendor_name) < 2 or vendor_name.lower() in skip_names:
+            print("SKIPPED INVALID VENDOR ROW:", row)
+            continue
+        if any(phrase in vendor_name.lower() for phrase in skip_phrases):
+            print("SKIPPED INVALID VENDOR ROW:", row)
+            continue
+
+        # ── 2. Read explicit mapping from Excel ──
+        service_provided = str(row.get("service_type") or row.get("service") or row.get("services") or "Services").strip()
+        raw_contract = str(row.get("contract") or row.get("agreement") or row.get("compliance") or "No").strip()
+        raw_encryption = str(row.get("encryption") or row.get("data_protection") or "No").strip()
+        raw_sla = str(row.get("sla") or row.get("service_level_agreement") or "Undefined").strip()
+        raw_monitoring = str(row.get("monitoring") or row.get("review") or "None").strip()
+
+        is_compliant_contract = raw_contract.lower() in ("yes", "compliant", "signed", "certified", "approved", "active")
+        
+        # Parse Contract
+        agreement = "Yes" if is_compliant_contract else "No"
+        
+        # Parse Encryption
+        if "yes" in raw_encryption.lower() or "aes" in raw_encryption.lower() or "tls" in raw_encryption.lower():
+            encryption = "Yes"
+        else:
+            encryption = "No"
+
+        # Parse SLA
+        if "yes" in raw_sla.lower() or "defined" in raw_sla.lower():
+            sla = "Defined"
+        else:
+            sla = "Undefined"
+
+        # Parse Monitoring
+        if "monthly" in raw_monitoring.lower() or "continuous" in raw_monitoring.lower():
+            monitoring = "Monthly"
+        else:
+            monitoring = "None"
+            
+        certifications = "PCI DSS, SOC 2" if is_compliant_contract else "Missing"
+
+        # ── 4. Dynamic Risk Logic ─────────────────────────────────────────────────
+        missing_count = 0
+        if agreement == "No": missing_count += 1
+        if encryption == "No": missing_count += 1
+        if sla == "Undefined": missing_count += 1
+
+        if missing_count == 3:
+            risk_level = "High"
+        elif missing_count > 0:
+            risk_level = "Medium"
+        else:
+            risk_level = "Low"
+
         checklist.append({
-            "vendor_name": row.get("vendor_name", row.get("vendor", "Unknown")),
-            # Bug 5 fix: use canonical field "service_type" (normalized by header_normalizer)
-            # Fall back to raw "service" only if the canonical key is absent.
-            "service_provided": row.get("service_type") or row.get("service", "Services"),
-            "risk_level": row.get("risk_level", "Unknown"),
-            "compliance_status": row.get("compliance", "Missing"),
-            "action_required": "Perform security review" if not row.get("compliance") else "Review annually"
+            "vendor_name":       vendor_name,
+            "service_provided":  service_provided,
+            "certifications":    certifications,
+            "agreement":         agreement,
+            "encryption":        encryption,
+            "sla":               sla,
+            "monitoring":        monitoring,
+            "risk_level":        risk_level,
+            "compliance_status": "Compliant" if agreement == "Yes" else "Missing",
+            "action_required":   "Perform security review" if agreement == "No" else "Review annually",
         })
+
+    print("VALID VENDORS:", [v['vendor_name'] for v in checklist])
     return checklist
 
 def _build_training_matrix(all_sheets: list[dict] | None) -> list[dict]:
@@ -1010,7 +1114,17 @@ def build_framework_aware_assessment(
         cross_framework_mapping = parsed_risks
 
     # ── 5. Score (framework controls only) ───────────────────────────────
-    score_data = _score_flat(relevant_controls)
+    fw_norm = framework_id.lower().replace(" ", "").replace("-", "").replace("_", "")
+    if "pci" in fw_norm:
+        # PCI DSS: use risk-based scoring engine
+        from services.evidence_inference import compute_pci_risk_based_score
+        score_data = compute_pci_risk_based_score(
+            controls=relevant_controls,
+            routing=routing,
+            all_sheets=all_sheets,
+        )
+    else:
+        score_data = _score_flat(relevant_controls)
 
     # ── 6. Rebuild sections ───────────────────────────────────────────────
     sections  = _build_sections(relevant_controls)
@@ -1026,6 +1140,16 @@ def build_framework_aware_assessment(
     from services.contextual_risk_generator import generate_risks_from_data
     generated_risks = generate_risks_from_data(routing, relevant_controls, present_types, all_sheets=all_sheets, framework_id=framework_id)
 
+    # PCI DSS: also generate PCI-specific dynamic risks from data analysis
+    if "pci" in fw_norm:
+        from services.evidence_inference import generate_pci_dynamic_risks
+        pci_risks = generate_pci_dynamic_risks(routing, relevant_controls, all_sheets)
+        # Merge PCI risks, avoiding duplicates by risk_name
+        existing_names = {r.get("risk_name", "").lower() for r in generated_risks}
+        for pr in pci_risks:
+            if pr.get("risk_name", "").lower() not in existing_names:
+                generated_risks.append(pr)
+                existing_names.add(pr.get("risk_name", "").lower())
     # Normalize uploaded risks (if any)
     uploaded_rr_entries = []
     if all_sheets:
@@ -1095,6 +1219,153 @@ def build_framework_aware_assessment(
     risk_register["findings"] = [r for r in risk_register["findings"] if not _is_placeholder(r)]
     risk_register["untreated_risks"] = [r for r in risk_register["untreated_risks"] if not _is_placeholder(r)]
 
+    if "pci" in fw_norm:
+        def normalize_final_pci_risks(final_risks: list[dict]) -> list[dict]:
+            groups = {}
+            
+            for r in final_risks:
+                text_blob = " ".join(str(v) for v in r.values()).lower()
+                if any(x in text_blob for x in ("evidence input only", "system should infer", "evidence for third-party", "prompt", "instruction")):
+                    continue
+                
+                asset = str(r.get("asset", "")).strip()
+                if asset.lower() in ("asset id", "vendor id", "employee id", "rule id", "policy id", "asset_id", "vendor_name", "asset_name", "vendor name", "asset name", "unnamed asset"):
+                    continue
+
+                stmt = str(r.get("risk_statement") or r.get("risk_name") or "").strip()
+                ctrl = str(r.get("control") or r.get("mitigation") or r.get("controls") or r.get("pci_requirement") or "").strip()
+                threat = str(r.get("threat", "Unspecified Threat")).strip()
+                pci_req = str(r.get("pci_requirement") or r.get("controls") or "").strip()
+                
+                try:
+                    lh = int(r.get("likelihood", 3))
+                    imp = int(r.get("impact", 3))
+                except (ValueError, TypeError):
+                    lh, imp = 3, 3
+                score = lh * imp
+                
+                # Identify critical risks (encryption, exposure, patches, MFA)
+                is_critical = False
+                stmt_lower = stmt.lower()
+                if any(x in stmt_lower or x in threat.lower() for x in (
+                    "cardholder", "unencrypted", "patch", "mfa", "multi-factor", "internet-exposed", "sql injection", "default-allow", "default allow"
+                )):
+                    is_critical = True
+                    # Boost critical risks to ensure they appear in the top 5
+                    if score < 16:
+                        score = 16
+                
+                # 1. Strict Semantic Deduplication Key: Same Root Cause (Threat) + Same PCI Req
+                group_key = (threat.lower(), pci_req.lower())
+                
+                if group_key not in groups:
+                    groups[group_key] = {
+                        "risks": [],
+                        "assets": [],
+                        "stmts": []
+                    }
+                
+                groups[group_key]["risks"].append((score, is_critical, r))
+                if asset and asset not in groups[group_key]["assets"]:
+                    groups[group_key]["assets"].append(asset)
+                if stmt not in groups[group_key]["stmts"]:
+                    groups[group_key]["stmts"].append(stmt)
+                    
+            collapsed = []
+            for gkey, gdata in groups.items():
+                # Pick strongest version
+                gdata["risks"].sort(key=lambda x: (x[0], x[1]), reverse=True)
+                best_score, best_is_crit, best_r = gdata["risks"][0]
+                base = dict(best_r)
+                
+                assets = gdata["assets"]
+                stmts = gdata["stmts"]
+                threat_name = base.get("threat", "Identified Risk")
+                tl = threat_name.lower()
+                
+                if len(assets) > 1:
+                    if "unmanaged" in tl:
+                        base["risk_statement"] = "Multiple unmanaged assets detected bypassing security controls"
+                    elif "vendor" in tl or "supply chain" in tl or "third-party" in tl:
+                        base["risk_statement"] = f"Vendor compliance gaps detected across {len(assets)} third-party suppliers"
+                    elif "training" in tl or "phish" in tl:
+                        base["risk_statement"] = "Workforce training gaps detected increasing social engineering susceptibility"
+                    elif "network" in tl or "misconfiguration" in tl or "default-allow" in tl:
+                        if any("rule" in s.lower() or "allow" in s.lower() for s in stmts):
+                            base["risk_statement"] = f"Overly permissive network rules detected across {len(assets)} configurations"
+                        else:
+                            base["risk_statement"] = f"Multiple {tl} vulnerabilities detected across {len(assets)} assets"
+                    else:
+                        base["risk_statement"] = f"Systemic {tl} risk identified affecting {len(assets)} assets"
+                        
+                    if len(assets) > 8:
+                        base["asset"] = ", ".join(assets[:8]) + f" (+{len(assets) - 8} others)"
+                    else:
+                        base["asset"] = ", ".join(assets)
+                
+                # 2. Priority Filtering: flag generic weak risks
+                is_generic = False
+                if "unmanaged" in tl or "vendor" in tl or "training" in tl:
+                    # Downgrade generic risks if they are not explicitly high/critical
+                    if best_score < 12:
+                        is_generic = True
+                
+                collapsed.append({
+                    "score": best_score,
+                    "is_critical": best_is_crit,
+                    "is_generic": is_generic,
+                    "risk": base
+                })
+                
+            def normalize_text(text: str) -> str:
+                t = text.lower().strip()
+                if "deny rule" in t or "default-allow" in t or "unrestricted network" in t:
+                    return "default allow network configuration"
+                if "training" in t or "phish" in t:
+                    return "workforce training gaps"
+                if "vendor" in t or "third-party" in t or "supply chain" in t:
+                    return "vendor compliance gaps"
+                return t
+                
+            # 3. Final Deduplication (Strict)
+            final_deduped = {}
+            for item in collapsed:
+                r = item["risk"]
+                stmt_norm = normalize_text(r.get("risk_statement", ""))
+                th_norm = r.get("threat", "").lower().strip()
+                ctrl_norm = r.get("control", r.get("mitigation", "")).lower().strip()
+                
+                key = (th_norm, stmt_norm, ctrl_norm)
+                if key not in final_deduped:
+                    final_deduped[key] = item
+                else:
+                    # Keep the highest impact x likelihood
+                    if item["score"] > final_deduped[key]["score"]:
+                        final_deduped[key] = item
+                        
+            # 4. Final Sort & Cut (Target 10-12 risks max)
+            final_list = list(final_deduped.values())
+            final_list.sort(key=lambda x: (x["score"], x["is_critical"], not x["is_generic"]), reverse=True)
+            
+            final_cleaned = []
+            for item in final_list[:12]:
+                final_cleaned.append(item["risk"])
+                
+            # 5. Final Sequencing
+            for i, risk in enumerate(final_cleaned, start=1):
+                risk["risk_id"] = f"PCI-R{str(i).zfill(3)}"
+                
+            return final_cleaned
+
+        all_pci_risks = risk_register["generated_risk_entries"] + risk_register["uploaded_risk_entries"]
+        final_pci_risks = normalize_final_pci_risks(all_pci_risks)
+        
+        print("FINAL PCI RISK IDS:", [r.get("risk_id") for r in final_pci_risks])
+        print("FINAL PCI RISK COUNT:", len(final_pci_risks))
+        
+        risk_register["generated_risk_entries"] = final_pci_risks
+        risk_register["uploaded_risk_entries"] = []
+
     # ── 8. Treatment plan — applied to ALL risks (uploaded + generated)
     all_risks_for_treatment = [
         {
@@ -1162,7 +1433,7 @@ def build_framework_aware_assessment(
     )
 
     # ── 12. SoA ───────────────────────────────────────────────────────────
-    soa = _build_soa(relevant_controls, framework_id)
+    # Moved to after Risk Register generation to allow risk-aware status mapping
 
     # ── 13. Compliance Matrix ─────────────────────────────────────────────
     from services.evidence_inference import build_compliance_matrix
@@ -1179,6 +1450,7 @@ def build_framework_aware_assessment(
             + risk_register.get("uploaded_risk_entries", [])
         ),
         framework_id=framework_id,
+        all_sheets=all_sheets,
     )
 
     # ── 15. Governance Calendar (backend-generated, framework-aware) ──────
@@ -1190,9 +1462,146 @@ def build_framework_aware_assessment(
         ),
         framework_id=framework_id,
     )
+    # ── FINAL UI DEDUPLICATION PASS ───────────────────────────────────────
+    if "pci" in fw_norm:
+        def get_theme(text: str) -> str:
+            t = text.lower()
+            if any(x in t for x in ("default-allow", "no explicit deny", "unrestricted network access")):
+                return "default_allow_network"
+            if any(x in t for x in ("lack security training", "security awareness", "phishing susceptibility", "training")):
+                return "workforce_training_gap"
+            if any(x in t for x in ("vendor compliance", "third-party suppliers", "lack compliance certification", "vendor")):
+                return "vendor_compliance_gap"
+            return t.strip()
+
+        final_list = risk_register.get("generated_risk_entries", []) + risk_register.get("uploaded_risk_entries", [])
+        
+        final_deduped = {}
+        for r in final_list:
+            stmt = str(r.get("risk_statement") or "").strip()
+            theme = get_theme(stmt)
+            
+            try:
+                score = int(r.get("likelihood", 3)) * int(r.get("impact", 3))
+            except:
+                score = 9
+                
+            if theme not in final_deduped:
+                final_deduped[theme] = {"score": score, "risk": r}
+            else:
+                if score > final_deduped[theme]["score"]:
+                    final_deduped[theme] = {"score": score, "risk": r}
+                    
+        # Apply final list and re-sequence
+        final_risks = [item["risk"] for item in final_deduped.values()]
+        
+        for i, risk in enumerate(final_risks, start=1):
+            risk["risk_id"] = f"PCI-R{i:03d}"
+            
+        risk_register["generated_risk_entries"] = final_risks
+        risk_register["uploaded_risk_entries"] = []
+        
+        print("UI RISK REGISTER COUNT:", len(risk_register["generated_risk_entries"]))
+        print("UI RISK REGISTER STATEMENTS:", [r.get("risk_statement") for r in risk_register["generated_risk_entries"]])
+
+        # ── OVERRIDE PCI RISK TREATMENT PLAN (1:1 with Risk Register) ──
+        pci_treatment_actions = []
+        from datetime import datetime, timedelta
+        import re
+        
+        for r in final_risks:
+            stmt = str(r.get("risk_statement", ""))
+            threat_txt = str(r.get("threat", ""))
+            ctrl_txt = str(r.get("control", ""))
+            
+            # Normalize text for matching: replace punctuation with space so 'default-allow' becomes 'default allow'
+            full_text = f"{stmt} {threat_txt} {ctrl_txt}".lower()
+            full_text = re.sub(r'[^\w\s]', ' ', full_text)
+            
+            # Action Mapping - Guaranteed Coverage with Strict Priority Evaluation
+            if any(k in full_text for k in ("database exposed", "public database", "sql injection", "database")):
+                action = "Restrict database access via firewall rules and disable public exposure"
+            elif any(k in full_text for k in ("default allow", "no explicit deny", "no deny rules", "unrestricted network", "unrestricted access", "permissive network", "network rules")):
+                action = "Implement deny-by-default firewall policy and restrict inbound traffic"
+            elif any(k in full_text for k in ("network segmentation", "segmentation", "flat network", "isolate")):
+                action = "Implement network segmentation to isolate critical systems and cardholder data"
+            elif any(k in full_text for k in ("training", "phish", "awareness", "social engineering", "lack security training")):
+                action = "Implement mandatory security awareness training program"
+            elif any(k in full_text for k in ("insider", "least privilege", "privilege")):
+                action = "Implement user monitoring, access controls, and least privilege enforcement"
+            elif any(k in full_text for k in ("vendor", "third party", "thirdparty", "supply chain", "supplier", "compliance certification")):
+                action = "Perform vendor risk assessment and enforce PCI compliance requirements"
+            elif any(k in full_text for k in ("accountability", "ownership", "responsibility")):
+                action = "Assign asset ownership and define responsibility for all systems"
+            elif any(k in full_text for k in ("malware", "antivirus", "ransomware", "virus", "endpoint protection")):
+                action = "Deploy and maintain anti-malware solutions across all endpoints"
+            elif any(k in full_text for k in ("patch", "vulnerabilit", "update")):
+                action = "Implement automated patch management and remediate missing patches"
+            elif any(k in full_text for k in ("cardholder", "unencrypted", "encryption", "plaintext", "cleartext", "tls", "cryptograph")):
+                action = "Encrypt cardholder data at rest and in transit using strong cryptography"
+            elif any(k in full_text for k in ("mfa", "multi factor", "multifactor", "authentication", "password")):
+                action = "Enforce Multi-Factor Authentication (MFA) for all administrative and remote access"
+            elif any(k in full_text for k in ("unmanaged", "inventory", "unknown asset", "asset management", "unauthorized")):
+                action = "Establish asset inventory and continuous asset monitoring program"
+            else:
+                # Absolute fallback mapped to asset management to avoid generic wording
+                action = "Establish asset inventory and continuous asset monitoring program"
+            
+            # Priority Mapping
+            level = str(r.get("risk_level", "Medium")).capitalize()
+            if level in ("Extreme", "Critical"):
+                priority = "Critical"
+                days = 7
+            elif level == "High":
+                priority = "High"
+                days = 14
+            elif level == "Low":
+                priority = "Low"
+                days = 60
+            else:
+                priority = "Medium"
+                days = 30
+                
+            # Owner Mapping based on the chosen action
+            owner = "IT Security"
+            action_lower = action.lower()
+            if "network" in action_lower or "firewall" in action_lower or "segmentation" in action_lower:
+                owner = "Network / DevOps"
+            elif "training" in action_lower or "awareness" in action_lower:
+                owner = "HR / Security"
+            elif "vendor" in action_lower or "supplier" in action_lower:
+                owner = "Procurement / Security"
+            elif "database" in action_lower or "sql" in action_lower:
+                owner = "DBA / Security"
+            
+            due_date = (datetime.now(timezone.utc) + timedelta(days=days)).strftime("%Y-%m-%d")
+            
+            pci_treatment_actions.append({
+                "risk_id": r.get("risk_id", ""),
+                "rule_id": r.get("risk_id", ""),
+                "risk_statement": stmt,
+                "treatment": action,
+                "action": action,
+                "recommended_action": action,
+                "priority": priority,
+                "severity": priority,
+                "owner": owner,
+                "timeline": f"{days} days",
+                "due_date": due_date,
+                "status": "Open"
+            })
+            
+        risk_treatment_plan = pci_treatment_actions
+        treatment_plan["actions"] = pci_treatment_actions
+        treatment_plan["total_actions"] = len(pci_treatment_actions)
+        treatment_plan["remediation_source"] = "risk_register_direct"
+
+    # ── 12. SoA (Risk-Aware) ──────────────────────────────────────────────
+    soa_risks = risk_register.get("generated_risk_entries", []) + risk_register.get("uploaded_risk_entries", [])
+    soa = _build_soa(relevant_controls, framework_id, risks=soa_risks)
 
     # ── 16. Assemble response ─────────────────────────────────────────────
-    return {
+    response = {
         "success":          True,
         "message":          f"{framework_label} — {mode_label} completed.",
         "assessment_id":    str(uuid.uuid4()),
@@ -1258,7 +1667,7 @@ def build_framework_aware_assessment(
         "compliance_matrix": compliance_matrix,
 
         # 9. Extra matrices based on user request logic
-        "vendor_checklist": _build_vendor_checklist(all_sheets),
+        "vendor_checklist": _build_vendor_checklist(all_sheets, framework_id),
         "training_matrix": _build_training_matrix(all_sheets),
         "training_matrix_generated": training_matrix_generated,
         "governance_calendar": _build_governance_calendar(all_sheets),
@@ -1284,3 +1693,304 @@ def build_framework_aware_assessment(
             "routing_timestamp":  routing.get("timestamp", ""),
         },
     }
+
+    # ── 17. PCI DSS FINAL SoA OVERRIDE (on sections — the actual UI source) ──
+    # The frontend builds the SOA tab from response.sections for non-HIPAA frameworks.
+    # This block runs AFTER risk dedup, AFTER response assembly, RIGHT BEFORE return.
+    # NOTE: framework_id comes in as "PCI DSS" (with space) from the frontend,
+    #       so we use fw_norm (defined at line 1138) which strips spaces/dashes.
+    if "pci" in fw_norm:
+        # ── DEBUG: Inspect actual control object shape ──
+        print("=" * 80)
+        print("FRAMEWORK ID:", framework_id)
+        print("SECTION COUNT:", len(response.get("sections", [])))
+        print("SECTION SAMPLE:", response["sections"][0] if response.get("sections") else None)
+        for sec in response.get("sections", []):
+            for c in sec.get("controls", []):
+                print("CONTROL OBJECT:", c)
+        print("=" * 80)
+
+        # ── Build risk text from final risk register ──
+        final_risks = response["risk_register"].get("generated_risk_entries", [])
+        risk_text = " ".join([
+            f"{r.get('risk_statement', '')} {r.get('threat', '')} {r.get('control', '')}"
+            for r in final_risks
+        ]).lower()
+
+        has_default_allow = any(k in risk_text for k in ("default-allow", "default allow", "no explicit deny", "permissive rules", "permissive network", "unrestricted network", "overly permissive"))
+        has_segmentation  = any(k in risk_text for k in ("network segmentation", "segmentation", "isolate", "flat network"))
+        has_vendor        = any(k in risk_text for k in ("vendor", "third-party", "third party", "supply chain", "supplier", "service provider"))
+        has_training      = any(k in risk_text for k in ("training", "security awareness", "accountability", "phish", "social engineering"))
+        has_malware       = any(k in risk_text for k in ("malware", "antivirus", "virus", "ransomware", "endpoint protection"))
+        has_db_exposed    = any(k in risk_text for k in ("database exposed", "public database", "database accessible from internet", "internet-accessible database", "sql injection"))
+
+        print(f"[PCI SoA] risk_text length={len(risk_text)}")
+        print(f"[PCI SoA] has_default_allow={has_default_allow}, has_segmentation={has_segmentation}, has_vendor={has_vendor}, has_training={has_training}, has_malware={has_malware}, has_db_exposed={has_db_exposed}")
+
+        # ── Apply overrides to EVERY control in sections ──
+        for section in response.get("sections", []):
+            for c in section.get("controls", []):
+                # Resolve control key from ALL possible fields
+                control_key = (
+                    c.get("rule_id")
+                    or c.get("control_no")
+                    or c.get("id")
+                    or c.get("control_id")
+                    or c.get("control")
+                    or ""
+                )
+                control_title = (c.get("title") or c.get("control_title") or c.get("name") or "").lower()
+                cur_status = (c.get("status") or "").lower()
+
+                # ── Assign domain so frontend avoids "System Inference Engine" ──
+                if any(k in control_title for k in ("network", "firewall", "segmentation", "permissive", "port", "protocol", "overly")):
+                    c["domain"] = "technological"
+                elif any(k in control_title for k in ("vendor", "provider", "third-party", "supply", "service provider")):
+                    c["domain"] = "vendor"
+                elif any(k in control_title for k in ("malware", "antivirus", "endpoint", "anti-malware")):
+                    c["domain"] = "technological"
+                elif any(k in control_title for k in ("encrypt", "protect", "stored", "transmission", "develop", "secure", "patch", "vulnerability", "configuration")):
+                    c["domain"] = "technological"
+                elif any(k in control_title for k in ("physical", "restrict physical")):
+                    c["domain"] = "physical"
+                elif any(k in control_title for k in ("policy", "governance", "training", "access", "awareness", "accountability", "security management", "information security", "incident", "log", "monitor", "identify", "authenticate", "restrict access")):
+                    c["domain"] = "organizational"
+                else:
+                    c["domain"] = "organizational"
+
+                # ── Match by BOTH ID and title for robustness ──
+                # PCI-003 / PCI-RE-003 / "overly permissive" / "no overly permissive"
+                is_003 = control_key in ("PCI-003", "PCI-RE-003") or "overly permissive" in control_title or "permissive rules" in control_title
+                # PCI-010 / PCI-RE-010 / "information security policy"
+                is_010 = control_key in ("PCI-010", "PCI-RE-010") or "information security policy" in control_title
+                # PCI-001 / PCI-RE-001 / "network security controls"
+                is_001 = control_key in ("PCI-001", "PCI-RE-001") or "network security controls" in control_title
+                # PCI-002 / PCI-RE-002 / "network segmentation"
+                is_002 = control_key in ("PCI-002", "PCI-RE-002") or "network segmentation" in control_title
+                # PCI-006 / PCI-RE-006 / "anti-malware"
+                is_006 = control_key in ("PCI-006", "PCI-RE-006") or "anti-malware" in control_title
+                # PCI-011 / PCI-RE-011 / "third-party" / "service provider"
+                is_011 = control_key in ("PCI-011", "PCI-RE-011") or "third-party service provider" in control_title or "service provider management" in control_title
+                # PCI-017 / PCI-RE-017 / "security awareness training"
+                is_017 = control_key in ("PCI-017", "PCI-RE-017") or "security awareness training" in control_title
+
+                # ── Apply risk-aware status overrides ──
+                if is_003 and has_default_allow and cur_status == "compliant":
+                    c["status"] = "partial"
+                    c["domain"] = "technological"
+                    print(f"[PCI SoA] OVERRIDE {control_key} -> PARTIAL (default-allow)")
+
+                if is_001 and has_db_exposed and cur_status == "compliant":
+                    c["status"] = "partial"
+                    c["domain"] = "technological"
+                    print(f"[PCI SoA] OVERRIDE {control_key} -> PARTIAL (db exposed)")
+
+                if is_002 and has_segmentation and cur_status == "compliant":
+                    c["status"] = "partial"
+                    c["domain"] = "technological"
+                    print(f"[PCI SoA] OVERRIDE {control_key} -> PARTIAL (segmentation)")
+
+                if is_010 and has_training and cur_status == "compliant":
+                    c["status"] = "partial"
+                    c["domain"] = "organizational"
+                    print(f"[PCI SoA] OVERRIDE {control_key} -> PARTIAL (training/policy)")
+
+                if is_017 and has_training and cur_status == "compliant":
+                    c["status"] = "partial"
+                    c["domain"] = "organizational"
+                    print(f"[PCI SoA] OVERRIDE {control_key} -> PARTIAL (awareness training)")
+
+                if is_011 and has_vendor and cur_status == "compliant":
+                    c["status"] = "partial"
+                    c["domain"] = "vendor"
+                    print(f"[PCI SoA] OVERRIDE {control_key} -> PARTIAL (vendor)")
+
+                if is_006 and has_malware and cur_status == "compliant":
+                    c["status"] = "partial"
+                    c["domain"] = "technological"
+                    print(f"[PCI SoA] OVERRIDE {control_key} -> PARTIAL (malware)")
+
+        # ── Sync soa["entries"] from the now-modified sections ──
+        final_soa_entries = []
+        for section in response.get("sections", []):
+            for c in section.get("controls", []):
+                control_key = c.get("rule_id") or c.get("control_no") or c.get("id") or c.get("control_id") or c.get("control") or ""
+                control_title = (c.get("title") or c.get("control_title") or c.get("name") or "").lower()
+                status = (c.get("status") or "missing").lower()
+                domain = (c.get("domain") or "").lower()
+
+                # Reference from domain
+                if "vendor" in domain or "supplier" in domain:
+                    reference = "Vendor Records / Third-Party Data"
+                elif "technological" in domain:
+                    reference = "Network Rules / Asset Data"
+                elif "organizational" in domain:
+                    reference = "Employee Records / Governance Data"
+                elif "physical" in domain:
+                    reference = "Asset Inventory / Facilities Data"
+                else:
+                    reference = "Organizational Data"
+
+                # Implementation text
+                if status == "compliant":
+                    impl = "Control is implemented and supported by available data context."
+                elif status == "partial":
+                    impl = "Control is partially implemented; improvements required."
+                else:
+                    impl = "Control is not implemented; no supporting evidence found."
+
+                final_soa_entries.append({
+                    "section": section.get("section_name", section.get("section_key", "")),
+                    "control_no": str(control_key),
+                    "control_title": c.get("name") or c.get("title") or c.get("control_title") or "",
+                    "applicable": "Yes",
+                    "remarks": "N/A",
+                    "implementation": impl,
+                    "reference": reference,
+                    "status": status,
+                })
+
+        response["soa"]["entries"] = final_soa_entries
+        response["statement_of_applicability"] = final_soa_entries
+
+        print("AFTER PCI SOA OVERRIDE:", [(c.get("rule_id"), c.get("control_no"), c.get("title"), c.get("name"), c.get("status"), c.get("reference"), c.get("domain")) for s in response.get("sections", []) for c in s.get("controls", [])])
+
+        # ── 18. Sync Compliance Matrix for PCI ──
+        # Rebuild compliance matrix so it perfectly matches the overridden SoA sections, grouped by logical domain
+        all_pci_controls = [c for s in response.get("sections", []) for c in s.get("controls", [])]
+        
+        matrix_groups = {}
+        for c in all_pci_controls:
+            cid = str(c.get("rule_id") or c.get("control_no") or c.get("id") or "").upper()
+            
+            domain_group = "General Requirements"
+            if "001" in cid or "002" in cid or "003" in cid:
+                domain_group = "Network Security"
+            elif "004" in cid or "005" in cid:
+                domain_group = "Data Protection"
+            elif "006" in cid:
+                domain_group = "Endpoint Security"
+            elif "007" in cid or "008" in cid:
+                domain_group = "Access Control"
+            elif "009" in cid:
+                domain_group = "Monitoring"
+            elif "010" in cid:
+                domain_group = "Governance"
+            elif "011" in cid:
+                domain_group = "Supplier Management"
+            elif "012" in cid or "017" in cid:
+                domain_group = "Incident & General Management"
+
+            if domain_group not in matrix_groups:
+                matrix_groups[domain_group] = []
+            matrix_groups[domain_group].append(c)
+
+        pci_matrix = []
+        
+        # Ensure consistent ordering
+        domain_order = [
+            "Network Security", "Data Protection", "Endpoint Security", 
+            "Access Control", "Monitoring", "Governance", 
+            "Supplier Management", "Incident & General Management", "General Requirements"
+        ]
+        
+        for req_name in domain_order:
+            if req_name not in matrix_groups:
+                continue
+            
+            req_controls = matrix_groups[req_name]
+            
+            comp_list = []
+            part_list = []
+            miss_list = []
+            gaps = []
+
+            for c in req_controls:
+                st = (c.get("status") or "missing").lower()
+                cid = str(c.get("rule_id") or c.get("control_no") or c.get("id") or c.get("name") or "")
+                cname = (c.get("name") or c.get("title") or "").lower()
+                c_display_name = c.get("name") or c.get("title") or cid
+
+                if st == "compliant":
+                    comp_list.append(cid)
+                elif st == "partial":
+                    part_list.append(cid)
+                    if cid in ("PCI-010", "PCI-RE-010") or "governance" in cname or "policy" in cname:
+                        gaps.append(f"Workforce training and governance gaps identified in {c_display_name}")
+                    elif "contingency" in cname or "backup" in cname:
+                        gaps.append(f"{c_display_name} exists but is not fully tested")
+                    else:
+                        gaps.append(f"Inconsistent enforcement of {c_display_name.lower()}")
+                else:
+                    miss_list.append(cid)
+                    if "policy" in cname or "govern" in cname or "management" in cname:
+                        gaps.append(f"Lack of centralized {cname} governance or monitoring")
+                    else:
+                        gaps.append(f"Missing {cname} processes")
+
+            if miss_list:
+                req_status = "Missing"
+            elif part_list:
+                req_status = "Partial"
+            else:
+                req_status = "Compliant"
+
+            mapped_controls_parts = []
+            if comp_list:
+                mapped_controls_parts.append(f"COMPLIANT:\n[{', '.join(comp_list)}]")
+            if part_list:
+                mapped_controls_parts.append(f"PARTIAL:\n[{', '.join(part_list)}]")
+            if miss_list:
+                mapped_controls_parts.append(f"MISSING:\n[{', '.join(miss_list)}]")
+
+            mapped_controls = "\n\n".join(mapped_controls_parts)
+            gaps_identified = " • ".join(gaps) if gaps else "No gaps identified."
+
+            if req_status == "Compliant":
+                remediation = "Maintain current controls and documentation."
+            else:
+                if req_name == "Network Security":
+                    remediation = "Implement network segmentation, restrict inbound/outbound traffic, and enforce deny-by-default firewall rules to protect the cardholder data environment."
+                elif req_name == "Data Protection":
+                    remediation = "Ensure encryption of cardholder data at rest and in transit using strong cryptographic protocols and secure key management practices."
+                elif req_name == "Endpoint Security":
+                    remediation = "Deploy and maintain anti-malware solutions across all endpoints and implement continuous monitoring for malicious activity."
+                elif req_name == "Access Control":
+                    remediation = "Enforce least privilege access, implement strong authentication mechanisms, and apply multi-factor authentication for all sensitive systems."
+                elif req_name == "Monitoring":
+                    remediation = "Enable centralized logging, implement real-time monitoring, and establish alerting mechanisms for suspicious activities."
+                elif req_name == "Governance":
+                    remediation = "Develop and enforce information security policies, conduct regular security awareness training, and establish clear accountability structures."
+                elif req_name == "Supplier Management":
+                    remediation = "Perform vendor risk assessments, enforce PCI compliance requirements in contracts, and continuously monitor third-party security posture."
+                elif req_name == "Incident & General Management":
+                    remediation = "Establish and test an incident response plan, including detection, containment, eradication, and recovery procedures."
+                else:
+                    remediation = f"Enforce PCI DSS requirements for {req_name} across the cardholder data environment."
+
+            pci_matrix.append({
+                "Framework": "PCI DSS",
+                "Requirement": req_name,
+                "Status": req_status,
+                "Mapped Controls": mapped_controls,
+                "Gaps Identified": gaps_identified,
+                "Remediation Plan": remediation
+            })
+
+        response["compliance_matrix"] = pci_matrix
+
+        # ── Override Governance Calendar dynamically using finalized PCI data ──
+        from services.governance_calendar_generator import generate_governance_calendar
+        final_cal = generate_governance_calendar(
+            risks=final_list,
+            framework_id=framework_id,
+            soa_sections=response.get("sections"),
+            compliance_matrix=response.get("compliance_matrix"),
+            vendor_checklist=response.get("vendor_checklist"),
+            training_matrix=response.get("training_matrix_generated")
+        )
+        response["governance_calendar_generated"] = final_cal
+        response["governance_calendar"] = final_cal
+        print("FINAL PCI GOVERNANCE CALENDAR:", response.get("governance_calendar"))
+
+    return response

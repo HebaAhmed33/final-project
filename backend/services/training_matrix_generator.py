@@ -10,6 +10,7 @@ No fake employees are generated — employee_tracker only contains uploaded reco
 """
 
 from datetime import datetime, timedelta
+import random
 
 
 # ---------------------------------------------------------------------------
@@ -74,12 +75,38 @@ _TRAINING_FREQUENCY = {
     "executive":   "Annually",
 }
 
+# HIPAA-specific frequency overrides (§164.308(a)(5) — periodic retraining)
+_HIPAA_TRAINING_FREQUENCY = {
+    "general":     "Semi-Annually",
+    "it_ops":      "Quarterly",
+    "engineering": "Quarterly",
+    "hr_finance":  "Semi-Annually",
+    "executive":   "Annually",
+}
+
+# Maps frequency label → number of days between trainings (for date calculation)
+_FREQUENCY_DAYS = {
+    "Quarterly":     90,
+    "Semi-Annually": 180,
+    "Bi-Annually":   180,
+    "Annually":      365,
+}
+
 _DEFAULT_DRIVERS = {
     "general":     "Social Engineering, Data Handling Errors",
     "it_ops":      "Privilege Escalation, System Misconfigurations",
     "engineering": "Application Vulnerabilities, Injection Attacks",
     "hr_finance":  "Business Email Compromise, Data Leakage",
     "executive":   "Targeted Whaling Attacks, Reputational Risk",
+}
+
+# HIPAA-specific risk drivers — diverse, PHI-centric threats
+_HIPAA_DEFAULT_DRIVERS = {
+    "general":     "Phishing, Data Mishandling, Unauthorized Access to PHI",
+    "it_ops":      "Insider Threat, Unauthorized Access, Audit Log Gaps",
+    "engineering": "Data Mishandling, Unauthorized Access, Insecure PHI Storage",
+    "hr_finance":  "Insider Threat, Data Mishandling, Workforce Policy Violations",
+    "executive":   "Phishing, Regulatory Non-Compliance, Breach Notification Risk",
 }
 
 
@@ -149,6 +176,45 @@ def _enrich_driver(group_key: str, risk_text: str, base_driver: str) -> str:
     return base_driver + ", " + ", ".join(extras[:2])
 
 
+def _normalize_hipaa_driver(driver: str) -> str:
+    """
+    HIPAA-only post-processing: collapse duplicate phishing/social-engineering
+    terms.
+    
+    Required behavior:
+    If the final driver list contains both:
+    - "Phishing"
+    - "Social Engineering / Phishing"
+    Then output only:
+    - "Phishing / Social Engineering"
+    """
+    parts = [p.strip() for p in driver.split(",") if p.strip()]
+
+    # Replace specific variations with canonical form
+    canonical = "Phishing / Social Engineering"
+    
+    for i, p in enumerate(parts):
+        if p == "Social Engineering / Phishing":
+            parts[i] = canonical
+
+    # If both are present, collapse into canonical
+    if "Phishing" in parts and canonical in parts:
+        parts = [p for p in parts if p != "Phishing"]
+        # Ensure canonical is at the front
+        parts.remove(canonical)
+        parts.insert(0, canonical)
+
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    deduped = []
+    for p in parts:
+        if p not in seen:
+            seen.add(p)
+            deduped.append(p)
+
+    return ", ".join(deduped)
+
+
 # ---------------------------------------------------------------------------
 # Framework normalisation  (mirrors treatment_plan_generator)
 # ---------------------------------------------------------------------------
@@ -165,6 +231,45 @@ def _normalise_framework(raw: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# HIPAA-only: dynamic date helpers
+# ---------------------------------------------------------------------------
+
+def _hipaa_last_training_date(seed: int) -> str:
+    """
+    Generate a plausible last-training date within the past 12 months.
+    Uses `seed` for deterministic but varied output per employee.
+    Returns ISO-format string YYYY-MM-DD.
+    """
+    rng = random.Random(seed)
+    days_ago = rng.randint(30, 365)
+    dt = datetime.utcnow() - timedelta(days=days_ago)
+    return dt.strftime("%Y-%m-%d")
+
+
+def _hipaa_next_due_date(last_date_str: str, frequency: str) -> str:
+    """
+    Calculate next due date = last_training_date + frequency_days.
+    Returns ISO-format string YYYY-MM-DD.
+    """
+    try:
+        last_dt = datetime.strptime(last_date_str, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        last_dt = datetime.utcnow() - timedelta(days=90)
+    days = _FREQUENCY_DAYS.get(frequency, 365)
+    next_dt = last_dt + timedelta(days=days)
+    return next_dt.strftime("%Y-%m-%d")
+
+
+def _hipaa_is_overdue(next_due_str: str) -> bool:
+    """Return True when next due date is strictly before today (UTC)."""
+    try:
+        next_dt = datetime.strptime(next_due_str, "%Y-%m-%d")
+        return next_dt.date() < datetime.utcnow().date()
+    except (ValueError, TypeError):
+        return False
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -172,6 +277,7 @@ def generate_training_matrix(
     employees: list[dict],
     risks: list[dict],
     framework_id: str,
+    all_sheets: list[dict] | None = None,
 ) -> dict:
     """
     Generate a structured training matrix.
@@ -211,13 +317,24 @@ def generate_training_matrix(
 
         for group_key, raw_roles in sorted(group_roles.items()):
             display_label = ", ".join(sorted(raw_roles))
-            base_driver = _DEFAULT_DRIVERS.get(group_key, _DEFAULT_DRIVERS["general"])
+
+            # HIPAA: use PHI-centric drivers; others: default drivers
+            if fw_key == "hipaa":
+                base_driver = _HIPAA_DEFAULT_DRIVERS.get(group_key, _HIPAA_DEFAULT_DRIVERS["general"])
+                frequency = _HIPAA_TRAINING_FREQUENCY.get(group_key, "Annually")
+            else:
+                base_driver = _DEFAULT_DRIVERS.get(group_key, _DEFAULT_DRIVERS["general"])
+                frequency = _TRAINING_FREQUENCY.get(group_key, "Annually")
+
             driver = _enrich_driver(group_key, risk_text, base_driver)
+            # HIPAA-only: normalize/deduplicate phishing terms
+            if fw_key == "hipaa":
+                driver = _normalize_hipaa_driver(driver)
 
             role_based_matrix.append({
                 "role":      display_label,
                 "content":   content_map.get(group_key, content_map["general"]),
-                "frequency": _TRAINING_FREQUENCY.get(group_key, "Annually"),
+                "frequency": frequency,
                 "driver":    driver,
             })
     else:
@@ -230,77 +347,203 @@ def generate_training_matrix(
             "executive":   "Executive Management",
         }
         for group_key in ("general", "it_ops", "engineering", "hr_finance", "executive"):
-            base_driver = _DEFAULT_DRIVERS[group_key]
+            # HIPAA: use PHI-centric drivers and frequencies
+            if fw_key == "hipaa":
+                base_driver = _HIPAA_DEFAULT_DRIVERS[group_key]
+                frequency = _HIPAA_TRAINING_FREQUENCY[group_key]
+            else:
+                base_driver = _DEFAULT_DRIVERS[group_key]
+                frequency = _TRAINING_FREQUENCY[group_key]
+
             driver = _enrich_driver(group_key, risk_text, base_driver)
+            # HIPAA-only: normalize/deduplicate phishing terms
+            if fw_key == "hipaa":
+                driver = _normalize_hipaa_driver(driver)
             role_based_matrix.append({
                 "role":      _DEFAULT_LABELS[group_key],
                 "content":   content_map.get(group_key, content_map["general"]),
-                "frequency": _TRAINING_FREQUENCY[group_key],
+                "frequency": frequency,
                 "driver":    driver,
             })
 
     # ── 2. Employee Training Tracker ──────────────────────────────────────
     #   ONLY real uploaded employees — never fabricated rows.
+
+    # Detect uploaded Training Evidence records if available
+    training_evidence = []
+    valid_names = {"training evidence", "training", "training matrix", "employee training"}
+    if all_sheets:
+        for s in all_sheets:
+            s_name = s.get("name", "").strip().lower()
+            s_type = s.get("type", "").strip().lower()
+            if s_name in valid_names or s_type in valid_names:
+                training_evidence = s.get("rows", [])
+                break
+
+    evidence_map = {}
+    for row in training_evidence:
+        name_raw = row.get("Employee Name") or row.get("Name") or row.get("employee_name") or row.get("employee") or ""
+        email_raw = row.get("Email") or row.get("email") or ""
+        name = str(name_raw).strip().lower()
+        email = str(email_raw).strip().lower()
+        if name:
+            evidence_map[name] = row
+        if email:
+            evidence_map[email] = row
+
     employee_tracker: list[dict] = []
+    
+    def get_val(row_dict, *keys):
+        for k in keys:
+            for rk, rv in row_dict.items():
+                if rk and str(rk).strip().lower() == k and rv:
+                    return str(rv).strip()
+        for k in keys:
+            for rk, rv in row_dict.items():
+                if rk and k in str(rk).strip().lower() and rv:
+                    return str(rv).strip()
+        return ""
+
     for emp in employees:
-        # Resolve employee name from various field name conventions
-        emp_name = (
-            emp.get("name")
-            or emp.get("employee_name")
-            or emp.get("employee")
-            or emp.get("full_name")
-            or emp.get("staff_name")
-            or "Unknown"
-        )
+        print("TRAINING RAW ROW:", emp)
+        row_text = " ".join(str(v).lower() for v in emp.values() if v is not None)
+        
+        # ── 1. Filter clearly invalid rows ──
+        skip_phrases = [
+            "evidence for",
+            "system should",
+            "do not upload",
+            "employee id",
+            "header",
+            "example",
+            "template"
+        ]
+        
+        if not row_text.strip() or any(phrase in row_text for phrase in skip_phrases):
+            print("SKIPPED TRAINING ROW:", emp)
+            continue
+            
+        # ── 2. Flexible column mapping ──
+        raw_id = get_val(emp, "employee id", "emp id", "staff id", "user id", "id")
+        raw_name = get_val(emp, "employee name", "name", "staff name", "full name", "user")
+        raw_role = get_val(emp, "role", "job title", "position", "access role")
+        raw_dept = get_val(emp, "department", "business unit", "team")
+        raw_status = get_val(emp, "training status", "awareness status", "completed", "security training", "pci training", "status")
+        raw_mfa = get_val(emp, "mfa", "mfa enabled", "multi-factor", "2fa")
+        raw_date = get_val(emp, "last training date", "completed date", "training date", "last training")
+        raw_email = get_val(emp, "email")
+        
+        # ── 3. Relaxed valid employee detection ──
+        is_valid = False
+        if raw_id and len(raw_id) > 1 and raw_id.lower() not in skip_phrases:
+            is_valid = True
+        elif raw_name and len(raw_name) > 1 and raw_name.lower() not in skip_phrases:
+            is_valid = True
+        elif raw_email and len(raw_email) > 1:
+            is_valid = True
+        elif raw_role and raw_dept:
+            is_valid = True
 
-        # Resolve role
-        raw_role = (
-            emp.get("role")
-            or emp.get("job_title")
-            or emp.get("position")
-            or emp.get("designation")
-            or "Employee"
-        )
+        if not is_valid:
+            print("SKIPPED TRAINING ROW:", emp)
+            continue
 
-        group_key = _classify_role(raw_role)
+        # If name missing but ID exists, use ID
+        if not raw_name and raw_id:
+            raw_name = raw_id
+            
+        # If role missing, default to Employee
+        if not raw_role:
+            raw_role = "Employee"
+            
+        # ── 4. Normalize employee row ──
+        norm_emp = {
+            "employee_id": raw_id,
+            "employee_name": raw_name or "Unknown",
+            "role": raw_role,
+            "department": raw_dept,
+            "training_status": raw_status or "Pending",
+            "mfa_enabled": raw_mfa,
+            "last_training_date": raw_date,
+            "email": raw_email
+        }
+        
+        print("VALID TRAINING EMPLOYEE:", norm_emp)
+        
+        emp_email = norm_emp["email"].lower()
+        emp_name_lower = norm_emp["employee_name"].lower()
+        group_key = _classify_role(norm_emp["role"])
 
-        # Assigned training: use explicit modules if present, else derive from role
+        # Look for matching evidence
+        evidence_row = evidence_map.get(emp_name_lower)
+        if not evidence_row and emp_email:
+            evidence_row = evidence_map.get(emp_email)
+
+        source_row = evidence_row if evidence_row else emp
+
+        # Assigned training
+        assigned_default = content_map.get(group_key, content_map["general"])
         assigned = (
-            emp.get("required_modules")
-            or content_map.get(group_key, content_map["general"])
+            source_row.get("Training Module")
+            or source_row.get("Assigned Training")
+            or source_row.get("assigned_training")
+            or source_row.get("required_modules")
+            or assigned_default
         )
 
-        # Training status: canonical key is "training" from normalizer
+        # Status
         status = (
-            emp.get("training")
-            or emp.get("training_status")
-            or emp.get("security_training_status")
-            or emp.get("training_completed")
-            or emp.get("awareness")
-            or "Pending"
+            source_row.get("Status")
+            or source_row.get("status")
+            or source_row.get("training_status")
+            or source_row.get("security_training_status")
+            or source_row.get("training_completed")
+            or source_row.get("awareness")
+            or norm_emp["training_status"]
         )
 
         # Dates
         last_date = (
-            emp.get("last_training_date")
-            or emp.get("last_training")
-            or emp.get("last_performed")
-            or "Not Available"
+            source_row.get("Last Training Date")
+            or source_row.get("last_training_date")
+            or source_row.get("last_training")
+            or source_row.get("last_performed")
+            or norm_emp["last_training_date"]
         )
         next_date = (
-            emp.get("next_due_date")
-            or emp.get("next_due")
-            or "Not Available"
+            source_row.get("Next Due Date")
+            or source_row.get("next_due_date")
+            or source_row.get("next_due")
         )
 
+        has_real_dates = bool(last_date or next_date)
+        if not has_real_dates:
+            last_date = "Not Available"
+            next_date = "Not Available"
+        else:
+            last_date = last_date or "Not Available"
+            next_date = next_date or "Not Available"
+
+            if next_date != "Not Available" and _hipaa_is_overdue(str(next_date)):
+                status = "Overdue"
+
+        if str(status).strip().lower() == "completed":
+            status = "Completed (On Time)"
+
         employee_tracker.append({
-            "employee":           str(emp_name).strip(),
-            "role":               str(raw_role).strip(),
-            "assigned_training":  assigned,
+            "employee":           norm_emp["employee_name"],
+            "role":               norm_emp["role"],
+            "assigned_training":  str(assigned).strip(),
             "status":             str(status).strip(),
             "last_training_date": str(last_date).strip(),
             "next_due_date":      str(next_date).strip(),
+            # Expose normalized fields just in case backend logic needs them
+            "employee_id":        norm_emp["employee_id"],
+            "department":         norm_emp["department"],
+            "mfa_enabled":        norm_emp["mfa_enabled"],
         })
+
+    print("VALID EMPLOYEES:", [e["employee"] for e in employee_tracker])
 
     return {
         "role_based_matrix":  role_based_matrix,

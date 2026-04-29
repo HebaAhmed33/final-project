@@ -873,3 +873,780 @@ on_profile', 'risk_register', 'vendors']
 2026-04-28 14:46:56,911 RESULTS: compliant=9  partial=2  missing=0
 2026-04-28 14:46:56,911 BY_SOURCE: {'json_rule_config': 11}
 2026-04-28 14:46:56,911 ======================================================================
+2026-04-28 17:28:51,136 ======================================================================
+2026-04-28 17:28:51,137 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 17:28:51,137 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 17:28:51,137 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 17:28:51,137 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 17:28:51,137 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 17:28:51,137 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 17:28:51,137 ======================================================================
+2026-04-28 17:28:51,140 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 17:28:51,140 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 17:28:51,142 ======================================================================
+2026-04-28 17:28:51,142 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 17:28:51,142 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 17:28:51,142 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 17:28:51,154 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 17:28:51,154 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 17:28:51,154 EVALUATED_CONTROLS: 11
+2026-04-28 17:28:51,154 SCORE_SOURCE: rule_engine
+2026-04-28 17:28:51,154 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 17:28:51,154 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 17:28:51,154 ======================================================================
+2026-04-28 17:44:11,310 ======================================================================
+2026-04-28 17:44:11,310 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 17:44:11,312 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 17:44:11,312 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 17:44:11,312 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 17:44:11,312 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 17:44:11,312 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 17:44:11,312 ======================================================================
+2026-04-28 17:44:11,314 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 17:44:11,314 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 17:44:11,330 ======================================================================
+2026-04-28 17:44:11,330 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 17:44:11,330 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 17:44:11,330 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 17:44:11,342 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 17:44:11,342 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 17:44:11,342 EVALUATED_CONTROLS: 11
+2026-04-28 17:44:11,342 SCORE_SOURCE: rule_engine
+2026-04-28 17:44:11,343 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 17:44:11,343 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 17:44:11,343 ======================================================================
+2026-04-28 18:09:28,019 ======================================================================
+2026-04-28 18:09:28,019 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 18:09:28,019 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 18:09:28,019 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 18:09:28,019 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 18:09:28,019 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 18:09:28,019 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 18:09:28,020 ======================================================================
+2026-04-28 18:09:28,021 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 18:09:28,021 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 18:09:28,023 ======================================================================
+2026-04-28 18:09:28,023 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 18:09:28,023 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 18:09:28,023 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 18:09:28,033 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 18:09:28,033 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 18:09:28,034 EVALUATED_CONTROLS: 11
+2026-04-28 18:09:28,034 SCORE_SOURCE: rule_engine
+2026-04-28 18:09:28,034 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 18:09:28,035 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 18:09:28,035 ======================================================================
+2026-04-28 18:31:27,589 ======================================================================
+2026-04-28 18:31:27,589 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 18:31:27,589 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 18:31:27,589 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 18:31:27,590 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 18:31:27,590 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 18:31:27,590 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 18:31:27,590 ======================================================================
+2026-04-28 18:31:27,591 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 18:31:27,591 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 18:31:27,593 ======================================================================
+2026-04-28 18:31:27,593 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 18:31:27,593 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 18:31:27,593 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 18:31:27,599 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 18:31:27,600 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 18:31:27,600 EVALUATED_CONTROLS: 11
+2026-04-28 18:31:27,600 SCORE_SOURCE: rule_engine
+2026-04-28 18:31:27,601 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 18:31:27,601 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 18:31:27,601 ======================================================================
+2026-04-28 19:45:47,151 ======================================================================
+2026-04-28 19:45:47,151 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 19:45:47,151 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 19:45:47,151 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 19:45:47,151 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 19:45:47,151 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 19:45:47,151 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 19:45:47,151 ======================================================================
+2026-04-28 19:45:47,154 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 19:45:47,154 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 19:45:47,155 ======================================================================
+2026-04-28 19:45:47,155 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 19:45:47,155 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 19:45:47,155 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 19:45:47,160 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 19:45:47,160 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 19:45:47,161 EVALUATED_CONTROLS: 11
+2026-04-28 19:45:47,161 SCORE_SOURCE: rule_engine
+2026-04-28 19:45:47,161 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 19:45:47,161 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 19:45:47,161 ======================================================================
+2026-04-28 19:52:54,598 ======================================================================
+2026-04-28 19:52:54,598 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 19:52:54,598 [RUNTIME PROOF]   framework        : HIPAA (HIPAA)
+2026-04-28 19:52:54,598 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 19:52:54,598 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'vendors']
+2026-04-28 19:52:54,599 [RUNTIME PROOF]   relevant_controls: 11
+2026-04-28 19:52:54,599 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 19:52:54,599 ======================================================================
+2026-04-28 19:52:54,599 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 19:52:54,599 [RUNTIME PROOF]   framework_id     : HIPAA
+2026-04-28 19:52:54,599 ======================================================================
+2026-04-28 19:52:54,599 RULE_ENGINE_ACTIVE: HIPAA
+2026-04-28 19:52:54,599 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': True, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': True, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': True, 'has_network_rules': True, 'has_some_training': True, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': True, 'low_risky_rules': False}
+2026-04-28 19:52:54,599 METRICS: {'training_coverage_pct': 70.0, 'risky_rule_pct': 33.33333333333333}
+2026-04-28 19:52:54,599 RULE_EVALUATOR: no Python rules for 'HIPAA' — using JSON conditions only
+2026-04-28 19:52:54,599 JSON_CONDITION_EVALUATED: 11 controls
+2026-04-28 19:52:54,599 EVALUATED_CONTROLS: 11
+2026-04-28 19:52:54,599 SCORE_SOURCE: rule_engine
+2026-04-28 19:52:54,599 RESULTS: compliant=9  partial=2  missing=0
+2026-04-28 19:52:54,599 BY_SOURCE: {'json_rule_config': 11}
+2026-04-28 19:52:54,599 ======================================================================
+2026-04-28 20:23:12,625 ======================================================================
+2026-04-28 20:23:12,626 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 20:23:12,626 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 20:23:12,626 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 20:23:12,626 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 20:23:12,626 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 20:23:12,626 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 20:23:12,626 ======================================================================
+2026-04-28 20:23:12,629 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 20:23:12,629 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 20:23:12,631 ======================================================================
+2026-04-28 20:23:12,631 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 20:23:12,631 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 20:23:12,631 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 20:23:12,645 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 20:23:12,645 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 20:23:12,645 EVALUATED_CONTROLS: 12
+2026-04-28 20:23:12,645 SCORE_SOURCE: rule_engine
+2026-04-28 20:23:12,645 RESULTS: compliant=11  partial=1  missing=0
+2026-04-28 20:23:12,645 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 20:23:12,646 ======================================================================
+2026-04-28 20:37:32,143 ======================================================================
+2026-04-28 20:37:32,144 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 20:37:32,144 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 20:37:32,144 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 20:37:32,144 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 20:37:32,144 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 20:37:32,145 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 20:37:32,145 ======================================================================
+2026-04-28 20:37:32,148 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 20:37:32,148 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 20:37:32,151 ======================================================================
+2026-04-28 20:37:32,151 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 20:37:32,151 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 20:37:32,151 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 20:37:32,163 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 20:37:32,163 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 20:37:32,164 EVALUATED_CONTROLS: 12
+2026-04-28 20:37:32,164 SCORE_SOURCE: rule_engine
+2026-04-28 20:37:32,164 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 20:37:32,164 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 20:37:32,164 ======================================================================
+2026-04-28 20:58:31,226 ======================================================================
+2026-04-28 20:58:31,226 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 20:58:31,227 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 20:58:31,227 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 20:58:31,227 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 20:58:31,227 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 20:58:31,227 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 20:58:31,227 ======================================================================
+2026-04-28 20:58:31,229 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 20:58:31,229 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 20:58:31,233 ======================================================================
+2026-04-28 20:58:31,233 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 20:58:31,233 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 20:58:31,233 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 20:58:31,248 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 20:58:31,248 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 20:58:31,248 EVALUATED_CONTROLS: 12
+2026-04-28 20:58:31,249 SCORE_SOURCE: rule_engine
+2026-04-28 20:58:31,249 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 20:58:31,249 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 20:58:31,250 ======================================================================
+2026-04-28 21:25:22,169 ======================================================================
+2026-04-28 21:25:22,169 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 21:25:22,170 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-28 21:25:22,170 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 21:25:22,170 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 21:25:22,170 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-28 21:25:22,170 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 21:25:22,170 ======================================================================
+2026-04-28 21:25:22,172 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 21:25:22,172 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-28 21:25:22,174 ======================================================================
+2026-04-28 21:25:22,174 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-28 21:25:22,174 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 21:25:22,175 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 21:25:22,185 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-28 21:25:22,185 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-28 21:25:22,185 EVALUATED_CONTROLS: 63
+2026-04-28 21:25:22,185 SCORE_SOURCE: rule_engine
+2026-04-28 21:25:22,185 RESULTS: compliant=57  partial=5  missing=1
+2026-04-28 21:25:22,185 BY_SOURCE: {'json_rule_config': 63}
+2026-04-28 21:25:22,185 ======================================================================
+2026-04-28 21:28:19,747 ======================================================================
+2026-04-28 21:28:19,747 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 21:28:19,748 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 21:28:19,748 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 21:28:19,748 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 21:28:19,748 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 21:28:19,748 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 21:28:19,748 ======================================================================
+2026-04-28 21:28:19,748 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 21:28:19,748 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 21:28:19,748 ======================================================================
+2026-04-28 21:28:19,748 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 21:28:19,749 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 21:28:19,749 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 21:28:19,749 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 21:28:19,749 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 21:28:19,749 EVALUATED_CONTROLS: 12
+2026-04-28 21:28:19,749 SCORE_SOURCE: rule_engine
+2026-04-28 21:28:19,749 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 21:28:19,749 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 21:28:19,750 ======================================================================
+2026-04-28 21:39:49,799 ======================================================================
+2026-04-28 21:39:49,799 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 21:39:49,799 [RUNTIME PROOF]   framework        : ISO 27001 (ISO27001)
+2026-04-28 21:39:49,799 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 21:39:49,799 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 21:39:49,800 [RUNTIME PROOF]   relevant_controls: 63
+2026-04-28 21:39:49,800 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 21:39:49,800 ======================================================================
+2026-04-28 21:39:49,802 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 21:39:49,802 [RUNTIME PROOF]   framework_id     : ISO 27001
+2026-04-28 21:39:49,804 ======================================================================
+2026-04-28 21:39:49,805 RULE_ENGINE_ACTIVE: ISO 27001
+2026-04-28 21:39:49,805 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 21:39:49,805 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 21:39:49,816 RULE_EVALUATOR: no Python rules for 'ISO 27001' — using JSON conditions only
+2026-04-28 21:39:49,818 JSON_CONDITION_EVALUATED: 63 controls
+2026-04-28 21:39:49,818 EVALUATED_CONTROLS: 63
+2026-04-28 21:39:49,818 SCORE_SOURCE: rule_engine
+2026-04-28 21:39:49,818 RESULTS: compliant=57  partial=5  missing=1
+2026-04-28 21:39:49,818 BY_SOURCE: {'json_rule_config': 63}
+2026-04-28 21:39:49,818 ======================================================================
+2026-04-28 21:40:23,186 ======================================================================
+2026-04-28 21:40:23,188 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 21:40:23,188 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 21:40:23,188 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 21:40:23,188 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 21:40:23,188 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 21:40:23,188 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 21:40:23,188 ======================================================================
+2026-04-28 21:40:23,188 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 21:40:23,188 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 21:40:23,188 ======================================================================
+2026-04-28 21:40:23,188 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 21:40:23,188 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 21:40:23,188 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 21:40:23,189 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 21:40:23,189 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 21:40:23,189 EVALUATED_CONTROLS: 12
+2026-04-28 21:40:23,189 SCORE_SOURCE: rule_engine
+2026-04-28 21:40:23,189 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 21:40:23,189 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 21:40:23,189 ======================================================================
+2026-04-28 21:53:06,950 ======================================================================
+2026-04-28 21:53:06,950 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 21:53:06,950 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 21:53:06,950 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 21:53:06,950 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 21:53:06,951 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 21:53:06,951 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 21:53:06,951 ======================================================================
+2026-04-28 21:53:06,952 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 21:53:06,952 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 21:53:06,956 ======================================================================
+2026-04-28 21:53:06,956 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 21:53:06,956 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 21:53:06,956 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 21:53:06,967 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 21:53:06,969 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 21:53:06,969 EVALUATED_CONTROLS: 12
+2026-04-28 21:53:06,969 SCORE_SOURCE: rule_engine
+2026-04-28 21:53:06,969 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 21:53:06,969 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 21:53:06,969 ======================================================================
+2026-04-28 22:00:12,817 ======================================================================
+2026-04-28 22:00:12,817 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 22:00:12,817 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 22:00:12,817 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 22:00:12,818 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 22:00:12,818 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 22:00:12,818 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 22:00:12,818 ======================================================================
+2026-04-28 22:00:12,821 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 22:00:12,821 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 22:00:12,823 ======================================================================
+2026-04-28 22:00:12,823 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 22:00:12,823 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 22:00:12,823 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 22:00:12,838 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 22:00:12,838 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 22:00:12,838 EVALUATED_CONTROLS: 12
+2026-04-28 22:00:12,838 SCORE_SOURCE: rule_engine
+2026-04-28 22:00:12,838 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 22:00:12,838 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 22:00:12,838 ======================================================================
+2026-04-28 22:08:52,725 ======================================================================
+2026-04-28 22:08:52,725 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 22:08:52,725 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 22:08:52,725 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 22:08:52,725 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 22:08:52,726 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 22:08:52,726 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 22:08:52,726 ======================================================================
+2026-04-28 22:08:52,728 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 22:08:52,729 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 22:08:52,731 ======================================================================
+2026-04-28 22:08:52,731 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 22:08:52,731 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 22:08:52,732 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 22:08:52,744 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 22:08:52,745 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 22:08:52,745 EVALUATED_CONTROLS: 12
+2026-04-28 22:08:52,745 SCORE_SOURCE: rule_engine
+2026-04-28 22:08:52,745 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 22:08:52,745 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 22:08:52,745 ======================================================================
+2026-04-28 22:16:41,883 ======================================================================
+2026-04-28 22:16:41,883 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 22:16:41,883 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 22:16:41,883 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 22:16:41,884 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 22:16:41,884 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 22:16:41,884 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 22:16:41,884 ======================================================================
+2026-04-28 22:16:41,886 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 22:16:41,886 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 22:16:41,890 ======================================================================
+2026-04-28 22:16:41,890 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 22:16:41,890 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 22:16:41,891 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 22:16:41,903 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 22:16:41,904 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 22:16:41,904 EVALUATED_CONTROLS: 12
+2026-04-28 22:16:41,904 SCORE_SOURCE: rule_engine
+2026-04-28 22:16:41,904 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 22:16:41,904 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 22:16:41,904 ======================================================================
+2026-04-28 22:28:29,249 ======================================================================
+2026-04-28 22:28:29,249 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 22:28:29,249 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 22:28:29,249 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 22:28:29,249 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 22:28:29,249 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 22:28:29,249 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 22:28:29,249 ======================================================================
+2026-04-28 22:28:29,251 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 22:28:29,253 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 22:28:29,255 ======================================================================
+2026-04-28 22:28:29,255 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 22:28:29,255 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 22:28:29,257 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 22:28:29,266 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 22:28:29,268 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 22:28:29,268 EVALUATED_CONTROLS: 12
+2026-04-28 22:28:29,268 SCORE_SOURCE: rule_engine
+2026-04-28 22:28:29,268 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 22:28:29,268 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 22:28:29,268 ======================================================================
+2026-04-28 22:32:13,465 ======================================================================
+2026-04-28 22:32:13,465 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 22:32:13,465 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 22:32:13,465 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 22:32:13,466 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 22:32:13,466 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 22:32:13,466 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 22:32:13,466 ======================================================================
+2026-04-28 22:32:13,468 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 22:32:13,468 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 22:32:13,469 ======================================================================
+2026-04-28 22:32:13,469 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 22:32:13,469 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 22:32:13,469 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 22:32:13,476 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 22:32:13,476 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 22:32:13,476 EVALUATED_CONTROLS: 12
+2026-04-28 22:32:13,476 SCORE_SOURCE: rule_engine
+2026-04-28 22:32:13,476 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 22:32:13,476 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 22:32:13,476 ======================================================================
+2026-04-28 22:36:26,687 ======================================================================
+2026-04-28 22:36:26,687 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 22:36:26,687 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 22:36:26,687 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 22:36:26,688 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 22:36:26,688 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 22:36:26,688 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 22:36:26,688 ======================================================================
+2026-04-28 22:36:26,689 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 22:36:26,689 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 22:36:26,691 ======================================================================
+2026-04-28 22:36:26,691 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 22:36:26,691 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 22:36:26,691 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 22:36:26,699 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 22:36:26,699 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 22:36:26,699 EVALUATED_CONTROLS: 12
+2026-04-28 22:36:26,699 SCORE_SOURCE: rule_engine
+2026-04-28 22:36:26,699 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 22:36:26,699 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 22:36:26,699 ======================================================================
+2026-04-28 22:50:58,466 ======================================================================
+2026-04-28 22:50:58,468 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 22:50:58,468 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 22:50:58,468 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 22:50:58,468 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 22:50:58,469 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 22:50:58,469 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 22:50:58,469 ======================================================================
+2026-04-28 22:50:58,470 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 22:50:58,471 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 22:50:58,474 ======================================================================
+2026-04-28 22:50:58,474 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 22:50:58,474 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 22:50:58,474 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 22:50:58,485 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 22:50:58,486 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 22:50:58,486 EVALUATED_CONTROLS: 12
+2026-04-28 22:50:58,486 SCORE_SOURCE: rule_engine
+2026-04-28 22:50:58,486 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 22:50:58,486 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 22:50:58,486 ======================================================================
+2026-04-28 22:55:55,040 ======================================================================
+2026-04-28 22:55:55,040 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 22:55:55,040 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 22:55:55,041 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 22:55:55,041 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 22:55:55,041 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 22:55:55,041 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 22:55:55,041 ======================================================================
+2026-04-28 22:55:55,044 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 22:55:55,044 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 22:55:55,047 ======================================================================
+2026-04-28 22:55:55,047 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 22:55:55,047 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 22:55:55,048 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 22:55:55,063 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 22:55:55,063 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 22:55:55,065 EVALUATED_CONTROLS: 12
+2026-04-28 22:55:55,065 SCORE_SOURCE: rule_engine
+2026-04-28 22:55:55,065 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 22:55:55,065 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 22:55:55,065 ======================================================================
+2026-04-28 23:06:24,166 ======================================================================
+2026-04-28 23:06:24,168 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 23:06:24,168 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 23:06:24,168 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 23:06:24,168 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 23:06:24,168 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 23:06:24,169 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 23:06:24,169 ======================================================================
+2026-04-28 23:06:24,171 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 23:06:24,171 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 23:06:24,175 ======================================================================
+2026-04-28 23:06:24,175 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 23:06:24,175 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 23:06:24,175 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 23:06:24,188 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 23:06:24,188 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 23:06:24,188 EVALUATED_CONTROLS: 12
+2026-04-28 23:06:24,188 SCORE_SOURCE: rule_engine
+2026-04-28 23:06:24,189 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 23:06:24,189 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 23:06:24,189 ======================================================================
+2026-04-28 23:17:53,448 ======================================================================
+2026-04-28 23:17:53,449 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 23:17:53,449 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 23:17:53,449 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 23:17:53,449 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 23:17:53,449 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 23:17:53,449 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 23:17:53,449 ======================================================================
+2026-04-28 23:17:53,451 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 23:17:53,451 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 23:17:53,451 ======================================================================
+2026-04-28 23:17:53,451 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 23:17:53,451 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 23:17:53,451 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 23:17:53,462 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 23:17:53,462 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 23:17:53,462 EVALUATED_CONTROLS: 12
+2026-04-28 23:17:53,462 SCORE_SOURCE: rule_engine
+2026-04-28 23:17:53,462 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 23:17:53,462 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 23:17:53,462 ======================================================================
+2026-04-28 23:28:26,979 ======================================================================
+2026-04-28 23:28:26,979 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 23:28:26,979 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 23:28:26,979 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 23:28:26,979 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 23:28:26,979 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 23:28:26,979 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 23:28:26,979 ======================================================================
+2026-04-28 23:28:26,980 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 23:28:26,980 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 23:28:26,981 ======================================================================
+2026-04-28 23:28:26,981 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 23:28:26,981 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 23:28:26,981 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 23:28:26,988 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 23:28:26,988 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 23:28:26,989 EVALUATED_CONTROLS: 12
+2026-04-28 23:28:26,989 SCORE_SOURCE: rule_engine
+2026-04-28 23:28:26,989 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 23:28:26,989 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 23:28:26,989 ======================================================================
+2026-04-28 23:39:57,353 ======================================================================
+2026-04-28 23:39:57,353 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-28 23:39:57,353 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-28 23:39:57,353 [RUNTIME PROOF]   no_controls      : True
+2026-04-28 23:39:57,354 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-28 23:39:57,354 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-28 23:39:57,354 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-28 23:39:57,354 ======================================================================
+2026-04-28 23:39:57,356 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-28 23:39:57,357 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-28 23:39:57,359 ======================================================================
+2026-04-28 23:39:57,359 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-28 23:39:57,359 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-28 23:39:57,359 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-28 23:39:57,372 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-28 23:39:57,373 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-28 23:39:57,373 EVALUATED_CONTROLS: 12
+2026-04-28 23:39:57,373 SCORE_SOURCE: rule_engine
+2026-04-28 23:39:57,373 RESULTS: compliant=8  partial=3  missing=1
+2026-04-28 23:39:57,373 BY_SOURCE: {'json_rule_config': 12}
+2026-04-28 23:39:57,373 ======================================================================
+2026-04-29 00:02:37,398 ======================================================================
+2026-04-29 00:02:37,399 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 00:02:37,399 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 00:02:37,399 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 00:02:37,399 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 00:02:37,400 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 00:02:37,400 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 00:02:37,400 ======================================================================
+2026-04-29 00:02:37,404 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 00:02:37,404 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 00:02:37,408 ======================================================================
+2026-04-29 00:02:37,408 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 00:02:37,409 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 00:02:37,409 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 00:02:37,426 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 00:02:37,427 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 00:02:37,427 EVALUATED_CONTROLS: 12
+2026-04-29 00:02:37,427 SCORE_SOURCE: rule_engine
+2026-04-29 00:02:37,428 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 00:02:37,428 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 00:02:37,428 ======================================================================
+2026-04-29 00:06:44,788 ======================================================================
+2026-04-29 00:06:44,788 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 00:06:44,788 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 00:06:44,788 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 00:06:44,788 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 00:06:44,789 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 00:06:44,789 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 00:06:44,789 ======================================================================
+2026-04-29 00:06:44,792 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 00:06:44,792 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 00:06:44,795 ======================================================================
+2026-04-29 00:06:44,796 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 00:06:44,796 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 00:06:44,796 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 00:06:44,803 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 00:06:44,804 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 00:06:44,804 EVALUATED_CONTROLS: 12
+2026-04-29 00:06:44,804 SCORE_SOURCE: rule_engine
+2026-04-29 00:06:44,804 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 00:06:44,804 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 00:06:44,804 ======================================================================
+2026-04-29 01:35:09,608 ======================================================================
+2026-04-29 01:35:09,609 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 01:35:09,609 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 01:35:09,609 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 01:35:09,609 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 01:35:09,609 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 01:35:09,609 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 01:35:09,609 ======================================================================
+2026-04-29 01:35:09,609 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 01:35:09,609 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 01:35:09,609 ======================================================================
+2026-04-29 01:35:09,609 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 01:35:09,609 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 01:35:09,609 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 01:35:09,609 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 01:35:09,609 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 01:35:09,609 EVALUATED_CONTROLS: 12
+2026-04-29 01:35:09,609 SCORE_SOURCE: rule_engine
+2026-04-29 01:35:09,609 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 01:35:09,610 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 01:35:09,610 ======================================================================
+2026-04-29 01:58:44,069 ======================================================================
+2026-04-29 01:58:44,069 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 01:58:44,069 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 01:58:44,069 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 01:58:44,069 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 01:58:44,070 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 01:58:44,070 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 01:58:44,070 ======================================================================
+2026-04-29 01:58:44,071 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 01:58:44,071 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 01:58:44,074 ======================================================================
+2026-04-29 01:58:44,074 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 01:58:44,074 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 01:58:44,075 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 01:58:44,083 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 01:58:44,083 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 01:58:44,084 EVALUATED_CONTROLS: 12
+2026-04-29 01:58:44,084 SCORE_SOURCE: rule_engine
+2026-04-29 01:58:44,084 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 01:58:44,084 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 01:58:44,084 ======================================================================
+2026-04-29 02:18:43,254 ======================================================================
+2026-04-29 02:18:43,254 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 02:18:43,254 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 02:18:43,254 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 02:18:43,255 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 02:18:43,255 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 02:18:43,255 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 02:18:43,255 ======================================================================
+2026-04-29 02:18:43,257 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 02:18:43,257 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 02:18:43,259 ======================================================================
+2026-04-29 02:18:43,259 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 02:18:43,259 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 02:18:43,259 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 02:18:43,270 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 02:18:43,271 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 02:18:43,271 EVALUATED_CONTROLS: 12
+2026-04-29 02:18:43,271 SCORE_SOURCE: rule_engine
+2026-04-29 02:18:43,272 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 02:18:43,272 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 02:18:43,272 ======================================================================
+2026-04-29 02:23:13,965 ======================================================================
+2026-04-29 02:23:13,965 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 02:23:13,965 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 02:23:13,965 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 02:23:13,965 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 02:23:13,965 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 02:23:13,965 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 02:23:13,965 ======================================================================
+2026-04-29 02:23:13,968 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 02:23:13,968 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 02:23:13,971 ======================================================================
+2026-04-29 02:23:13,971 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 02:23:13,971 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 02:23:13,971 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 02:23:13,983 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 02:23:13,983 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 02:23:13,983 EVALUATED_CONTROLS: 12
+2026-04-29 02:23:13,983 SCORE_SOURCE: rule_engine
+2026-04-29 02:23:13,983 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 02:23:13,983 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 02:23:13,983 ======================================================================
+2026-04-29 02:38:26,078 ======================================================================
+2026-04-29 02:38:26,078 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 02:38:26,078 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 02:38:26,078 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 02:38:26,078 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 02:38:26,078 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 02:38:26,078 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 02:38:26,078 ======================================================================
+2026-04-29 02:38:26,079 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 02:38:26,079 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 02:38:26,080 ======================================================================
+2026-04-29 02:38:26,080 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 02:38:26,080 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 02:38:26,080 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 02:38:26,087 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 02:38:26,087 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 02:38:26,087 EVALUATED_CONTROLS: 12
+2026-04-29 02:38:26,087 SCORE_SOURCE: rule_engine
+2026-04-29 02:38:26,087 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 02:38:26,087 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 02:38:26,087 ======================================================================
+2026-04-29 02:43:34,154 ======================================================================
+2026-04-29 02:43:34,154 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 02:43:34,155 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 02:43:34,155 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 02:43:34,155 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 02:43:34,155 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 02:43:34,155 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 02:43:34,155 ======================================================================
+2026-04-29 02:43:34,157 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 02:43:34,157 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 02:43:34,158 ======================================================================
+2026-04-29 02:43:34,158 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 02:43:34,158 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 02:43:34,158 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 02:43:34,166 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 02:43:34,167 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 02:43:34,167 EVALUATED_CONTROLS: 12
+2026-04-29 02:43:34,167 SCORE_SOURCE: rule_engine
+2026-04-29 02:43:34,167 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 02:43:34,168 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 02:43:34,168 ======================================================================
+2026-04-29 02:56:41,153 ======================================================================
+2026-04-29 02:56:41,153 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 02:56:41,153 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 02:56:41,153 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 02:56:41,154 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 02:56:41,154 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 02:56:41,154 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 02:56:41,154 ======================================================================
+2026-04-29 02:56:41,157 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 02:56:41,157 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 02:56:41,160 ======================================================================
+2026-04-29 02:56:41,160 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 02:56:41,160 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 02:56:41,160 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 02:56:41,171 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 02:56:41,172 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 02:56:41,172 EVALUATED_CONTROLS: 12
+2026-04-29 02:56:41,172 SCORE_SOURCE: rule_engine
+2026-04-29 02:56:41,172 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 02:56:41,172 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 02:56:41,172 ======================================================================
+2026-04-29 03:02:12,412 ======================================================================
+2026-04-29 03:02:12,413 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 03:02:12,413 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 03:02:12,413 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 03:02:12,413 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 03:02:12,413 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 03:02:12,413 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 03:02:12,413 ======================================================================
+2026-04-29 03:02:12,415 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 03:02:12,417 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 03:02:12,419 ======================================================================
+2026-04-29 03:02:12,419 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 03:02:12,419 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 03:02:12,419 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 03:02:12,433 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 03:02:12,433 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 03:02:12,434 EVALUATED_CONTROLS: 12
+2026-04-29 03:02:12,434 SCORE_SOURCE: rule_engine
+2026-04-29 03:02:12,434 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 03:02:12,434 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 03:02:12,434 ======================================================================
+2026-04-29 03:07:57,158 ======================================================================
+2026-04-29 03:07:57,159 [RUNTIME PROOF] build_framework_aware_assessment called
+2026-04-29 03:07:57,159 [RUNTIME PROOF]   framework        : PCI DSS (PCI DSS)
+2026-04-29 03:07:57,159 [RUNTIME PROOF]   no_controls      : True
+2026-04-29 03:07:57,160 [RUNTIME PROOF]   present_types    : ['assets', 'employees', 'governance', 'network_rules', 'risk_register', 'vendors']
+2026-04-29 03:07:57,160 [RUNTIME PROOF]   relevant_controls: 12
+2026-04-29 03:07:57,160 [RUNTIME PROOF]   uploaded_controls: 0
+2026-04-29 03:07:57,160 ======================================================================
+2026-04-29 03:07:57,163 [RUNTIME PROOF] >>> ENTERING RULE ENGINE PATH
+2026-04-29 03:07:57,163 [RUNTIME PROOF]   framework_id     : PCI DSS
+2026-04-29 03:07:57,166 ======================================================================
+2026-04-29 03:07:57,166 RULE_ENGINE_ACTIVE: PCI DSS
+2026-04-29 03:07:57,166 SIGNALS: {'has_access_levels': True, 'has_applications': False, 'has_asset_classifications': False, 'has_asset_inventory': True, 'has_asset_locations': True, 'has_asset_owners': False, 'has_deny_rules': False, 'has_employee_records': True, 'has_governance_activities': True, 'has_high_risk_vendors': False, 'has_network_rules': True, 'has_risk_register': True, 'has_risk_treatments': False, 'has_some_training': False, 'has_vendor_compliance': False, 'has_vendor_records': True, 'high_training_coverage': False, 'low_risky_rules': True}
+2026-04-29 03:07:57,166 METRICS: {'training_coverage_pct': 0.0, 'risky_rule_pct': 0.0}
+2026-04-29 03:07:57,179 RULE_EVALUATOR: no Python rules for 'PCI DSS' — using JSON conditions only
+2026-04-29 03:07:57,179 JSON_CONDITION_EVALUATED: 12 controls
+2026-04-29 03:07:57,179 EVALUATED_CONTROLS: 12
+2026-04-29 03:07:57,179 SCORE_SOURCE: rule_engine
+2026-04-29 03:07:57,179 RESULTS: compliant=8  partial=3  missing=1
+2026-04-29 03:07:57,181 BY_SOURCE: {'json_rule_config': 12}
+2026-04-29 03:07:57,181 ======================================================================

@@ -536,35 +536,88 @@ def build_compliance_matrix(
     Build a compliance matrix: requirement → inferred control → gap → remediation.
     """
     matrix = []
+    
+    # Group by Requirement (domain or section)
+    grouped = {}
     for ctrl in controls:
-        status = ctrl.get("status", "missing")
-        if status == "compliant":
-            gap = "None"
-            remediation = "Maintain current controls and documentation."
-        elif status == "partial":
-            gap = "Incomplete evidence or coverage"
-            remediation = (
-                f"Strengthen documentation and evidence for "
-                f"'{ctrl.get('name', '')}'. Formalize existing practices."
-            )
+        req = ctrl.get("domain") or ctrl.get("section_name") or "General Security Requirements"
+        if req not in grouped:
+            grouped[req] = []
+        grouped[req].append(ctrl)
+
+    fw = framework_label.lower()
+
+    for req, req_controls in grouped.items():
+        comp_list = [c.get("rule_id", c.get("name", "")) for c in req_controls if c.get("status") == "compliant"]
+        part_list = [c.get("rule_id", c.get("name", "")) for c in req_controls if c.get("status") == "partial"]
+        miss_list = [c.get("rule_id", c.get("name", "")) for c in req_controls if c.get("status") == "missing"]
+
+        # 2. Clean Status display
+        if len(comp_list) == len(req_controls):
+            status = "Compliant"
+        elif len(miss_list) == len(req_controls):
+            status = "Missing"
         else:
-            gap = "No evidence of implementation"
-            remediation = (
-                f"Implement '{ctrl.get('name', '')}' control. "
-                f"Develop policy, assign owner, and collect evidence."
-            )
+            status = "Partial"
+
+        # 3. Improve "Mapped Controls"
+        mapped_controls_parts = []
+        if comp_list:
+            mapped_controls_parts.append(f"COMPLIANT: [{', '.join(comp_list)}]")
+        if part_list:
+            mapped_controls_parts.append(f"PARTIAL: [{', '.join(part_list)}]")
+        if miss_list:
+            mapped_controls_parts.append(f"MISSING: [{', '.join(miss_list)}]")
+        mapped_controls = "\n".join(mapped_controls_parts)
+
+        # 4. Add clear "Gaps Identified"
+        gaps_list = []
+        for c in req_controls:
+            st = c.get("status")
+            cname = c.get("name", "")
+            if st == "partial":
+                if "contingency" in cname.lower() or "backup" in cname.lower():
+                    gaps_list.append(f"{cname} exists but is not fully tested")
+                else:
+                    gaps_list.append(f"Inconsistent enforcement of {cname.lower()}")
+            elif st == "missing":
+                if "policy" in cname.lower() or "govern" in cname.lower() or "management" in cname.lower():
+                    gaps_list.append(f"Lack of centralized {cname.lower()} governance or monitoring")
+                else:
+                    gaps_list.append(f"Missing {cname.lower()} processes")
+        
+        gaps_identified = " • ".join(gaps_list) if gaps_list else "No gaps identified."
+
+        # 5. Improve "Remediation Plan"
+        if status == "Compliant":
+            remediation = "Maintain current controls and documentation."
+        else:
+            if "hipaa" in fw:
+                rem_lines = []
+                if "management" in req.lower() or "process" in req.lower() or "policy" in req.lower():
+                    rem_lines.append("Formalize and enforce Security Management Process per HIPAA requirements.")
+                if any("contingency" in c.lower() or "backup" in c.lower() for c in (miss_list + part_list)):
+                    rem_lines.append("Establish tested contingency and disaster recovery procedures.")
+                if not rem_lines:
+                    rem_lines.append("Implement required technical and administrative safeguards for ePHI.")
+                rem_lines.append("Assign a Security Officer responsible for oversight.")
+                remediation = " ".join(rem_lines)
+            elif "iso" in fw:
+                remediation = f"Implement ISMS Annex A controls for {req} and ensure governance oversight."
+            elif "pci" in fw:
+                remediation = f"Enforce PCI DSS requirements for {req} across the cardholder data environment, ensuring proper segmentation and monitoring."
+            else:
+                remediation = f"Develop policies, assign owners, and collect evidence for {req}."
 
         matrix.append({
-            "requirement_id": ctrl.get("rule_id", ""),
-            "requirement": ctrl.get("name", ""),
-            "domain": ctrl.get("domain", ctrl.get("section_name", "")),
-            "inferred_control": ctrl.get("match_method", "none"),
-            "status": status,
-            "gap": gap,
-            "remediation": remediation,
-            "severity": ctrl.get("severity", "medium"),
-            "source": ctrl.get("source", ""),
+            "Framework": framework_label,
+            "Requirement": req,
+            "Status": status,
+            "Mapped Controls": mapped_controls,
+            "Gaps Identified": gaps_identified,
+            "Remediation Plan": remediation
         })
+
     return matrix
 
 
@@ -713,5 +766,503 @@ def generate_risks_from_data(
                 "mitigation": f"Implement {ctrl.get('name', '')} control.",
             })
             risk_id += 1
+
+    return risks
+
+
+# ---------------------------------------------------------------------------
+# PCI DSS Risk-Based Scoring Engine
+# ---------------------------------------------------------------------------
+# Implements weighted deductions based on actual data analysis, not just
+# control-level pass/fail. This produces a realistic 40-70% score for
+# risky datasets rather than the inflated 90%+ from presence-based checks.
+
+def _analyse_pci_data_risks(
+    routing: dict,
+    all_sheets: list[dict] | None,
+) -> dict:
+    """
+    Deep-scan uploaded data for PCI DSS-specific risk indicators.
+
+    Returns a dict of risk findings with weighted deductions:
+      - Each finding has: key, description, deduction, severity, evidence
+      - Total deduction is applied to the 100-point base score
+    """
+    findings: list[dict] = []
+
+    # Collect raw rows
+    asset_rows: list[dict] = []
+    vendor_rows: list[dict] = []
+    employee_rows: list[dict] = []
+    network_rows: list[dict] = []
+
+    if all_sheets:
+        for s in all_sheets:
+            t = s.get("type", "")
+            if t in ("assets", "applications"):
+                asset_rows.extend(s.get("rows", []))
+            elif t == "vendors":
+                vendor_rows.extend(s.get("rows", []))
+            elif t == "employees":
+                employee_rows.extend(s.get("rows", []))
+            elif t == "network_rules":
+                network_rows.extend(s.get("rows", []))
+
+    # Also use routing results for aggregate stats
+    routing_results = {
+        r.get("source_type", ""): r
+        for r in routing.get("routing_results", [])
+        if r.get("total_records", 0) > 0
+    }
+
+    # ── CRITICAL: Cardholder Data + No Encryption (-25) ──────────────────
+    has_cardholder_assets = False
+    unencrypted_chd = False
+    for row in asset_rows:
+        blob = " ".join(str(v) for v in row.values()).lower()
+        if any(kw in blob for kw in ("cardholder", "payment", "card data",
+                                      "pan", "credit card", "debit card",
+                                      "chd", "cde")):
+            has_cardholder_assets = True
+            if not any(kw in blob for kw in ("encrypt", "aes", "tls",
+                                               "masked", "tokeniz")):
+                unencrypted_chd = True
+                break
+
+    if unencrypted_chd:
+        findings.append({
+            "key": "unencrypted_chd",
+            "description": "Cardholder data assets identified without encryption evidence",
+            "deduction": 25,
+            "severity": "critical",
+            "pci_req": "Req 3/4",
+            "evidence": "Assets sheet contains cardholder data references without encryption indicators",
+        })
+    elif has_cardholder_assets:
+        findings.append({
+            "key": "chd_present_encrypted",
+            "description": "Cardholder data assets found with encryption evidence",
+            "deduction": 0,
+            "severity": "info",
+            "pci_req": "Req 3/4",
+            "evidence": "Assets contain CHD references with encryption indicators",
+        })
+
+    # ── CRITICAL: Database exposed to Internet (-25) ─────────────────────
+    db_exposed = False
+    exposed_details = []
+    db_ports = {"3306", "5432", "1433", "1521", "27017", "6379", "5984", "9200"}
+    for row in network_rows:
+        blob = " ".join(str(v) for v in row.values()).lower()
+        # Check for db ports or db keywords in rules allowing internet access
+        port_field = str(row.get("port", row.get("dst_port", row.get("destination_port", "")))).strip()
+        src_field = str(row.get("source", row.get("src", row.get("source_ip", "")))).strip().lower()
+        action_field = str(row.get("action", row.get("policy", ""))).strip().lower()
+
+        is_allow = action_field in ("allow", "permit", "accept", "") or "allow" in blob
+        is_any_source = src_field in ("any", "0.0.0.0/0", "*", "all", "")
+        has_db_port = port_field in db_ports
+        has_db_keyword = any(kw in blob for kw in ("mysql", "postgres", "mssql",
+                                                     "oracle", "mongodb", "redis",
+                                                     "database", "db "))
+
+        if is_allow and is_any_source and (has_db_port or has_db_keyword):
+            db_exposed = True
+            exposed_details.append(f"port {port_field}" if has_db_port else "db service")
+
+    for row in asset_rows:
+        blob = " ".join(str(v) for v in row.values()).lower()
+        if any(kw in blob for kw in ("database", "mysql", "postgres", "sql server",
+                                       "mongodb", "redis", "oracle db")):
+            exposure = ""
+            if any(kw in blob for kw in ("internet", "public", "external", "dmz",
+                                           "exposed", "0.0.0.0")):
+                db_exposed = True
+                exposure = row.get("name", row.get("asset_name", "Unknown DB"))
+                exposed_details.append(exposure)
+
+    if db_exposed:
+        findings.append({
+            "key": "db_internet_exposed",
+            "description": "Database service accessible from the internet",
+            "deduction": 25,
+            "severity": "critical",
+            "pci_req": "Req 1/1.3",
+            "evidence": f"Exposed: {', '.join(exposed_details[:3])}",
+        })
+
+    # ── CRITICAL: Vendor handles card data AND no contract (-15) ─────────
+    vendor_no_contract = 0
+    vendor_total = len(vendor_rows)
+    for row in vendor_rows:
+        blob = " ".join(str(v) for v in row.values()).lower()
+        handles_cards = any(kw in blob for kw in ("payment", "card", "chd",
+                                                    "cardholder", "transaction",
+                                                    "billing", "pos", "acquiring"))
+        has_contract = any(kw in blob for kw in ("signed", "contract", "agreement",
+                                                   "compliant", "certified", "approved",
+                                                   "dpa", "baa", "nda"))
+        if handles_cards and not has_contract:
+            vendor_no_contract += 1
+
+    if vendor_no_contract > 0:
+        findings.append({
+            "key": "vendor_no_contract_chd",
+            "description": f"{vendor_no_contract} vendor(s) handle card data without documented agreement",
+            "deduction": 15,
+            "severity": "critical",
+            "pci_req": "Req 12.8",
+            "evidence": f"{vendor_no_contract} of {vendor_total} vendors lack contracts",
+        })
+
+    # ── HIGH: Privileged users without MFA (-10) ─────────────────────────
+    priv_no_mfa = 0
+    total_priv = 0
+    for row in employee_rows:
+        blob = " ".join(str(v) for v in row.values()).lower()
+        access = str(row.get("access_level", row.get("privilege", row.get("role", "")))).lower()
+        is_priv = any(kw in access for kw in ("admin", "privileged", "root",
+                                                 "superuser", "elevated", "sys admin"))
+        if is_priv:
+            total_priv += 1
+            has_mfa = any(kw in blob for kw in ("mfa", "multi-factor", "2fa",
+                                                   "two-factor", "yubikey", "authenticator"))
+            if not has_mfa:
+                priv_no_mfa += 1
+
+    # Also check routing for privileged access count
+    emp_routing = routing_results.get("employees", {})
+    if not total_priv and emp_routing:
+        total_priv = emp_routing.get("privileged_access_count", 0)
+        priv_no_mfa = total_priv  # Assume no MFA evidence if not in data
+
+    if priv_no_mfa > 0:
+        findings.append({
+            "key": "priv_no_mfa",
+            "description": f"{priv_no_mfa} privileged user(s) without MFA evidence",
+            "deduction": 10,
+            "severity": "high",
+            "pci_req": "Req 8",
+            "evidence": f"{priv_no_mfa} of {total_priv} privileged accounts lack MFA",
+        })
+
+    # ── HIGH: Missing patches on critical assets (-10) ───────────────────
+    unpatched_critical = 0
+    total_critical = 0
+    for row in asset_rows:
+        blob = " ".join(str(v) for v in row.values()).lower()
+        crit = str(row.get("criticality", row.get("priority", row.get("importance", "")))).lower()
+        is_critical = crit in ("high", "critical", "essential")
+        if is_critical:
+            total_critical += 1
+            patch_status = str(row.get("patch_status", row.get("patching",
+                                 row.get("update_status", "")))).lower()
+            if patch_status in ("", "missing", "overdue", "outdated", "no",
+                                "not patched", "pending", "failed"):
+                # Also check if blob mentions unpatched
+                if not any(kw in blob for kw in ("patched", "up to date", "current",
+                                                    "updated", "compliant patch")):
+                    unpatched_critical += 1
+
+    if unpatched_critical > 0:
+        findings.append({
+            "key": "unpatched_critical",
+            "description": f"{unpatched_critical} critical asset(s) with missing or outdated patches",
+            "deduction": 10,
+            "severity": "high",
+            "pci_req": "Req 6",
+            "evidence": f"{unpatched_critical} of {total_critical} critical assets unpatched",
+        })
+
+    # ── MEDIUM: No security training (-5) ────────────────────────────────
+    emp_result = routing_results.get("employees")
+    if emp_result:
+        total_emp = emp_result.get("total_records", 0)
+        no_training = emp_result.get("no_security_training", 0)
+        if no_training > 0 and total_emp > 0:
+            pct = round(no_training / total_emp * 100)
+            deduct = 5
+            if pct > 50:
+                deduct = 8  # More than half untrained is worse
+            findings.append({
+                "key": "no_training",
+                "description": f"{no_training} of {total_emp} employees ({pct}%) lack security training",
+                "deduction": deduct,
+                "severity": "medium" if pct <= 50 else "high",
+                "pci_req": "Req 12.6",
+                "evidence": f"{pct}% of workforce untrained",
+            })
+
+    # ── MEDIUM: Missing or outdated policies (-5) ────────────────────────
+    has_governance = "governance" in routing_results
+    has_risk_register = "risk_register" in routing_results
+    if not has_governance:
+        findings.append({
+            "key": "no_governance",
+            "description": "No governance/policy documentation uploaded",
+            "deduction": 5,
+            "severity": "medium",
+            "pci_req": "Req 12",
+            "evidence": "Governance sheet not found in uploaded data",
+        })
+    if not has_risk_register:
+        findings.append({
+            "key": "no_risk_register",
+            "description": "No risk register uploaded",
+            "deduction": 3,
+            "severity": "medium",
+            "pci_req": "Req 12.2",
+            "evidence": "Risk register sheet not found in uploaded data",
+        })
+
+    # ── HIGH: Overly permissive network rules (-8) ───────────────────────
+    net_result = routing_results.get("network_rules")
+    if net_result:
+        risky_count = net_result.get("risky_rules_count", 0)
+        total_rules = net_result.get("total_records", 0)
+        if risky_count > 0 and total_rules > 0:
+            risky_pct = round(risky_count / total_rules * 100)
+            deduct = 5 if risky_pct <= 20 else 8
+            findings.append({
+                "key": "permissive_rules",
+                "description": f"{risky_count} overly permissive firewall rules ({risky_pct}%)",
+                "deduction": deduct,
+                "severity": "high",
+                "pci_req": "Req 1.4",
+                "evidence": f"{risky_count} of {total_rules} rules use ANY/wildcard",
+            })
+        deny_count = net_result.get("deny_rules_count", 0)
+        if deny_count == 0:
+            findings.append({
+                "key": "no_deny_rules",
+                "description": "No explicit deny rules — default-allow network posture",
+                "deduction": 8,
+                "severity": "high",
+                "pci_req": "Req 1.3",
+                "evidence": "Zero deny rules in firewall configuration",
+            })
+
+    # ── HIGH: Vendors without compliance (-5) ────────────────────────────
+    if vendor_total > 0:
+        vendor_no_comp = 0
+        for row in vendor_rows:
+            comp = str(row.get("compliance", row.get("compliance_status",
+                        row.get("certified", "")))).strip().lower()
+            if comp in ("", "no", "non-compliant", "non compliant", "failed",
+                        "missing", "none", "pending"):
+                vendor_no_comp += 1
+        if vendor_no_comp > 0:
+            findings.append({
+                "key": "vendors_no_compliance",
+                "description": f"{vendor_no_comp} of {vendor_total} vendors lack compliance certification",
+                "deduction": 5,
+                "severity": "high",
+                "pci_req": "Req 12.8",
+                "evidence": f"{vendor_no_comp} vendors without valid compliance status",
+            })
+
+    return {
+        "findings": findings,
+        "total_deduction": sum(f["deduction"] for f in findings),
+        "risk_score": max(0, 100 - sum(f["deduction"] for f in findings)),
+    }
+
+
+def compute_pci_risk_based_score(
+    controls: list[dict],
+    routing: dict,
+    all_sheets: list[dict] | None = None,
+) -> dict:
+    """
+    Compute a PCI DSS compliance score using risk-based deductions.
+
+    Combines:
+      1. Control-level assessment (from rule engine / JSON conditions)
+      2. Data-level risk analysis (deep scan of uploaded evidence)
+
+    The final score blends both: 60% control score + 40% risk score,
+    ensuring that critical misconfigurations always drag the score down
+    even if some controls technically pass.
+
+    Returns dict with:
+      compliance_score, risk_score, control_score, findings,
+      total_controls, compliant_controls, partial_controls, missing_controls
+    """
+    # ── 1. Control-level score ────────────────────────────────────────────
+    total = len(controls)
+    compliant = sum(1 for c in controls if c.get("status") == "compliant")
+    partial = sum(1 for c in controls if c.get("status") == "partial")
+    missing = total - compliant - partial
+
+    control_score = round(
+        ((compliant + partial * 0.5) / total) * 100, 2
+    ) if total > 0 else 0.0
+
+    # ── 2. Risk-based deductions from actual data ─────────────────────────
+    risk_analysis = _analyse_pci_data_risks(routing, all_sheets)
+    risk_score = risk_analysis["risk_score"]
+    findings = risk_analysis["findings"]
+
+    # ── 3. Blended score: weight towards risk findings ────────────────────
+    #   If risk analysis found critical issues, they must significantly
+    #   impact the overall score regardless of control-level results.
+    blended = round(control_score * 0.6 + risk_score * 0.4, 2)
+
+    # Apply a floor: if critical findings exist, cap the maximum score
+    critical_findings = [f for f in findings if f["severity"] == "critical"]
+    if len(critical_findings) >= 2:
+        blended = min(blended, 55.0)  # Multiple critical = can't be above 55%
+    elif len(critical_findings) == 1:
+        blended = min(blended, 70.0)  # Single critical = can't be above 70%
+
+    blended = max(0.0, blended)
+
+    return {
+        "compliance_score": blended,
+        "control_score": control_score,
+        "risk_score": risk_score,
+        "total_deduction": risk_analysis["total_deduction"],
+        "findings": findings,
+        "total_controls": total,
+        "compliant_controls": compliant,
+        "partial_controls": partial,
+        "missing_controls": missing,
+    }
+
+
+def generate_pci_dynamic_risks(
+    routing: dict,
+    controls: list[dict],
+    all_sheets: list[dict] | None = None,
+) -> list[dict]:
+    """
+    Generate PCI DSS-specific risk register entries from data analysis.
+
+    Each risk includes:
+      risk_id, description, affected_asset, impact, likelihood, risk_level
+    """
+    risk_analysis = _analyse_pci_data_risks(routing, all_sheets)
+    risks: list[dict] = []
+    rid = 1
+
+    _PCI_RISK_TEMPLATES = {
+        "unencrypted_chd": {
+            "risk_name": "Unencrypted Cardholder Data Exposure",
+            "threat": "Data Exposure",
+            "asset": "Cardholder Data Environment",
+            "impact": 5,
+            "likelihood": 4,
+        },
+        "db_internet_exposed": {
+            "risk_name": "Internet-Accessible Database",
+            "threat": "Network Exploitation",
+            "asset": "Database Infrastructure",
+            "impact": 5,
+            "likelihood": 4,
+        },
+        "vendor_no_contract_chd": {
+            "risk_name": "Uncontracted Vendor Handling Card Data",
+            "threat": "Supply Chain Attack",
+            "asset": "Third-Party Vendors",
+            "impact": 4,
+            "likelihood": 3,
+        },
+        "priv_no_mfa": {
+            "risk_name": "Privileged Users Without MFA",
+            "threat": "Credential Theft",
+            "asset": "Privileged Accounts",
+            "impact": 5,
+            "likelihood": 3,
+        },
+        "unpatched_critical": {
+            "risk_name": "Unpatched Critical Systems",
+            "threat": "Remote Code Execution",
+            "asset": "Critical Infrastructure",
+            "impact": 4,
+            "likelihood": 3,
+        },
+        "no_training": {
+            "risk_name": "Insufficient Security Awareness Training",
+            "threat": "Phishing",
+            "asset": "Workforce",
+            "impact": 3,
+            "likelihood": 3,
+        },
+        "no_governance": {
+            "risk_name": "Missing Information Security Policy",
+            "threat": "Governance Control Gap",
+            "asset": "IT Governance",
+            "impact": 3,
+            "likelihood": 2,
+        },
+        "permissive_rules": {
+            "risk_name": "Overly Permissive Firewall Rules",
+            "threat": "Misconfiguration",
+            "asset": "Network Perimeter",
+            "impact": 4,
+            "likelihood": 3,
+        },
+        "no_deny_rules": {
+            "risk_name": "Default-Allow Network Posture",
+            "threat": "Misconfiguration",
+            "asset": "Network Infrastructure",
+            "impact": 4,
+            "likelihood": 3,
+        },
+        "vendors_no_compliance": {
+            "risk_name": "Vendor Compliance Gaps",
+            "threat": "Third-Party Compliance Risk",
+            "asset": "Third-Party Vendors",
+            "impact": 3,
+            "likelihood": 3,
+        },
+        "no_risk_register": {
+            "risk_name": "Missing Risk Management Process",
+            "threat": "Governance Control Gap",
+            "asset": "Risk Management",
+            "impact": 3,
+            "likelihood": 2,
+        },
+    }
+
+    for finding in risk_analysis["findings"]:
+        if finding["deduction"] == 0:
+            continue
+        key = finding["key"]
+        template = _PCI_RISK_TEMPLATES.get(key)
+        if not template:
+            continue
+
+        lh = template["likelihood"]
+        imp = template["impact"]
+        score = lh * imp
+        if score >= 16:
+            level = "Critical"
+        elif score >= 10:
+            level = "High"
+        elif score >= 5:
+            level = "Medium"
+        else:
+            level = "Low"
+
+        risks.append({
+            "risk_id": f"TEMP-P{rid:03d}",  # builder assigns final PCI-R001… globally
+            "risk_name": template["risk_name"],
+            "risk_statement": finding["description"],
+            "asset": template["asset"],
+            "threat": template["threat"],
+            "likelihood": lh,
+            "impact": imp,
+            "risk_level": level,
+            "control": finding.get("evidence", ""),
+            "controls": f"PCI DSS {finding.get('pci_req', '')}",
+            "owner": "IT Security",
+            "category": finding["severity"].upper(),
+            "source": "pci_risk_analysis",
+            "source_label": "PCI Risk Analysis",
+            "detail": finding["evidence"],
+            "mitigation": f"Address {finding['pci_req']}: {finding['description']}",
+        })
+        rid += 1
 
     return risks

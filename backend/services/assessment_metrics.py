@@ -42,15 +42,25 @@ def annotate_control_statuses(sections: list[dict]) -> None:
             ctrl["mapped_evidence_count"] = 1 if ctrl.get("has_evidence") else 0
 
 
-def compute_compliance_score(sections: list[dict]) -> dict:
+def compute_compliance_score(
+    sections: list[dict],
+    framework_id: str = "",
+    routing: dict | None = None,
+    all_sheets: list[dict] | None = None,
+) -> dict:
     """
     Compute the overall compliance score across all sections.
+
+    For PCI DSS, uses a risk-based scoring engine that applies weighted
+    deductions for critical misconfigurations found in the actual data.
+    For other frameworks, uses the standard GRC maturity scoring.
 
     Returns
     -------
     dict
         compliance_score, compliant_controls, partial_controls,
         missing_controls, total_controls
+        (PCI only: also includes risk_score, control_score, findings)
     """
     total = 0
     compliant = 0
@@ -71,13 +81,44 @@ def compute_compliance_score(sections: list[dict]) -> dict:
     # GRC maturity scoring: compliant = 100%, partial = 50%, missing = 0%
     score = round(((compliant + partial * 0.5) / total) * 100, 2) if total > 0 else 0.0
 
-    return {
+    result = {
         "compliance_score": score,
         "compliant_controls": compliant,
         "partial_controls": partial,
         "missing_controls": missing,
         "total_controls": total,
     }
+
+    # ── PCI DSS: apply risk-based scoring engine ──────────────────────────
+    fw = (framework_id or "").lower().replace(" ", "").replace("-", "").replace("_", "")
+    if "pci" in fw and routing is not None:
+        try:
+            # Collect all controls flat from sections
+            all_controls = []
+            for section in sections:
+                all_controls.extend(section.get("controls", []))
+
+            from services.evidence_inference import compute_pci_risk_based_score
+            pci_score = compute_pci_risk_based_score(
+                controls=all_controls,
+                routing=routing,
+                all_sheets=all_sheets,
+            )
+            # Override the basic score with risk-based score
+            result["compliance_score"] = pci_score["compliance_score"]
+            result["control_score"] = pci_score["control_score"]
+            result["risk_score"] = pci_score["risk_score"]
+            result["total_deduction"] = pci_score["total_deduction"]
+            result["risk_findings"] = pci_score["findings"]
+            # Use counts from the risk engine (should match)
+            result["compliant_controls"] = pci_score["compliant_controls"]
+            result["partial_controls"] = pci_score["partial_controls"]
+            result["missing_controls"] = pci_score["missing_controls"]
+        except Exception:
+            pass  # Fall back to standard scoring on error
+
+    return result
+
 
 
 def compute_severity_breakdown(sections: list[dict]) -> dict:

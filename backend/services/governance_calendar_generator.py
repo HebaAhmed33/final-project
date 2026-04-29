@@ -111,10 +111,125 @@ def _collect_risk_text(risks: list[dict]) -> str:
 # Public API
 # ---------------------------------------------------------------------------
 
+def _generate_pci_dynamic_calendar(
+    risks: list[dict],
+    soa_sections: list[dict] | None = None,
+    compliance_matrix: list[dict] | None = None,
+    vendor_checklist: list[dict] | None = None,
+    training_matrix: dict | None = None,
+) -> list[dict]:
+    # Detect gaps across all sources
+    has_network = False
+    has_vuln = False
+    has_training = False
+    has_vendor = False
+    has_monitor = False
+    has_incident = False
+    has_access = False
+
+    risk_text = _collect_risk_text(risks)
+    
+    if any(x in risk_text for x in ("firewall", "segmentation", "default-allow", "network", "001", "002", "003")):
+        has_network = True
+    if any(x in risk_text for x in ("vulnerability", "patch", "malware", "unpatched", "005", "006")):
+        has_vuln = True
+    if any(x in risk_text for x in ("training", "phishing", "awareness", "010")):
+        has_training = True
+    if any(x in risk_text for x in ("vendor", "third-party", "011")):
+        has_vendor = True
+    if any(x in risk_text for x in ("log", "monitor", "siem", "alert", "009", "10.")):
+        has_monitor = True
+    if any(x in risk_text for x in ("incident", "breach", "tabletop", "012", "12.")):
+        has_incident = True
+    if any(x in risk_text for x in ("access", "mfa", "privilege", "007", "008", "7.", "8.")):
+        has_access = True
+
+    if soa_sections:
+        for sec in soa_sections:
+            if sec.get("status", "").lower() != "compliant":
+                title = sec.get("title", "").lower()
+                if "network" in title or "firewall" in title: has_network = True
+                if "vulnerabilit" in title or "endpoint" in title: has_vuln = True
+                if "access" in title: has_access = True
+                if "monitor" in title or "log" in title or "009" in title: has_monitor = True
+                if "govern" in title or "aware" in title or "010" in title: has_training = True
+                if "supplier" in title or "vendor" in title or "011" in title: has_vendor = True
+                if "incident" in title or "breach" in title or "012" in title: has_incident = True
+
+    if compliance_matrix:
+        for r in compliance_matrix:
+            if r.get("Status", "").lower() != "compliant":
+                req = r.get("Requirement", "").lower()
+                if "network" in req: has_network = True
+                if "endpoint" in req: has_vuln = True
+                if "access control" in req: has_access = True
+                if "monitoring" in req or "009" in req: has_monitor = True
+                if "governance" in req or "010" in req: has_training = True
+                if "supplier" in req or "011" in req: has_vendor = True
+                if "incident" in req or "012" in req: has_incident = True
+
+    if vendor_checklist:
+        if any(v.get("risk_level", "").lower() in ("high", "medium") for v in vendor_checklist):
+            has_vendor = True
+
+    if training_matrix and training_matrix.get("employee_tracker"):
+        if any(e.get("status", "").lower() in ("pending", "overdue") for e in training_matrix["employee_tracker"]):
+            has_training = True
+
+    print("PCI CALENDAR FLAGS:", {
+        "training": has_training,
+        "monitoring": has_monitor,
+        "incident": has_incident,
+        "vendor": has_vendor,
+        "network": has_network,
+    })
+
+    # Month 1
+    m1 = "PCI DSS Scope Confirmation & Asset Inventory Review"
+    
+    # Month 2
+    m2 = "Firewall & Network Segmentation Review" if has_network else "Secure Coding & Payment Application Review"
+    if has_network:
+        m2 += " — with Endpoint Protection Review"
+        
+    # Month 3
+    m3 = "Vulnerability Scan Review & Remediation Tracking" if has_vuln else "Physical Security & Media Control Audit"
+    if has_training:
+        m3 += " — with Phishing Simulation Campaign"
+        
+    # Month 4
+    m4 = "Access Review for Cardholder Data Systems"
+    if has_monitor:
+        m4 += " — with Log Monitoring & SIEM Review"
+        
+    # Month 5
+    m5 = "Vendor Risk Review" if has_vendor else "Data Retention & Disposal Review"
+    if has_vendor:
+        m5 += " — including PCI compliance evidence review for service providers"
+        
+    # Month 6
+    m6 = "Quarterly PCI Compliance Review & QSA Preparation"
+    if has_incident:
+        m6 += " — with Incident Response Tabletop Exercise"
+        
+    months = [m1, m2, m3, m4, m5, m6]
+
+    return [
+        {
+            "month": f"Month {i + 1}",
+            "governance_activity": activity,
+        }
+        for i, activity in enumerate(months)
+    ]
+
 def generate_governance_calendar(
     risks: list[dict],
     framework_id: str,
     evidence_context: dict | None = None,
+    soa_sections: list[dict] | None = None,
+    compliance_matrix: list[dict] | None = None,
+    vendor_checklist: list[dict] | None = None,
+    training_matrix: dict | None = None,
 ) -> list[dict]:
     """
     Generate a 6-month governance activity calendar.
@@ -126,20 +241,23 @@ def generate_governance_calendar(
     framework_id : str
         The selected compliance framework identifier.
     evidence_context : dict | None
-        Optional evidence metadata (unused for now, reserved for future enrichment).
-
-    Returns
-    -------
-    list[dict]  — each element has:
-        month               : str   ("Month 1" … "Month 6")
-        governance_activity : str   — framework-specific activity, optionally risk-enriched
+        Optional evidence metadata.
     """
     fw_key = _normalise_framework(framework_id)
+    
+    if fw_key == "pci_dss":
+        return _generate_pci_dynamic_calendar(
+            risks=risks,
+            soa_sections=soa_sections,
+            compliance_matrix=compliance_matrix,
+            vendor_checklist=vendor_checklist,
+            training_matrix=training_matrix
+        )
+
     baseline = list(_BASELINE_ACTIVITIES.get(fw_key, _BASELINE_ACTIVITIES["iso27001"]))
     risk_text = _collect_risk_text(risks)
 
     # ── Risk-based enrichment ─────────────────────────────────────────────
-    # Track which months have already been enriched to avoid stacking
     enriched_months: set[int] = set()
 
     if risk_text:

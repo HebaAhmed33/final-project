@@ -47,10 +47,19 @@ export default function AssessmentResultsPage() {
   const getBadgeClass = (s) => {
     if (!s) return "badge badge-blue";
     const v = s.toLowerCase();
-    if (["compliant", "pass", "low", "true", "fully implemented"].includes(v)) return "badge badge-green";
-    if (["missing", "fail", "high", "false", "not implemented"].includes(v)) return "badge badge-red";
-    if (["partial", "medium", "partially implemented"].includes(v)) return "badge badge-yellow";
+    if (["compliant", "pass", "low", "true", "fully implemented", "completed (on time)"].includes(v)) return "badge badge-green";
+    if (["missing", "fail", "high", "false", "not implemented", "overdue"].includes(v)) return "badge badge-red";
+    if (["partial", "medium", "partially implemented", "pending"].includes(v)) return "badge badge-yellow";
     return "badge badge-blue";
+  };
+
+  const formatStatusLabel = (s) => {
+    if (!s) return "";
+    const v = s.toLowerCase();
+    if (v === "completed (on time)") return "Completed (On Time)";
+    if (v === "overdue") return "Overdue";
+    if (v === "pending") return "Pending";
+    return s.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
   };
 
   const getVendorSectionTitle = (fw) => {
@@ -509,7 +518,7 @@ export default function AssessmentResultsPage() {
                               const rOwner = risk.owner || inferOwner(rAsset);
 
                               return (
-                                <tr key={rId} className="bg-white text-slate-800 border-slate-200 hover:bg-slate-50 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-800 dark:hover:bg-slate-900">
+                                <tr key={`${rId || risk.id || "risk"}-${idx}`} className="bg-white text-slate-800 border-slate-200 hover:bg-slate-50 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-800 dark:hover:bg-slate-900">
                                   <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ fontWeight: 600, wordBreak: "break-word", whiteSpace: "normal" }}>{rId}</td>
                                   <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>{rStatement}</td>
                                   <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ wordBreak: "break-word", whiteSpace: "normal" }}>{rAsset}</td>
@@ -873,224 +882,9 @@ export default function AssessmentResultsPage() {
 
         {/* COMPLIANCE MATRIX TAB */}
         {activeTab === "compliance_matrix" && (() => {
-          const requirementGroups = {};
-
-          if (ad.sections && ad.sections.length > 0) {
-            ad.sections.forEach((section) => {
-              const groupKey = section.section_key || section.section_name || "GENERAL";
-              const requirementText = section.section_name || "General Security Requirements";
-              
-              if (!requirementGroups[groupKey]) {
-                requirementGroups[groupKey] = {
-                  framework: ad.framework || "—",
-                  requirement: requirementText,
-                  controls: { compliant: [], partial: [], missing: [] },
-                  controlNames: { compliant: [], partial: [], missing: [] }
-                };
-              }
-
-              (section.controls || []).forEach((ctrl) => {
-                const status = (ctrl.status || "compliant").toLowerCase();
-                const safeStatus = ["missing", "partial", "compliant"].includes(status) ? status : "compliant";
-                
-                let controlNo = ctrl.rule_id || "";
-                controlNo = controlNo.replace(/^ISO-/, '').replace(/^PCI-DSS-/, '');
-                
-                // Normalise A6.1-01 -> A.6.1
-                const isoMatch = controlNo.match(/^[Aa](\d+\.\d+)/);
-                if (isoMatch) controlNo = `A.${isoMatch[1]}`;
-                
-                if (controlNo && !requirementGroups[groupKey].controls[safeStatus].includes(controlNo)) {
-                  requirementGroups[groupKey].controls[safeStatus].push(controlNo);
-                  if (ctrl.name) requirementGroups[groupKey].controlNames[safeStatus].push(ctrl.name);
-                }
-              });
-            });
-          }
-
-          const formatRanges = (controls) => {
-            if (!controls || controls.length === 0) return "";
-            const parsed = controls.map(c => {
-              const m = c.match(/^([A-Za-z]*\.?\d+\.)(\d+)$/);
-              return m ? { raw: c, prefix: m[1], minor: parseInt(m[2]) } : { raw: c, prefix: null, minor: null };
-            });
-            const sortable = parsed.filter(p => p.prefix !== null);
-            const others = parsed.filter(p => p.prefix === null).map(p => p.raw);
-            
-            if (sortable.length === 0) return others.join(", ");
-            
-            const groupsByPrefix = {};
-            sortable.forEach(p => {
-              if (!groupsByPrefix[p.prefix]) groupsByPrefix[p.prefix] = [];
-              groupsByPrefix[p.prefix].push(p);
-            });
-            
-            const ranges = [];
-            Object.keys(groupsByPrefix).forEach(pref => {
-              const items = groupsByPrefix[pref].sort((a,b) => a.minor - b.minor);
-              let start = items[0];
-              let prev = items[0];
-              for (let i = 1; i < items.length; i++) {
-                const curr = items[i];
-                if (curr.minor === prev.minor + 1) prev = curr;
-                else {
-                  ranges.push(start.raw === prev.raw ? start.raw : `${start.raw}–${prev.raw}`);
-                  start = curr;
-                  prev = curr;
-                }
-              }
-              ranges.push(start.raw === prev.raw ? start.raw : `${start.raw}–${prev.raw}`);
-            });
-            return [...ranges, ...others].join(", ");
-          };
-
-          const buildSentence = (names, state) => {
-             if (!names || names.length === 0) return "";
-             const keywords = names.map(n => n.toLowerCase());
-             
-             let themes = [];
-             if (keywords.some(k => k.includes("train") || k.includes("aware") || k.includes("hr") || k.includes("onboard"))) themes.push("personnel training and awareness");
-             if (keywords.some(k => k.includes("incident") || k.includes("event") || k.includes("breach") || k.includes("response"))) themes.push("incident response and reporting");
-             if (keywords.some(k => k.includes("access") || k.includes("identity") || k.includes("password") || k.includes("auth"))) themes.push("access control mechanisms");
-             if (keywords.some(k => k.includes("network") || k.includes("firewall") || k.includes("router"))) themes.push("network security defenses");
-             if (keywords.some(k => k.includes("monitor") || k.includes("log") || k.includes("audit"))) themes.push("system monitoring and logging");
-             if (keywords.some(k => k.includes("policy") || k.includes("govern") || k.includes("review"))) themes.push("policy governance");
-             if (keywords.some(k => k.includes("asset") || k.includes("inventory") || k.includes("device"))) themes.push("asset management");
-             if (keywords.some(k => k.includes("vendor") || k.includes("third") || k.includes("supplier"))) themes.push("third-party risk management");
-             if (keywords.some(k => k.includes("physical") || k.includes("facility") || k.includes("visitor"))) themes.push("physical security controls");
-             if (keywords.some(k => k.includes("encrypt") || k.includes("crypto") || k.includes("key"))) themes.push("cryptographic protections");
-             if (keywords.some(k => k.includes("vuln") || k.includes("patch") || k.includes("malware"))) themes.push("vulnerability and patch management");
-             if (keywords.some(k => k.includes("backup") || k.includes("recover") || k.includes("continuity"))) themes.push("business continuity and backups");
-             
-             if (themes.length === 0) {
-               const cleanName = names[0].split(" ").slice(0, 4).join(" ").toLowerCase();
-               themes.push(`${cleanName} processes`);
-             }
-             
-             const themeStr = themes.slice(0, 2).join(" and ");
-             
-             if (state === "compliant") return `${themeStr} are actively maintained`;
-             if (state === "partial") return `${themeStr} are inconsistent or lack enforcement`;
-             if (state === "missing") return `${themeStr} are entirely absent`;
-             return "";
-          };
-
-          const matrixRows = Object.keys(requirementGroups).map((key, idx) => {
-            const group = requirementGroups[key];
-            const compStr = formatRanges(group.controls.compliant);
-            const partStr = formatRanges(group.controls.partial);
-            const missStr = formatRanges(group.controls.missing);
-            
-            const hasMiss = group.controls.missing.length > 0;
-            const hasPart = group.controls.partial.length > 0;
-            const hasComp = group.controls.compliant.length > 0;
-            
-            const compText = buildSentence(group.controlNames.compliant, "compliant");
-            const partText = buildSentence(group.controlNames.partial, "partial");
-            const missText = buildSentence(group.controlNames.missing, "missing");
-            
-            let gapBlocks = [];
-            let remediation = [];
-            let overallStatus = "compliant";
-
-            if (!hasMiss && !hasPart) {
-              gapBlocks.push({ type: "strong", text: `Strong posture observed; ${compText}. No significant gaps identified in this domain.` });
-              remediation.push("Maintain current control effectiveness through continuous monitoring and scheduled periodic reviews.");
-            } else {
-              if (hasComp && compText) {
-                gapBlocks.push({ type: "strong", text: compText.charAt(0).toUpperCase() + compText.slice(1) + (compStr ? ` (${compStr}).` : ".") });
-              }
-              
-              if (hasPart && partText) {
-                gapBlocks.push({ type: "partial", text: partText.charAt(0).toUpperCase() + partText.slice(1) + (partStr ? ` (${partStr}).` : ".") });
-              }
-              
-              if (hasMiss && missText) {
-                const missPhrase = missText.replace("are entirely absent", "not implemented");
-                gapBlocks.push({ type: "missing", text: `Critical ${missPhrase}${missStr ? ` (${missStr}).` : "."}` });
-              }
-              
-              let riskContext = "This increases risk of compliance or operational failures.";
-              const allIssues = [...group.controlNames.missing, ...group.controlNames.partial].join(" ").toLowerCase();
-              
-              if (allIssues.includes("incident") || allIssues.includes("monitor") || allIssues.includes("log")) {
-                riskContext = "This severely limits visibility and may delay detection of active security events.";
-              } else if (allIssues.includes("access") || allIssues.includes("password") || allIssues.includes("auth")) {
-                riskContext = "This increases risk of unauthorized access or privilege escalation.";
-              } else if (allIssues.includes("network") || allIssues.includes("encrypt") || allIssues.includes("firewall")) {
-                riskContext = "This leaves sensitive data and infrastructure vulnerable to interception or external attacks.";
-              } else if (allIssues.includes("train") || allIssues.includes("policy") || allIssues.includes("aware")) {
-                riskContext = "This creates a weak security culture and potential for human error.";
-              } else if (allIssues.includes("asset") || allIssues.includes("vendor") || allIssues.includes("third")) {
-                riskContext = "This results in unmanaged risks extending through the supply chain or shadow IT.";
-              } else if (allIssues.includes("vuln") || allIssues.includes("patch") || allIssues.includes("malware")) {
-                riskContext = "This exposes the environment to known exploits and malware proliferation.";
-              } else if (allIssues.includes("backup") || allIssues.includes("recover")) {
-                riskContext = "This jeopardizes data availability and business resilience during a crisis.";
-              }
-              
-              gapBlocks.push({ type: "impact", text: riskContext });
-               
-              if (hasMiss) {
-                const missThemes = group.controlNames.missing.join(" ").toLowerCase();
-                if (missThemes.includes("policy") || missThemes.includes("govern")) remediation.push("Formalize and approve missing policies");
-                else if (missThemes.includes("train") || missThemes.includes("aware")) remediation.push("Deploy mandatory security awareness training");
-                else if (missThemes.includes("access") || missThemes.includes("auth")) remediation.push("Implement strict access control boundaries");
-                else if (missThemes.includes("incident") || missThemes.includes("response")) remediation.push("Define and test incident response procedures");
-                else if (missThemes.includes("network") || missThemes.includes("firewall")) remediation.push("Deploy necessary network defenses");
-                else remediation.push("Implement missing foundational controls");
-              }
-               
-              if (hasPart) {
-                const partThemes = group.controlNames.partial.join(" ").toLowerCase();
-                if (partThemes.includes("monitor") || partThemes.includes("log")) remediation.push("Expand logging coverage and automate alerts");
-                else if (partThemes.includes("vendor") || partThemes.includes("third")) remediation.push("Enforce stricter third-party assessments");
-                else if (partThemes.includes("access") || partThemes.includes("auth")) remediation.push("Audit and revoke excessive permissions");
-                else if (partThemes.includes("patch") || partThemes.includes("vuln")) remediation.push("Accelerate patch management cycles");
-                else remediation.push("Standardize and enforce partial implementations across all departments");
-              }
-               
-              if (remediation.length > 0) remediation.push("Assign clear ownership to ensure timely resolution");
-              else remediation.push("Address identified gaps and enforce compliance");
-              
-              overallStatus = hasMiss ? "missing" : "partial";
-            }
-
-            return {
-              id: `req-${key}-${idx}`,
-              framework: group.framework,
-              requirement: group.requirement,
-              controlsObj: group.controls,
-              gapBlocks,
-              remediation,
-              status: overallStatus
-            };
-          });
-
-          const highlightKeywords = (text) => {
-            if (!text) return null;
-            const html = text
-              .replace(/\b(missing|absent|unaddressed|not implemented|critical)\b/gi, '<span style="color: #ef4444; font-weight: 600">$&</span>')
-              .replace(/\b(partially implemented|inconsistent|partial|lack enforcement)\b/gi, '<span style="color: #f59e0b; font-weight: 600">$&</span>')
-              .replace(/\b(fully implemented|compliant|actively maintained|strong posture observed)\b/gi, '<span style="color: #16a34a; font-weight: 600">$&</span>');
-            return <span dangerouslySetInnerHTML={{ __html: html }} />;
-          };
-
-          const renderGapBlock = (block) => {
-            let label = "";
-            let color = "var(--text-muted)";
-            if (block.type === "strong") { label = "Strong"; color = "#16a34a"; }
-            if (block.type === "partial") { label = "Partial"; color = "#d97706"; }
-            if (block.type === "missing") { label = "Missing"; color = "#dc2626"; }
-            if (block.type === "impact") { label = "Impact"; color = "#d97706"; }
-            
-            return (
-              <div style={{ marginBottom: "12px", lineHeight: "1.6" }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase", color, letterSpacing: "0.5px", marginBottom: "2px" }}>{label}:</div>
-                <div style={{ color: "var(--text-main)" }}>{highlightKeywords(block.text)}</div>
-              </div>
-            );
-          };
+          const matrixRows = Array.isArray(ad.compliance_matrix) 
+            ? ad.compliance_matrix 
+            : (ad.compliance_matrix?.entries || []);
 
           return (
             <div style={{ animation: "fadeIn 0.3s ease", width: "100%", maxWidth: "1600px", margin: "0 auto" }}>
@@ -1101,66 +895,86 @@ export default function AssessmentResultsPage() {
                     <table className="modern-table" style={{ margin: 0, width: "100%", tableLayout: "auto" }}>
                       <thead>
                         <tr>
-                          <th style={{ width: "8%" }}>Framework</th>
-                          <th style={{ width: "12%" }}>Requirement</th>
-                          <th style={{ width: "25%" }}>Mapped Control(s)</th>
-                          <th style={{ width: "35%" }}>Gap(s) Identified</th>
-                          <th style={{ width: "20%" }}>Remediation Plan</th>
+                          <th style={{ width: "10%" }}>Framework</th>
+                          <th style={{ width: "15%" }}>Requirement</th>
+                          <th style={{ width: "20%" }}>Mapped Controls</th>
+                          <th style={{ width: "30%" }}>Gaps Identified</th>
+                          <th style={{ width: "25%" }}>Remediation Plan</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {matrixRows.map((row) => (
-                          <tr key={row.id} style={{ borderBottom: "1px solid #e5e7eb", background: "transparent" }}>
-                            <td style={{ fontWeight: 500, color: "var(--text-muted)", whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top", lineHeight: 1.6 }}>
-                              <div style={{ marginBottom: "8px" }}>{row.framework}</div>
-                              <span style={{ 
-                                background: row.status === "compliant" ? "#16a34a22" : row.status === "partial" ? "#d9770622" : "#dc262622", 
-                                color: row.status === "compliant" ? "#16a34a" : row.status === "partial" ? "#d97706" : "#dc2626", 
-                                padding: "4px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: "700", textTransform: "uppercase", display: "inline-block" 
-                              }}>
-                                {row.status}
-                              </span>
-                            </td>
-                            <td style={{ fontWeight: 600, color: "var(--text-main)", fontSize: "0.9rem", whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top", lineHeight: 1.6 }}>{row.requirement}</td>
-                            <td style={{ whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top" }}>
-                              {row.controlsObj.compliant.length > 0 && (
-                                <div style={{ marginBottom: "12px" }}>
-                                  <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "#16a34a", marginBottom: "4px", letterSpacing: "0.5px" }}>COMPLIANT:</div>
-                                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                                    {row.controlsObj.compliant.map(c => <span key={c} style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb", padding: "2px 6px", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 500 }}>[{c}]</span>)}
-                                  </div>
-                                </div>
-                              )}
-                              {row.controlsObj.partial.length > 0 && (
-                                <div style={{ marginBottom: "12px" }}>
-                                  <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "#d97706", marginBottom: "4px", letterSpacing: "0.5px" }}>PARTIAL:</div>
-                                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                                    {row.controlsObj.partial.map(c => <span key={c} style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb", padding: "2px 6px", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 500 }}>[{c}]</span>)}
-                                  </div>
-                                </div>
-                              )}
-                              {row.controlsObj.missing.length > 0 && (
-                                <div style={{ marginBottom: "12px" }}>
-                                  <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "#dc2626", marginBottom: "4px", letterSpacing: "0.5px" }}>MISSING:</div>
-                                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                                    {row.controlsObj.missing.map(c => <span key={c} style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb", padding: "2px 6px", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 500 }}>[{c}]</span>)}
-                                  </div>
-                                </div>
-                              )}
-                              {row.controlsObj.compliant.length === 0 && row.controlsObj.partial.length === 0 && row.controlsObj.missing.length === 0 && "—"}
-                            </td>
-                            <td style={{ fontSize: "0.85rem", color: "var(--text-muted)", whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top" }}>
-                              {row.gapBlocks.map((b, i) => <div key={i}>{renderGapBlock(b)}</div>)}
-                            </td>
-                            <td style={{ fontSize: "0.85rem", color: "var(--text-main)", whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top", lineHeight: 1.6 }}>
-                              <ul style={{ margin: 0, paddingLeft: "1.2rem", listStyleType: "disc" }}>
-                                {row.remediation.map((rLine, rIdx) => (
-                                  <li key={rIdx} style={{ marginBottom: "8px" }}>{rLine}</li>
-                                ))}
-                              </ul>
-                            </td>
-                          </tr>
-                        ))}
+                        {matrixRows.map((row, idx) => {
+                          const status = row.Status || "Unknown";
+                          const statusLower = status.toLowerCase();
+                          
+                          let statusBg = "#16a34a22";
+                          let statusColor = "#16a34a";
+                          if (statusLower === "partial") { statusBg = "#d9770622"; statusColor = "#d97706"; }
+                          else if (statusLower === "missing") { statusBg = "#dc262622"; statusColor = "#dc2626"; }
+
+                          const mappedControlsLines = (row["Mapped Controls"] || "—").split("\n").filter(Boolean);
+                          const remLines = (row["Remediation Plan"] || "").split(/(?<=\.)\s+/).filter(Boolean);
+
+                          return (
+                            <tr key={`cm-${idx}`} style={{ borderBottom: "1px solid #e5e7eb", background: "transparent" }}>
+                              <td style={{ fontWeight: 500, color: "var(--text-muted)", whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top", lineHeight: 1.6 }}>
+                                <div style={{ marginBottom: "8px" }}>{row.Framework}</div>
+                                <span style={{ 
+                                  background: statusBg, 
+                                  color: statusColor, 
+                                  padding: "4px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: "700", textTransform: "uppercase", display: "inline-block" 
+                                }}>
+                                  {status}
+                                </span>
+                              </td>
+                              <td style={{ fontWeight: 600, color: "var(--text-main)", fontSize: "0.9rem", whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top", lineHeight: 1.6 }}>
+                                {row.Requirement}
+                              </td>
+                              <td style={{ whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top" }}>
+                                {mappedControlsLines.length > 0 ? mappedControlsLines.map((line, i) => {
+                                  if (line.startsWith("COMPLIANT:")) {
+                                    const value = line.replace("COMPLIANT:", "").trim();
+                                    return (
+                                      <div key={i} style={{ marginBottom: value ? "12px" : "4px" }}>
+                                        <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "#16a34a", marginBottom: value ? "4px" : "0", letterSpacing: "0.5px" }}>COMPLIANT:</div>
+                                        {value && <div style={{ color: "#374151", fontSize: "0.8rem", background: "#f3f4f6", border: "1px solid #e5e7eb", padding: "4px 8px", borderRadius: "4px", display: "inline-block", fontWeight: 500 }}>{value}</div>}
+                                      </div>
+                                    );
+                                  } else if (line.startsWith("PARTIAL:")) {
+                                    const value = line.replace("PARTIAL:", "").trim();
+                                    return (
+                                      <div key={i} style={{ marginBottom: value ? "12px" : "4px" }}>
+                                        <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "#d97706", marginBottom: value ? "4px" : "0", letterSpacing: "0.5px" }}>PARTIAL:</div>
+                                        {value && <div style={{ color: "#374151", fontSize: "0.8rem", background: "#f3f4f6", border: "1px solid #e5e7eb", padding: "4px 8px", borderRadius: "4px", display: "inline-block", fontWeight: 500 }}>{value}</div>}
+                                      </div>
+                                    );
+                                  } else if (line.startsWith("MISSING:")) {
+                                    const value = line.replace("MISSING:", "").trim();
+                                    return (
+                                      <div key={i} style={{ marginBottom: value ? "12px" : "4px" }}>
+                                        <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "#dc2626", marginBottom: value ? "4px" : "0", letterSpacing: "0.5px" }}>MISSING:</div>
+                                        {value && <div style={{ color: "#374151", fontSize: "0.8rem", background: "#f3f4f6", border: "1px solid #e5e7eb", padding: "4px 8px", borderRadius: "4px", display: "inline-block", fontWeight: 500 }}>{value}</div>}
+                                      </div>
+                                    );
+                                  }
+                                  return <div key={i} style={{ color: "var(--text-main)", fontSize: "0.85rem" }}>{line}</div>;
+                                }) : <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>—</span>}
+                              </td>
+                              <td style={{ fontSize: "0.85rem", color: "var(--text-main)", whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top", lineHeight: 1.6 }}>
+                                {row["Gaps Identified"] ? row["Gaps Identified"].split(" • ").map((gap, gIdx) => (
+                                  <div key={gIdx} style={{ marginBottom: "6px" }}>• {gap}</div>
+                                )) : "—"}
+                              </td>
+                              <td style={{ fontSize: "0.85rem", color: "var(--text-main)", whiteSpace: "normal", wordWrap: "break-word", padding: "20px 14px", verticalAlign: "top", lineHeight: 1.6 }}>
+                                <ul style={{ margin: 0, paddingLeft: "1.2rem", listStyleType: "disc" }}>
+                                  {remLines.map((rLine, rIdx) => (
+                                    <li key={rIdx} style={{ marginBottom: "8px" }}>{rLine}</li>
+                                  ))}
+                                </ul>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -1195,21 +1009,12 @@ export default function AssessmentResultsPage() {
                     </thead>
                     <tbody>
                       {ad.vendor_checklist.map((vendor, i) => {
-                        const isCompliant = (vendor.compliance_status || "").toLowerCase().includes("compliant");
-                        const isMissing = (vendor.compliance_status || "").toLowerCase().includes("missing");
-                        
-                        // Infer data based on available compliance signal
-                        const agreement = isCompliant ? "Signed" : "Missing";
-                        const encryption = isCompliant ? "AES-256 / TLS 1.2+" : (isMissing ? "Weak / Unknown" : "Standard");
-                        const sla = isCompliant ? "24h Breach / 99.9%" : "Not Defined";
-                        const monitoring = isCompliant ? "Continuous" : "Ad-hoc / None";
-                        
-                        let riskLevel = "Medium";
-                        if (!isCompliant || agreement === "Missing" || encryption.includes("Weak") || encryption.includes("Unknown")) {
-                          riskLevel = "High";
-                        } else if (isCompliant) {
-                          riskLevel = "Low";
-                        }
+                        const agreement  = vendor.agreement || vendor.agreement_signed || vendor.baa_status || vendor.baa_signed || "—";
+                        const encryption = vendor.encryption || vendor.encryption_status || vendor.encryption_at_rest_transit || "—";
+                        const sla        = vendor.sla || vendor.security_sla || vendor.breach_uptime_sla || "—";
+                        const monitoring = vendor.monitoring || vendor.monitoring_frequency || "—";
+                        const riskLevel  = vendor.risk_level || vendor.riskLevel || "Unknown";
+                        const certs      = vendor.certifications || vendor.compliance_status || vendor.certifications_compliance || "—";
 
                         return (
                           <tr key={i}>
@@ -1217,9 +1022,9 @@ export default function AssessmentResultsPage() {
                               <div style={{ fontWeight: 600, color: "var(--text-main)" }}>{vendor.vendor_name}</div>
                               <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>{vendor.service_provided}</div>
                             </td>
-                            <td><span className={getBadgeClass(vendor.compliance_status)}>{vendor.compliance_status}</span></td>
-                            <td style={{ color: agreement === "Signed" ? "#16a34a" : "#dc2626", fontWeight: 500 }}>{agreement}</td>
-                            <td style={{ color: encryption.includes("AES") ? "var(--text-main)" : "#dc2626" }}>{encryption}</td>
+                            <td><span className={getBadgeClass(certs)}>{certs}</span></td>
+                            <td style={{ color: agreement === "Signed" ? "#16a34a" : agreement === "Under Review" ? "#d97706" : "#dc2626", fontWeight: 500 }}>{agreement}</td>
+                            <td style={{ color: encryption.includes("AES") || encryption.includes("TLS 1.3") ? "var(--text-main)" : encryption.includes("Weak") || encryption.includes("Unknown") ? "#dc2626" : "#d97706" }}>{encryption}</td>
                             <td style={{ color: "var(--text-secondary)" }}>{sla}</td>
                             <td style={{ color: "var(--text-secondary)" }}>{monitoring}</td>
                             <td><span className={getBadgeClass(riskLevel)}>{riskLevel}</span></td>
@@ -1359,16 +1164,63 @@ export default function AssessmentResultsPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {trackerData.map((row, i) => (
-                            <tr key={i}>
-                              <td style={{ fontWeight: 500, color: "var(--text-main)" }}>{row.employee || row.employee_name || row.name || "Unknown"}</td>
-                              <td style={{ color: "var(--text-secondary)" }}>{row.role || "Employee"}</td>
-                              <td style={{ color: "var(--text-main)" }}>{row.assigned_training || row.required_modules || "Security Awareness"}</td>
-                              <td><span className={getBadgeClass(row.status || row.training_status || "Pending")}>{row.status || row.training_status || "Pending"}</span></td>
-                              <td style={{ color: "var(--text-secondary)" }}>{row.last_training_date || "—"}</td>
-                              <td style={{ color: "var(--text-secondary)" }}>{row.next_due_date || "—"}</td>
-                            </tr>
-                          ))}
+                          {trackerData.map((row, i) => {
+                            const statusVal = row.status || row.training_status || "Pending";
+                            const isOverdue = statusVal.toLowerCase() === "overdue";
+
+                            // Format YYYY-MM-DD → DD/MM/YYYY for display
+                            const fmtDate = (raw) => {
+                              if (!raw || raw === "Not Available") return "—";
+                              const p = raw.split("-");
+                              if (p.length === 3 && p[0].length === 4) return `${p[2]}/${p[1]}/${p[0]}`;
+                              return raw;
+                            };
+
+                            return (
+                              <tr key={i}>
+                                <td style={{ fontWeight: 500, color: "var(--text-main)" }}>{row.employee || row.employee_name || row.name || "Unknown"}</td>
+                                <td style={{ color: "var(--text-secondary)" }}>{row.role || "Employee"}</td>
+                                <td style={{ color: "var(--text-main)" }}>{row.assigned_training || row.required_modules || "Security Awareness"}</td>
+                                <td>
+                                  <span
+                                    className={getBadgeClass(statusVal)}
+                                    style={{
+                                      ...(isOverdue ? { background: "#7f1d1d", color: "#ffffff", fontWeight: 700 } : {}),
+                                      textTransform: "none"
+                                    }}
+                                  >
+                                    {formatStatusLabel(statusVal)}
+                                  </span>
+                                </td>
+                                <td style={{ color: "var(--text-secondary)" }}>{fmtDate(row.last_training_date)}</td>
+                                <td>
+                                  {/* Flex row: date | PAST DUE badge — never concatenated */}
+                                  <div className="inline-flex items-center gap-2 whitespace-nowrap">
+                                    <span style={isOverdue ? { color: "#dc2626", fontWeight: 600 } : { color: "var(--text-secondary)" }}>
+                                      {fmtDate(row.next_due_date)}
+                                    </span>
+                                    {isOverdue && (
+                                      <>
+                                        <span style={{ color: "var(--text-muted)", fontSize: "0.8rem", userSelect: "none" }}>|</span>
+                                        <span style={{
+                                          fontSize: "0.68rem",
+                                          fontWeight: 800,
+                                          letterSpacing: "0.04em",
+                                          textTransform: "uppercase",
+                                          background: "#7f1d1d",
+                                          color: "#ffffff",
+                                          padding: "2px 7px",
+                                          borderRadius: "4px",
+                                        }}>
+                                          PAST DUE
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

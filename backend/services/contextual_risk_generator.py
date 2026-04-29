@@ -220,25 +220,104 @@ def _level(l: int, i: int) -> str:
     return "Low"
 
 
+# ---------------------------------------------------------------------------
+# Prompt-leak guard — strips instruction/inference text from detail fields
+# ---------------------------------------------------------------------------
+_BAD_DETAIL_PHRASES = (
+    "evidence input only",
+    "system should infer",
+    "the system should",
+    "infer pci risks",
+    "relevant controls reduce",
+    "mapped via iso",
+    "annex a:",
+    "annex a ",
+    "iso 27001 annex",
+    "non-compliance with framework",
+    "mapped via iso27001",
+)
+
+def _sanitize_detail(text: str) -> str:
+    """Return empty string if text contains any prompt/instruction leak phrases."""
+    if not text:
+        return ""
+    lower = text.lower()
+    if any(phrase in lower for phrase in _BAD_DETAIL_PHRASES):
+        return ""
+    return text
+
+
+# ── PCI DSS threat → requirement mapping (replaces ISO Annex A for PCI) ──
+_PCI_THREAT_REQ_MAP: dict[str, str] = {
+    "SQL Injection":              "PCI DSS Req 6 — Secure Systems",
+    "Broken Access Control":      "PCI DSS Req 7 — Restrict Access to CHD",
+    "Ransomware":                 "PCI DSS Req 5 — Anti-Malware",
+    "API Abuse":                  "PCI DSS Req 6 — Secure Systems",
+    "Misconfiguration":           "PCI DSS Req 2 — Secure Configurations",
+    "Data Exfiltration":          "PCI DSS Req 3 — Protect Stored CHD",
+    "Supply Chain Attack":        "PCI DSS Req 12.8 — Service Provider Management",
+    "Third-Party Compliance Risk":"PCI DSS Req 12.8 — Service Provider Management",
+    "Business Continuity Failure":"PCI DSS Req 12.10 — Incident Response Plan",
+    "Remote Code Execution":      "PCI DSS Req 6 — Patch Management",
+    "Credential Theft":           "PCI DSS Req 8 — Identify and Authenticate Users",
+    "Malware":                    "PCI DSS Req 5 — Anti-Malware",
+    "Privilege Abuse":            "PCI DSS Req 7 — Restrict Access to CHD",
+    "DNS Hijacking":              "PCI DSS Req 1 — Network Security Controls",
+    "DNS Poisoning":              "PCI DSS Req 1 — Network Security Controls",
+    "Unauthorized Change":        "PCI DSS Req 6 — Change Control",
+    "Data Leakage":               "PCI DSS Req 3 — Protect Stored CHD",
+    "Unauthorized Access":        "PCI DSS Req 7 — Restrict Access to CHD",
+    "Unmanaged Asset Exposure":   "PCI DSS Req 2 — Secure Configurations",
+    "Unauthorized System Deployment": "PCI DSS Req 2 — Secure Configurations",
+    "Asset Visibility Gap":       "PCI DSS Req 11 — Test Security Systems",
+    "Untracked SaaS Usage":       "PCI DSS Req 12 — Information Security Policy",
+    "Phishing":                   "PCI DSS Req 12.6 — Security Awareness Training",
+    "Insider Threat":             "PCI DSS Req 8 — Identify and Authenticate Users",
+    "Accountability Gap":         "PCI DSS Req 12 — Information Security Policy",
+    "Unpatched Vulnerability":    "PCI DSS Req 6 — Patch Management",
+    "Data Exposure":              "PCI DSS Req 3 — Protect Stored CHD",
+    "Incident Response Failure":  "PCI DSS Req 12.10 — Incident Response Plan",
+    "Data Loss":                  "PCI DSS Req 9 — Restrict Physical Access",
+    "Insufficient Monitoring":    "PCI DSS Req 10 — Log and Monitor Access",
+    "Compliance Violation":       "PCI DSS Req 12 — Information Security Policy",
+    "Network Exploitation":       "PCI DSS Req 1 — Network Security Controls",
+    "Physical Intrusion":         "PCI DSS Req 9 — Restrict Physical Access",
+    "Governance Control Gap":     "PCI DSS Req 12 — Information Security Policy",
+    "Vendor Dependency":          "PCI DSS Req 12.8 — Service Provider Management",
+}
+
+# ── ISO 27001 Annex A threat → control mapping (non-PCI frameworks) ──
+_ISO_THREAT_CTRL_MAP: dict[str, list[str]] = {
+    "SQL Injection":              ["A.8.28"],
+    "Broken Access Control":      ["A.8.3"],
+    "Ransomware":                 ["A.8.7"],
+    "API Abuse":                  ["A.8.23", "A.8.28"],
+    "Misconfiguration":           ["A.8.9"],
+    "Data Exfiltration":          ["A.8.12"],
+    "Supply Chain Attack":        ["A.5.19"],
+    "Third-Party Compliance Risk":["A.5.1", "A.5.20"],
+    "Business Continuity Failure":["A.5.30"],
+}
+
+
 def _risk_entry(rid: int, statement: str, asset: str, threat_label: str,
                 lh: int, imp: int, control: str, owner: str,
-                category: str, source: str, detail: str) -> dict:
+                category: str, source: str, detail: str,
+                framework_id: str = "") -> dict:
     lvl = _level(lh, imp)
-    
-    # ── Map Threat to SoA Control IDs ──
-    threat_control_map = {
-        "SQL Injection": ["A.8.28"],
-        "Broken Access Control": ["A.8.3"],
-        "Ransomware": ["A.8.7"],
-        "API Abuse": ["A.8.23", "A.8.28"],
-        "Misconfiguration": ["A.8.9"],
-        "Data Exfiltration": ["A.8.12"],
-        "Supply Chain Attack": ["A.5.19"],
-        "Third-Party Compliance Risk": ["A.5.1", "A.5.20"],
-        "Business Continuity Failure": ["A.5.30"]
-    }
-    
-    control_ids = threat_control_map.get(threat_label, [])
+    fw = framework_id.lower().replace(" ", "").replace("-", "").replace("_", "")
+    is_pci = "pci" in fw
+
+    # For PCI DSS: use PCI requirement label; for others: use ISO Annex A IDs
+    if is_pci:
+        pci_req = _PCI_THREAT_REQ_MAP.get(threat_label, "PCI DSS Req 12 — Information Security Policy")
+        control_ids = [pci_req]
+        controls_str = pci_req
+    else:
+        control_ids = _ISO_THREAT_CTRL_MAP.get(threat_label, [])
+        controls_str = control
+
+    clean_detail = _sanitize_detail(detail)
 
     return {
         "risk_id": f"R{rid}",
@@ -251,14 +330,16 @@ def _risk_entry(rid: int, statement: str, asset: str, threat_label: str,
         "impact": imp,
         "risk_level": lvl,
         "control": control,
-        "controls": control,
+        "controls": controls_str,
         "control_id": control_ids,
+        "pci_requirement": pci_req if is_pci else "",
         "owner": owner,
         "category": category,
         "source": source,
         "source_label": "Generated",
-        "detail": detail,
+        "detail": clean_detail,
         "mitigation": control,
+        "framework_id": framework_id,
     }
 
 
@@ -439,10 +520,21 @@ def generate_risks_from_data(
     def _has_gap(keyword: str) -> bool:
         return keyword.lower() in missing_names_lower
 
+    def _is_invalid_row(r: dict) -> bool:
+        for val in r.values():
+            s = str(val).strip().lower()
+            if any(x in s for x in ("evidence input only", "system should infer", "evidence for third-party", "prompt", "instruction")):
+                return True
+            if s in ("asset id", "vendor id", "employee id", "rule id", "policy id", "asset_id", "vendor_name", "asset_name", "vendor name", "asset name"):
+                return True
+        return False
+
     # ══════════════════════════════════════════════════════════════════════
     # 1. PER-ASSET RISKS
     # ══════════════════════════════════════════════════════════════════════
     for row in asset_rows:
+        if _is_invalid_row(row):
+            continue
         name = _get(row, "asset_name", "app_name", "name", "hostname",
                     "device_name", "device", "system", "system_name",
                     "host", "equipment", default="Unnamed Asset")
@@ -480,6 +572,7 @@ def generate_risks_from_data(
             _add(_risk_entry(
                 rid, stmt, name, tinfo["threat_label"], lh, imp,
                 ctrl_text, own, cls, "asset_analysis", detail,
+                framework_id,
             ))
 
         # Unowned-asset risk
@@ -492,12 +585,15 @@ def generate_risks_from_data(
                 "Assign an accountable owner and define incident escalation path",
                 "IT Governance", "Asset Management", "asset_analysis",
                 f"{name} has no assigned owner — delays triage and remediation.",
+                framework_id,
             ), sig=f"unowned|{name}")
 
     # ══════════════════════════════════════════════════════════════════════
     # 2. PER-VENDOR RISKS  (driven by compliance status, NOT criticality)
     # ══════════════════════════════════════════════════════════════════════
     for row in vendor_rows:
+        if _is_invalid_row(row):
+            continue
         vname = _get(row, "vendor_name", "name", "vendor", "supplier",
                      "company", "partner", "provider", "service_provider",
                      "third_party", default="Unknown Vendor")
@@ -522,6 +618,7 @@ def generate_risks_from_data(
                     "Monitor vendor SLA performance and maintain contingency plan for service disruption",
                     "IT Security / Procurement", "Vendor", "vendor_analysis",
                     f"Vendor '{vname}' is compliant but classified as high-criticality — monitor dependency.",
+                    framework_id,
                 ))
             # Compliant + non-critical vendors generate no risk entry.
 
@@ -535,6 +632,7 @@ def generate_risks_from_data(
                 "Conduct immediate vendor security assessment and enforce contractual security clauses",
                 "IT Security / Procurement", "Vendor", "vendor_analysis",
                 f"Vendor '{vname}' is non-compliant for {vservice} — critical supply chain risk.",
+                framework_id,
             ))
             v_control = "Require SOC 2 / ISO 27001 attestation or equivalent certification from vendor"
             if framework_id == "hipaa":
@@ -548,6 +646,7 @@ def generate_risks_from_data(
                 v_control,
                 "IT Security / Procurement", "Vendor", "vendor_analysis",
                 f"Vendor '{vname}' has no valid compliance certification on record.",
+                framework_id,
             ))
 
         # ── Review Pending / Unknown / Empty → Medium/High vendor risk ─
@@ -561,6 +660,7 @@ def generate_risks_from_data(
                 "Expedite vendor compliance review and establish interim monitoring controls",
                 "IT Security / Procurement", "Vendor", "vendor_analysis",
                 f"Vendor '{vname}' compliance status is pending review.",
+                framework_id,
             ))
 
     # ══════════════════════════════════════════════════════════════════════
@@ -583,6 +683,7 @@ def generate_risks_from_data(
                 "Deploy mandatory security awareness training with quarterly phishing simulations",
                 "IT Security / HR", "User", "employee_analysis",
                 f"{no_train} employees have no recorded security training.",
+                framework_id,
             ), sig="people|no_training")
 
             _add(_risk_entry(
@@ -593,6 +694,7 @@ def generate_risks_from_data(
                 "Implement role-based training program, enforce acceptable use policies, and deploy behavior monitoring",
                 "IT Security / HR", "User", "employee_analysis",
                 f"Large untrained workforce increases probability of behavioral risk and privilege misuse.",
+                framework_id,
             ), sig="people|insider_culture")
 
         if priv > 0:
@@ -604,6 +706,7 @@ def generate_risks_from_data(
                 "Enforce PAM solution, MFA on all admin accounts, and quarterly access reviews",
                 "IT Security", "User", "employee_analysis",
                 f"{priv} users hold privileged access; compromise = full environment takeover.",
+                framework_id,
             ), sig="people|priv_access")
 
     # ══════════════════════════════════════════════════════════════════════
@@ -624,6 +727,7 @@ def generate_risks_from_data(
                 "Replace wildcard rules with explicit source/destination/port definitions",
                 "Network / DevOps", "Network", "network_analysis",
                 f"{risky} rules use ANY/wildcard — attackers can traverse network segments.",
+                framework_id,
             ), sig="network|permissive")
 
             _add(_risk_entry(
@@ -634,6 +738,7 @@ def generate_risks_from_data(
                 "Implement egress filtering and deploy outbound traffic anomaly monitoring",
                 "Network / DevOps", "Network", "network_analysis",
                 "Unrestricted outbound rules allow attackers to exfiltrate data undetected.",
+                framework_id,
             ), sig="network|egress")
 
         if deny == 0:
@@ -645,6 +750,7 @@ def generate_risks_from_data(
                 "Implement default-deny firewall policy with explicit allow-list exceptions",
                 "Network / DevOps", "Network", "network_analysis",
                 "No deny rules detected — default-allow posture assumed.",
+                framework_id,
             ), sig="network|no_deny")
 
     # ══════════════════════════════════════════════════════════════════════
@@ -727,11 +833,15 @@ def generate_risks_from_data(
         if ctrl.get("status") == "partial":
             lh = max(1, lh - 1)
 
+        # Build a clean detail — do NOT include reason text which may contain
+        # prompt/inference instructions leaking from the rule engine
+        gap_detail = f"Control '{ctrl_name}' is {ctrl.get('status', 'missing')} in {domain}."
         _add(_risk_entry(
             rid, stmt_text, domain, threat_label, lh, imp,
             control_text, _OWNER_MAP.get("Server", "IT Team"),
             domain, "framework_gap",
-            f"Control '{ctrl_name}' ({ctrl.get('rule_id', '')}) is {ctrl.get('status', 'missing')}. {ctrl.get('reason', '')}",
+            gap_detail,
+            framework_id,
         ), sig=f"gap|{threat_label}")
 
     # ══════════════════════════════════════════════════════════════════════
@@ -747,6 +857,7 @@ def generate_risks_from_data(
                 "Implement formal change advisory board (CAB) and automated change management workflow",
                 "IT Governance", "Governance", "cross_cutting",
                 "No change management evidence found; unauthorized changes may go undetected.",
+                framework_id,
             ), sig="cross|change_mgmt")
 
     if len(present_types) >= 2:
@@ -759,6 +870,7 @@ def generate_risks_from_data(
                 "Develop and test BCP/DR plans with defined RTOs, RPOs, and annual tabletop exercises",
                 "IT Governance", "Governance", "cross_cutting",
                 "No business continuity / disaster recovery controls evidenced.",
+                framework_id,
             ), sig="cross|bcp_dr")
 
     # ══════════════════════════════════════════════════════════════════════
@@ -766,7 +878,16 @@ def generate_risks_from_data(
     # ══════════════════════════════════════════════════════════════════════
     valid = [r for r in risks if _is_valid(r)]
     valid = _merge_duplicate_root_causes(valid)
+
+    fw_norm = framework_id.lower().replace(" ", "").replace("-", "").replace("_", "")
+    is_pci = "pci" in fw_norm
+
     for idx, r in enumerate(valid, start=1):
-        r["risk_id"] = f"R{idx}"
+        if is_pci:
+            # Use TEMP prefix — the builder will assign final PCI-R001…PCI-Rnnn
+            # globally across ALL sources to prevent duplicate React keys.
+            r["risk_id"] = f"TEMP-R{idx:03d}"
+        else:
+            r["risk_id"] = f"R{idx}"
 
     return valid
