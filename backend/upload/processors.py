@@ -59,16 +59,49 @@ def _on_assessment_imported(record: dict) -> None:
         pass  # Non-critical — assessment can be re-run via /assess/{framework_id}
 
 
-def _on_config_imported(record: dict) -> None:
+def _on_config_imported(record: dict, framework: str = "cis") -> None:
     """
     Post-import hook for configuration uploads.
 
-    Currently a no-op placeholder. Future implementation could:
-    - trigger run_config_analysis with the parsed config
-    - compare against config baselines
-    - flag security misconfigurations
+    For raw config types (.sh, .conf, .log, etc.) runs the dedicated
+    raw_config_analyzer and then the config_compliance_engine to produce
+    a framework-aware compliance report.
+    For structured types (json/yaml/env) this is currently a no-op.
+
+    NOTE: This uses the Configuration Compliance Engine which is fully
+    isolated from the Assessment Engine.  It does NOT touch:
+      - framework_aware_builder.py
+      - assessment scoring
+      - rules/*.py
     """
-    pass
+    if record.get("file_type") != "raw_config":
+        return
+
+    raw_text = record.get("parsed_config", {}).get("raw_text", "")
+    if not raw_text:
+        return
+
+    try:
+        from config_analysis.raw_config_analyzer import analyze_raw_config
+        analysis = analyze_raw_config(
+            raw_text=raw_text,
+            filename=record.get("file_name", "unknown"),
+            framework=framework,
+        )
+        record["config_analysis"] = analysis
+
+        # Run framework compliance analysis (isolated engine)
+        from config_analysis.config_compliance_engine import run_config_compliance_analysis
+        compliance = run_config_compliance_analysis(
+            raw_analysis=analysis,
+            framework=framework,
+            parsed_config=record.get("parsed_config"),
+        )
+        record["config_compliance"] = compliance
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        # Non-critical — upload is still recorded even if analysis fails
 
 
 # ---------------------------------------------------------------------------
@@ -225,15 +258,15 @@ async def process_assessment_upload(
 # Configuration processor
 # ---------------------------------------------------------------------------
 
-async def process_config_upload(file: UploadFile) -> dict:
+async def process_config_upload(file: UploadFile, framework: str = "cis") -> dict:
     """
     Full processing pipeline for a Configuration file upload.
 
     1. Validate file (extension + size)
-    2. Parse by type (JSON / YAML / ENV)
+    2. Parse by type (JSON / YAML / ENV / RAW)
     3. Persist to config_uploads.json
-    4. Trigger workflow hook
-    5. Return structured response
+    4. Trigger workflow hook (raw config analysis + compliance engine)
+    5. Return structured response with compliance data
     """
     # 1. Validate
     contents = await validate_config_upload(file)
@@ -241,7 +274,12 @@ async def process_config_upload(file: UploadFile) -> dict:
     # 2. Parse
     parsed_data, detected_type = parse_config_file(contents, file.filename or "unknown")
 
-    top_level_keys = list(parsed_data.keys())
+    # Compute key metadata safely — raw_config stores text, not arbitrary keys
+    is_raw = detected_type == "raw_config" or parsed_data.get("source_type") == "raw_config"
+    if is_raw:
+        top_level_keys = ["raw_text", "source_type"]
+    else:
+        top_level_keys = list(parsed_data.keys())
 
     # 3. Build record
     record = {
@@ -249,26 +287,36 @@ async def process_config_upload(file: UploadFile) -> dict:
         "mode": "configuration",
         "file_name": file.filename,
         "file_type": detected_type,
+        "framework": framework,
         "parsed_keys_count": len(top_level_keys),
         "top_level_keys": top_level_keys,
         "parsed_config": parsed_data,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    # 4. Persist
+    # 4. Workflow hook (attaches config_analysis + config_compliance for raw types)
+    _on_config_imported(record, framework=framework)
+
+    # 5. Persist
     save_config_upload(record)
 
-    # 5. Workflow hook
-    _on_config_imported(record)
-
-    # 6. Response
-    return {
+    # Build response — include analysis and compliance results when available
+    response: dict = {
         "success": True,
         "message": "Configuration file processed and saved successfully.",
         "mode": "configuration",
         "file_name": record["file_name"],
         "file_type": record["file_type"],
+        "framework": framework,
         "parsed_keys_count": record["parsed_keys_count"],
         "top_level_keys": record["top_level_keys"],
         "errors": [],
     }
+
+    if "config_analysis" in record:
+        response["config_analysis"] = record["config_analysis"]
+
+    if "config_compliance" in record:
+        response["config_compliance"] = record["config_compliance"]
+
+    return response

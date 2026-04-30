@@ -168,16 +168,23 @@ def parse_excel(contents: bytes, filename: str) -> dict:
 # ---------------------------------------------------------------------------
 
 def parse_json_config(contents: bytes, filename: str) -> dict:
-    """Parse a JSON configuration file."""
+    """Parse a JSON configuration file.
+
+    Arrays are wrapped rather than rejected so callers receive a consistent dict.
+    """
     try:
         data = json.loads(contents.decode("utf-8"))
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise HTTPException(status_code=400, detail=f"Malformed JSON: {exc}")
 
+    if isinstance(data, list):
+        # Wrap top-level arrays so the rest of the pipeline always gets a dict
+        return {"items": data, "source_type": "json_array"}
+
     if not isinstance(data, dict):
         raise HTTPException(
             status_code=400,
-            detail="JSON config must be a top-level object (not an array or scalar).",
+            detail="JSON config must be a top-level object or array.",
         )
 
     return data
@@ -228,9 +235,41 @@ def parse_env_config(contents: bytes, filename: str) -> dict:
     return data
 
 
+# Raw config extensions treated as plain text — never attempted as JSON/YAML
+_RAW_CONFIG_EXTENSIONS = {".sh", ".conf", ".log", ".txt", ".fw"}
+
+
+def parse_raw_config(contents: bytes, filename: str) -> dict:
+    """Store a raw text config file without any structured parsing.
+
+    Returns a dict with ``raw_text`` and ``source_type`` so downstream consumers
+    can distinguish raw configs from structured ones.
+    """
+    try:
+        text = contents.decode("utf-8")
+    except UnicodeDecodeError:
+        # Fallback: decode with replacement characters so we never crash
+        text = contents.decode("latin-1")
+
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="Config file is empty.")
+
+    return {"raw_text": text, "source_type": "raw_config"}
+
+
+def _looks_like_json(contents: bytes) -> bool:
+    """Cheap heuristic: does the content start with '{' or '[' after whitespace?"""
+    try:
+        snippet = contents.lstrip()
+        return snippet[:1] in (b"{", b"[")
+    except Exception:
+        return False
+
+
 def parse_config_file(contents: bytes, filename: str) -> tuple[dict, str]:
     """
-    Dispatch to the correct parser based on extension.
+    Dispatch to the correct parser based on file extension, with a content
+    fallback for files that have no recognised extension.
 
     Returns (parsed_dict, detected_type_label).
     """
@@ -238,12 +277,22 @@ def parse_config_file(contents: bytes, filename: str) -> tuple[dict, str]:
 
     if ext == ".json":
         return parse_json_config(contents, filename), "json"
-    elif ext in {".yaml", ".yml"}:
+
+    if ext in {".yaml", ".yml"}:
         return parse_yaml_config(contents, filename), "yaml"
-    elif ext == ".env":
+
+    if ext == ".env":
         return parse_env_config(contents, filename), "env"
-    else:
-        raise HTTPException(status_code=400, detail=f"Unsupported config file type: {ext}")
+
+    if ext in _RAW_CONFIG_EXTENSIONS:
+        return parse_raw_config(contents, filename), "raw_config"
+
+    # Unknown extension — attempt content-based detection before giving up
+    if _looks_like_json(contents):
+        return parse_json_config(contents, filename), "json"
+
+    # Treat everything else as raw text
+    return parse_raw_config(contents, filename), "raw_config"
 
 
 # ---------------------------------------------------------------------------

@@ -110,13 +110,15 @@ def _auto_width(ws, min_width: int = 12, max_width: int = 50):
 
 def build_excel_workbook(fa: dict) -> tuple[io.BytesIO, str]:
     """
-    Build an Excel workbook from a framework_assessment dict.
-
+    Build an Excel workbook from a framework_assessment dict matching UI logic.
     Returns (BytesIO buffer, suggested filename).
     """
+    import re
     wb = openpyxl.Workbook()
     company = _safe_filename(fa.get("assessment_name") or fa.get("_company_name") or "assessment")
     date_str = _fmt_date(fa.get("created_at") or fa.get("_top_created_at", ""))
+    fw = str(fa.get("framework", ""))
+    is_hipaa = "hipaa" in fw.lower()
 
     # --- Sheet 1: Summary ---
     ws = wb.active
@@ -124,7 +126,7 @@ def build_excel_workbook(fa: dict) -> tuple[io.BytesIO, str]:
     summary_data = [
         ["Field", "Value"],
         ["Assessment Name", fa.get("assessment_name", "")],
-        ["Framework", fa.get("framework", "")],
+        ["Framework", fw],
         ["Date", date_str],
         ["Compliance Score", f"{fa.get('compliance_score', 0)}%"],
         ["Total Controls", fa.get("total_controls", 0)],
@@ -138,34 +140,76 @@ def build_excel_workbook(fa: dict) -> tuple[io.BytesIO, str]:
     _auto_width(ws)
 
     # --- Sheet 2: SoA ---
-    soa = fa.get("soa") or fa.get("statement_of_applicability")
-    soa_entries = []
-    if isinstance(soa, dict):
-        soa_entries = soa.get("entries", [])
-    elif isinstance(soa, list):
-        soa_entries = soa
-
-    if soa_entries:
-        ws_soa = wb.create_sheet("SoA")
-        headers = ["#", "Section", "Control No", "Control Title", "Applicable", "Status", "Implementation", "Reference"]
-        _add_header_row(ws_soa, headers)
-        rows = []
-        for i, e in enumerate(soa_entries, 1):
-            rows.append([
+    soa_rows = []
+    if is_hipaa and fa.get("soa", {}).get("entries"):
+        for i, e in enumerate(fa.get("soa").get("entries", []), 1):
+            control_no = e.get("control_no", "")
+            m = re.search(r'[Aa](\d+\.\d+)', control_no)
+            if m: control_no = f"A.{m.group(1)}"
+            
+            soa_rows.append([
                 i,
-                e.get("section", ""),
-                e.get("control_no", ""),
-                e.get("control_title", ""),
+                e.get("section", "—"),
+                control_no,
+                e.get("control_title", "—"),
                 e.get("applicable", "Yes"),
-                e.get("status", ""),
-                e.get("implementation", e.get("remarks", "")),
-                e.get("reference", ""),
+                str(e.get("status", "missing")).upper(),
+                e.get("implementation", e.get("remarks", "—")),
+                e.get("reference", "—"),
             ])
-        _write_rows(ws_soa, rows)
+    else:
+        row_id = 1
+        for section in fa.get("sections", []):
+            for c in section.get("controls", []):
+                status = str(c.get("status", "")).lower()
+                
+                implemented = "Control is not implemented; no supporting evidence found"
+                if status == "compliant": implemented = "Control is implemented and supported by available evidence"
+                elif status == "partial": implemented = "Control is partially implemented; improvements required"
+                
+                domain_hint = str(c.get("domain", "") + section.get("section_name", "") + section.get("section_key", "")).lower()
+                rule_hint = str(c.get("rule_id", "")).lower()
+                reference = "System Inference Engine"
+                
+                if status == "missing" and not c.get("has_evidence"):
+                    reference = "System Inference Engine / No supporting evidence"
+                elif "vendor" in domain_hint or "supplier" in domain_hint or "vendor" in rule_hint:
+                    reference = "Vendor Records / Third-Party Data"
+                elif "people" in domain_hint or "a6" in domain_hint or "iso-a6" in rule_hint:
+                    reference = "HR / Employee Data; Training Matrix"
+                elif "physical" in domain_hint or "a7" in domain_hint or "iso-a7" in rule_hint:
+                    reference = "Asset Inventory / Facilities Data"
+                elif "technological" in domain_hint or "a8" in domain_hint or "iso-a8" in rule_hint:
+                    reference = "Network Rules / Configurations / Systems"
+                elif "organizational" in domain_hint or "a5" in domain_hint or "iso-a5" in rule_hint:
+                    reference = "Policies / Governance / Risk Register"
+                
+                control_no = str(c.get("rule_id", ""))
+                m = re.search(r'[Aa](\d+\.\d+)', control_no)
+                if m: control_no = f"A.{m.group(1)}"
+                
+                soa_rows.append([
+                    row_id,
+                    section.get("section_name", section.get("section_key", "—")),
+                    control_no,
+                    c.get("name", "—"),
+                    "Yes",
+                    status.upper(),
+                    implemented,
+                    reference
+                ])
+                row_id += 1
+
+    if soa_rows:
+        ws_soa = wb.create_sheet("SoA")
+        headers = ["ID", "Section", "Control No", "Control Title", "Applicable", "Status", "Implementation", "Reference"]
+        _add_header_row(ws_soa, headers)
+        _write_rows(ws_soa, soa_rows)
         _auto_width(ws_soa)
 
     # --- Sheet 3: Compliance Matrix ---
     cm = fa.get("compliance_matrix")
+    cm_rows = []
     cm_entries = []
     if isinstance(cm, dict):
         cm_entries = cm.get("entries", cm.get("controls", []))
@@ -174,22 +218,35 @@ def build_excel_workbook(fa: dict) -> tuple[io.BytesIO, str]:
 
     if cm_entries:
         ws_cm = wb.create_sheet("Compliance Matrix")
-        headers = ["Control ID", "Control Name", "Status", "Evidence", "Gap", "Recommendation"]
-        _add_header_row(ws_cm, headers)
-        rows = []
-        for e in cm_entries:
-            rows.append([
-                e.get("control_id", e.get("control_no", "")),
-                e.get("control_name", e.get("control_title", "")),
-                e.get("status", ""),
-                e.get("evidence", e.get("evidence_summary", "")),
-                e.get("gap", e.get("gap_description", "")),
-                e.get("recommendation", ""),
-            ])
-        _write_rows(ws_cm, rows)
+        first = cm_entries[0]
+        if "Framework" in first and "Requirement" in first:
+            headers = ["Framework", "Requirement", "Status", "Mapped Controls", "Gaps Identified", "Remediation Plan"]
+            _add_header_row(ws_cm, headers)
+            for row in cm_entries:
+                cm_rows.append([
+                    row.get("Framework", ""),
+                    row.get("Requirement", ""),
+                    row.get("Status", ""),
+                    str(row.get("Mapped Controls", "")),
+                    str(row.get("Gaps Identified", "")),
+                    str(row.get("Remediation Plan", ""))
+                ])
+        else:
+            headers = ["Control ID", "Control Name", "Status", "Evidence", "Gap", "Recommendation"]
+            _add_header_row(ws_cm, headers)
+            for e in cm_entries:
+                cm_rows.append([
+                    e.get("control_id", e.get("control_no", "")),
+                    e.get("control_name", e.get("control_title", "")),
+                    e.get("status", ""),
+                    e.get("evidence", e.get("evidence_summary", "")),
+                    e.get("gap", e.get("gap_description", "")),
+                    e.get("recommendation", ""),
+                ])
+        _write_rows(ws_cm, cm_rows)
         _auto_width(ws_cm)
 
-    # --- Sheet 4: High Risks ---
+    # --- Sheet 4: Risk Register ---
     rr = fa.get("risk_register", {})
     risk_entries = []
     if isinstance(rr, dict):
@@ -197,87 +254,165 @@ def build_excel_workbook(fa: dict) -> tuple[io.BytesIO, str]:
     elif isinstance(rr, list):
         risk_entries = rr
 
-    high_risks = []
+    valid_risks = []
     for r in risk_entries:
-        try:
-            l_val = float(r.get("likelihood", 0))
-            i_val = float(r.get("impact", 0))
-            if l_val * i_val >= 12:
-                high_risks.append(r)
-        except (ValueError, TypeError):
-            level = (r.get("risk_level", r.get("level", "")) or "").lower()
-            if level in ("high", "critical", "extreme"):
-                high_risks.append(r)
+        rid = str(r.get("risk_id", r.get("id", "")))
+        if rid.startswith("RSK-"): continue
+        rThreat = str(r.get("threat", "")).lower()
+        if not rThreat or rThreat in ("unspecified threat", "identified risk", "placeholder"):
+            continue
+        valid_risks.append(r)
 
-    if high_risks:
-        ws_hr = wb.create_sheet("High Risks")
-        headers = ["Risk ID", "Risk Statement", "Threat", "Asset", "Likelihood", "Impact", "Risk Level"]
-        _add_header_row(ws_hr, headers)
-        rows = []
-        for r in high_risks:
-            rows.append([
-                r.get("risk_id", r.get("id", "")),
-                r.get("risk_statement", r.get("description", r.get("title", ""))),
-                r.get("threat", r.get("vulnerability", "")),
-                r.get("asset", r.get("asset_type", "")),
-                r.get("likelihood", ""),
-                r.get("impact", ""),
-                r.get("risk_level", r.get("level", "")),
-            ])
-        _write_rows(ws_hr, rows)
-        _auto_width(ws_hr)
-
-    # --- Sheet 5: Risk Register (all) ---
-    if risk_entries:
+    if valid_risks:
         ws_rr = wb.create_sheet("Risk Register")
-        headers = ["Risk ID", "Risk Statement", "Threat", "Asset", "Likelihood", "Impact", "Risk Level", "Control", "Owner"]
+        headers = ["Risk ID", "Risk Statement", "Asset", "Threat", "Likelihood", "Impact", "Risk Level", "Control", "Owner"]
         _add_header_row(ws_rr, headers)
         rows = []
-        for r in risk_entries:
-            ctrl = ""
-            if r.get("iso_controls"):
-                ctrl = ", ".join(r["iso_controls"]) if isinstance(r["iso_controls"], list) else str(r["iso_controls"])
-            elif r.get("control"):
-                ctrl = r["control"]
-            elif r.get("rule_id"):
-                ctrl = r["rule_id"]
-            rows.append([
-                r.get("risk_id", r.get("id", "")),
-                r.get("risk_statement", r.get("description", r.get("title", ""))),
-                r.get("threat", r.get("vulnerability", "")),
-                r.get("asset", r.get("asset_type", "")),
-                r.get("likelihood", ""),
-                r.get("impact", ""),
-                r.get("risk_level", r.get("level", "")),
-                ctrl,
-                r.get("owner", ""),
-            ])
+        for i, r in enumerate(valid_risks):
+            rid = str(r.get("risk_id", r.get("id", f"R{i+1}")))
+            rStatement = r.get("risk_statement") or r.get("description") or r.get("title") or r.get("name") or r.get("risk_name") or "—"
+            rAsset = r.get("asset") or r.get("asset_type") or "System"
+            rThreat = r.get("threat") or r.get("vulnerability") or r.get("rule_id") or "Unspecified Threat"
+            
+            try:
+                rawL = float(r.get("likelihood", 3))
+                rawI = float(r.get("impact", 3))
+            except:
+                level = str(r.get("risk_level", r.get("level", "Medium"))).lower()
+                if level == "low": rawL, rawI = 2, 2
+                elif level == "high": rawL, rawI = 4, 3
+                elif level in ("critical", "extreme"): rawL, rawI = 5, 5
+                else: rawL, rawI = 3, 3
+                
+            lScore = max(1, min(5, int(round(rawL))))
+            iScore = max(1, min(5, int(round(rawI))))
+            
+            score = lScore * iScore
+            if score <= 5: risk_level = f"{score} Low"
+            elif score <= 10: risk_level = f"{score} Medium"
+            elif score <= 15: risk_level = f"{score} High"
+            else: risk_level = f"{score} Extreme"
+            
+            ctrl = "—"
+            if r.get("iso_controls") and isinstance(r["iso_controls"], list) and len(r["iso_controls"]) > 0:
+                ctrl = ", ".join(r["iso_controls"])
+            elif r.get("rule_id"): ctrl = r.get("rule_id")
+            elif r.get("controls"): ctrl = r.get("controls")
+            elif fa.get("framework"): ctrl = f"Mapped via {fa['framework']}"
+            
+            owner = r.get("owner")
+            if not owner:
+                t = str(rAsset).lower()
+                if "server" in t or "infrastructure" in t or "host" in t: owner = "IT Team"
+                elif "auth" in t or "identity" in t or "access" in t or "iam" in t: owner = "IT Security"
+                elif "db" in t or "database" in t or "storage" in t: owner = "DBA"
+                elif "network" in t or "firewall" in t or "router" in t: owner = "DevOps"
+                elif "vendor" in t or "third-party" in t or "supplier" in t: owner = "IT Security"
+                else: owner = "IT Team"
+                
+            rows.append([rid, rStatement, rAsset, rThreat, lScore, iScore, risk_level, ctrl, owner])
         _write_rows(ws_rr, rows)
         _auto_width(ws_rr)
 
-    # --- Sheet 6: Treatment Plan ---
-    tp = fa.get("risk_treatment_plan") or fa.get("treatment_plan")
-    tp_entries = []
-    if isinstance(tp, list):
-        tp_entries = tp
-    elif isinstance(tp, dict):
-        tp_entries = tp.get("entries", tp.get("actions", []))
-
-    if tp_entries:
+    # --- Sheet 5: Treatment Plan ---
+    tp_entries = fa.get("risk_treatment_plan")
+    if tp_entries and isinstance(tp_entries, list):
         ws_tp = wb.create_sheet("Treatment Plan")
         headers = ["Risk ID", "Treatment", "Due Date"]
         _add_header_row(ws_tp, headers)
         rows = []
         for e in tp_entries:
+            dd = e.get("due_date", "")
+            if dd and "-" in dd and not "/" in dd:
+                p = dd.split("-")
+                if len(p) == 3: dd = f"{p[2]}/{p[1]}/{p[0]}"
             rows.append([
                 e.get("risk_id", ""),
                 e.get("treatment", e.get("action", "")),
-                e.get("due_date", ""),
+                dd
             ])
         _write_rows(ws_tp, rows)
         _auto_width(ws_tp)
 
-    # --- Sheet 7: Vendor Checklist ---
+    # --- Sheet 6: Training Matrix & Tracker ---
+    tm_backend = fa.get("training_matrix_generated", {})
+    if isinstance(tm_backend, dict) and tm_backend.get("role_based_matrix"):
+        ws_tm = wb.create_sheet("Training Matrix")
+        headers = ["Role / Group", "Training Content", "Frequency", "Risk / Incident Driver"]
+        _add_header_row(ws_tm, headers)
+        rows = []
+        for r in tm_backend["role_based_matrix"]:
+            rows.append([
+                r.get("role", ""),
+                r.get("content", ""),
+                r.get("frequency", ""),
+                r.get("driver", "")
+            ])
+        _write_rows(ws_tm, rows)
+        _auto_width(ws_tm)
+        
+        tracker = tm_backend.get("employee_tracker", tm_backend.get("employee_training_tracker", []))
+        if tracker:
+            ws_trk = wb.create_sheet("Employee Training Tracker")
+            headers = ["Employee Name", "Role", "Assigned Training", "Status", "Last Training Date", "Next Due Date"]
+            _add_header_row(ws_trk, headers)
+            rows = []
+            for r in tracker:
+                def fmt_date(d):
+                    if not d or d == "Not Available": return "—"
+                    p = str(d).split("-")
+                    if len(p) == 3 and len(p[0]) == 4: return f"{p[2]}/{p[1]}/{p[0]}"
+                    return str(d)
+                
+                st = r.get("status", r.get("training_status", "Pending"))
+                if st.lower() == "completed (on time)": st = "Completed (On Time)"
+                elif st.lower() == "overdue": st = "Overdue"
+                
+                rows.append([
+                    r.get("employee", r.get("employee_name", r.get("name", "Unknown"))),
+                    r.get("role", "Employee"),
+                    r.get("assigned_training", r.get("required_modules", "Security Awareness")),
+                    st,
+                    fmt_date(r.get("last_training_date")),
+                    fmt_date(r.get("next_due_date"))
+                ])
+            _write_rows(ws_trk, rows)
+            _auto_width(ws_trk)
+
+    # --- Sheet 7: Governance Calendar ---
+    gc = fa.get("governance_calendar_generated")
+    if not gc:
+        gc = fa.get("governance_calendar")
+    
+    if gc and isinstance(gc, list) and len(gc) > 0:
+        ws_gc = wb.create_sheet("Governance Calendar")
+        first = gc[0]
+        if "governance_activity" in first or "month" in first:
+            headers = ["Month", "Governance Activity"]
+            _add_header_row(ws_gc, headers)
+            rows = []
+            for i, e in enumerate(gc):
+                rows.append([
+                    e.get("month", f"Month {i+1}"),
+                    e.get("governance_activity", e.get("activity", "—"))
+                ])
+        else:
+            headers = ["Activity", "Cadence", "Responsible", "Status", "Due Date", "Notes"]
+            _add_header_row(ws_gc, headers)
+            rows = []
+            for e in gc:
+                rows.append([
+                    e.get("activity", e.get("task", e.get("event", ""))),
+                    e.get("cadence", e.get("frequency", "")),
+                    e.get("responsible", e.get("owner", "")),
+                    e.get("status", ""),
+                    e.get("due_date", e.get("next_due", "")),
+                    e.get("notes", e.get("remarks", "")),
+                ])
+        _write_rows(ws_gc, rows)
+        _auto_width(ws_gc)
+
+    # --- Sheet 8: Vendor Checklist ---
     vc = fa.get("vendor_checklist")
     vc_entries = []
     if isinstance(vc, dict):
@@ -287,71 +422,34 @@ def build_excel_workbook(fa: dict) -> tuple[io.BytesIO, str]:
 
     if vc_entries:
         ws_vc = wb.create_sheet("Vendor Checklist")
-        headers = ["Vendor", "Risk Level", "Agreement", "Last Reviewed", "Status", "Notes"]
+        agreement_label = "Agreement Signed (BAA)" if is_hipaa else "Agreement Signed (DPA)"
+        headers = ["Vendor / Service", "Certifications / Compliance", agreement_label, "Encryption (At Rest / Transit)", "Security SLA (Breach / Uptime)", "Monitoring Frequency", "Risk Level"]
         _add_header_row(ws_vc, headers)
         rows = []
         for e in vc_entries:
+            agreement  = e.get("agreement", e.get("agreement_signed", e.get("baa_status", e.get("baa_signed", "—"))))
+            encryption = e.get("encryption", e.get("encryption_status", e.get("encryption_at_rest_transit", "—")))
+            sla        = e.get("sla", e.get("security_sla", e.get("breach_uptime_sla", "—")))
+            monitoring = e.get("monitoring", e.get("monitoring_frequency", "—"))
+            riskLevel  = e.get("risk_level", e.get("riskLevel", "Unknown"))
+            certs      = e.get("certifications", e.get("compliance_status", e.get("certifications_compliance", "—")))
+
+            service = e.get("service_provided", "")
+            vendor_val = e.get("vendor_name", e.get("vendor", e.get("name", "")))
+            if service:
+                vendor_val = f"{vendor_val} ({service})"
+            
             rows.append([
-                e.get("vendor_name", e.get("vendor", e.get("name", ""))),
-                e.get("risk_level", e.get("risk", "")),
-                e.get("agreement_signed", e.get("agreement", "")),
-                e.get("last_reviewed", e.get("review_date", "")),
-                e.get("status", e.get("compliance_status", "")),
-                e.get("notes", e.get("remarks", "")),
+                vendor_val,
+                certs,
+                agreement,
+                encryption,
+                sla,
+                monitoring,
+                riskLevel
             ])
         _write_rows(ws_vc, rows)
         _auto_width(ws_vc)
-
-    # --- Sheet 8: Training Matrix ---
-    tm = fa.get("training_matrix") or fa.get("training_matrix_generated")
-    tm_entries = []
-    if isinstance(tm, dict):
-        tm_entries = tm.get("entries", tm.get("employees", tm.get("records", [])))
-    elif isinstance(tm, list):
-        tm_entries = tm
-
-    if tm_entries:
-        ws_tm = wb.create_sheet("Training Matrix")
-        headers = ["Employee", "Role", "Training Topic", "Risk Driver", "Status", "Completion Date", "Next Due"]
-        _add_header_row(ws_tm, headers)
-        rows = []
-        for e in tm_entries:
-            rows.append([
-                e.get("employee_name", e.get("employee", e.get("name", ""))),
-                e.get("role", e.get("department", "")),
-                e.get("training_topic", e.get("topic", e.get("course", ""))),
-                e.get("risk_driver", ""),
-                e.get("status", ""),
-                e.get("completion_date", e.get("completed", "")),
-                e.get("next_due_date", e.get("next_due", "")),
-            ])
-        _write_rows(ws_tm, rows)
-        _auto_width(ws_tm)
-
-    # --- Sheet 9: Governance Calendar ---
-    gc = fa.get("governance_calendar") or fa.get("governance_calendar_generated")
-    gc_entries = []
-    if isinstance(gc, dict):
-        gc_entries = gc.get("entries", gc.get("events", gc.get("items", [])))
-    elif isinstance(gc, list):
-        gc_entries = gc
-
-    if gc_entries:
-        ws_gc = wb.create_sheet("Governance Calendar")
-        headers = ["Activity", "Frequency", "Owner", "Next Due", "Status", "Notes"]
-        _add_header_row(ws_gc, headers)
-        rows = []
-        for e in gc_entries:
-            rows.append([
-                e.get("activity", e.get("task", e.get("event", ""))),
-                e.get("frequency", ""),
-                e.get("owner", e.get("responsible", "")),
-                e.get("next_due", e.get("due_date", "")),
-                e.get("status", ""),
-                e.get("notes", e.get("remarks", "")),
-            ])
-        _write_rows(ws_gc, rows)
-        _auto_width(ws_gc)
 
     # Write to buffer
     buf = io.BytesIO()

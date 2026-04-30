@@ -42,12 +42,11 @@ export default function UploadPage() {
   // Assessment fields
   const [assessmentFile, setAssessmentFile] = useState(null);
   const [assessmentName, setAssessmentName] = useState("");
-  const [framework, setFramework] = useState("iso27001");
-  const [priority, setPriority] = useState("Medium");
-  const [notes, setNotes] = useState("");
+  const [framework, setFramework] = useState("");
 
   // Config fields
   const [configFile, setConfigFile] = useState(null);
+  const [configFramework, setConfigFramework] = useState("cis");
 
   // Status
   const [loading, setLoading] = useState(false);
@@ -119,8 +118,6 @@ export default function UploadPage() {
     formData.append("file", assessmentFile);
     formData.append("assessment_name", assessmentName);
     formData.append("framework", getFrameworkLabel(framework));
-    formData.append("priority", priority);
-    formData.append("notes", notes);
 
     try {
       // 1) Upload
@@ -145,8 +142,7 @@ export default function UploadPage() {
       // and returns the enriched assessment inside framework_assessment
       if (uploadData.framework_assessment && uploadData.framework_assessment.compliance_score !== undefined) {
         setAssessmentResult(uploadData.framework_assessment);
-        sessionStorage.setItem("latest_assessment_results", JSON.stringify(uploadData));
-        sessionStorage.setItem("assessment_framework_output", JSON.stringify(uploadData.framework_assessment));
+        sessionStorage.setItem("assessment_result", JSON.stringify({ upload: uploadData, framework: uploadData.framework_assessment }));
       } else if (isEnrichedFramework) {
         // Fallback for legacy mode just in case
         const assessRes = await fetch(`http://localhost:8000/assess/${framework}`, {
@@ -154,8 +150,6 @@ export default function UploadPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             assessment_name: assessmentName,
-            priority: priority,
-            notes: notes,
             use_uploaded_evidence: true,
           }),
         });
@@ -172,16 +166,14 @@ export default function UploadPage() {
         if (assessRes.ok) {
           const assessData = await assessRes.json();
           setAssessmentResult(assessData);
-          sessionStorage.setItem("latest_assessment_results", JSON.stringify(uploadData));
-          sessionStorage.setItem("assessment_framework_output", JSON.stringify(assessData));
+          sessionStorage.setItem("assessment_result", JSON.stringify({ upload: uploadData, framework: assessData }));
         }
       }
 
       // Clear form
       setAssessmentFile(null);
       setAssessmentName("");
-      setPriority("Medium");
-      setNotes("");
+      setFramework("");
       if (assessmentFileRef.current) assessmentFileRef.current.value = "";
       
       // Redirect to results
@@ -209,6 +201,7 @@ export default function UploadPage() {
 
     const formData = new FormData();
     formData.append("file", configFile);
+    formData.append("framework", configFramework);
 
     try {
       const res = await fetch(`http://localhost:8000/upload/configuration`, {
@@ -336,20 +329,11 @@ export default function UploadPage() {
                 <div>
                   <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Standard *</label>
                   <select className="input-field" value={framework} onChange={(e) => setFramework(e.target.value)} required>
+                    <option value="" disabled>Choose standard</option>
                     <option value="iso27001">ISO 27001</option>
                     <option value="hipaa">HIPAA</option>
                     <option value="pci_dss">PCI DSS</option>
                   </select>
-                </div>
-                <div>
-                  <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Priority</label>
-                  <select className="input-field" value={priority} onChange={(e) => setPriority(e.target.value)}>
-                    {["Low", "Medium", "High", "Critical"].map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div style={{ gridColumn: "1 / -1" }}>
-                  <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>Notes</label>
-                  <textarea className="input-field" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any special instructions..." rows={2} />
                 </div>
               </div>
             </div>
@@ -383,21 +367,55 @@ export default function UploadPage() {
       {/* ──────────── CONFIGURATION MODE ──────────── */}
       {mode === "configuration" && (
         <form onSubmit={handleConfigSubmit}>
-          <div className="card" style={{ padding: "2rem" }}>
-            <h2 style={{ fontSize: "1.35rem", fontWeight: 700, margin: "0 0 0.5rem 0", color: "var(--text-main)" }}>Configuration Upload</h2>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "1.5rem" }}>Upload a JSON, YAML, or ENV file to initialize technical baseline configurations.</p>
-            <div style={{ border: "2px dashed var(--border-color)", borderRadius: "0.5rem", padding: "3rem", textAlign: "center", background: "var(--bg-main)" }}>
-              <svg style={{ width: "48px", height: "48px", color: "var(--text-muted)", margin: "0 auto 1rem" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-              <input type="file" accept=".json,.yaml,.yml,.env" onChange={(e) => setConfigFile(e.target.files?.[0] || null)} ref={configFileRef} required id="config-file-input" style={{ display: "none" }} />
-              <label htmlFor="config-file-input" className="btn-primary" style={{ display: "inline-block", cursor: "pointer", marginBottom: "0.75rem" }}>Select File</label>
-              <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                {configFile ? <span style={{ color: "var(--primary)", fontWeight: 600 }}>{configFile.name}</span> : "No file selected"}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            {/* Framework Selection */}
+            <div className="card" style={{ padding: "1.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "24px", height: "24px", borderRadius: "50%", background: "var(--primary)", color: "#fff", fontSize: "0.8rem", fontWeight: 700 }}>1</span>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-main)", margin: 0 }}>Compliance Framework</h3>
+              </div>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "1rem" }}>Select a framework to map configuration findings against.</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem" }}>
+                {[
+                  { key: "cis", label: "CIS Controls", desc: "Center for Internet Security" },
+                  { key: "nist", label: "NIST 800-53", desc: "National Institute of Standards" },
+                  { key: "iso27001", label: "ISO 27001", desc: "Information Security Management" },
+                ].map((fw) => (
+                  <button key={fw.key} type="button" onClick={() => setConfigFramework(fw.key)}
+                    style={{
+                      padding: "1rem", borderRadius: "0.5rem", cursor: "pointer",
+                      border: `2px solid ${configFramework === fw.key ? "var(--primary)" : "var(--border-color)"}`,
+                      background: configFramework === fw.key ? "rgba(37, 99, 235, 0.06)" : "var(--bg-main)",
+                      color: configFramework === fw.key ? "var(--primary)" : "var(--text-main)",
+                      fontWeight: configFramework === fw.key ? 700 : 500, transition: "all 0.2s ease",
+                      display: "flex", flexDirection: "column", gap: "0.25rem", alignItems: "center",
+                    }}>
+                    <span style={{ fontSize: "1rem" }}>{fw.label}</span>
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 400 }}>{fw.desc}</span>
+                  </button>
+                ))}
               </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.5rem" }}>
-              <button type="submit" className="btn-primary" disabled={loading} style={{ minWidth: "180px" }}>
-                {loading ? "Uploading..." : "Upload Configuration"}
-              </button>
+
+            {/* File Upload */}
+            <div className="card" style={{ padding: "1.5rem", border: "2px solid var(--primary)", background: "rgba(37, 99, 235, 0.02)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "24px", height: "24px", borderRadius: "50%", background: "var(--primary)", color: "#fff", fontSize: "0.8rem", fontWeight: 700 }}>2</span>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-main)", margin: 0 }}>Upload Configuration File</h3>
+              </div>
+              <div style={{ border: "2px dashed var(--border-color)", borderRadius: "0.5rem", padding: "2rem", textAlign: "center", background: "var(--bg-main)" }}>
+                <svg style={{ width: "40px", height: "40px", color: "var(--primary)", margin: "0 auto 0.75rem" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                <input type="file" accept=".json,.yaml,.yml,.env,.sh,.conf,.log,.txt,.fw" onChange={(e) => setConfigFile(e.target.files?.[0] || null)} ref={configFileRef} required id="config-file-input" style={{ display: "none" }} />
+                <label htmlFor="config-file-input" className="btn-primary" style={{ display: "inline-block", cursor: "pointer", marginBottom: "0.75rem", padding: "0.6rem 1.5rem" }}>Select File</label>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                  {configFile ? <span style={{ color: "var(--primary)", fontWeight: 600 }}>{configFile.name}</span> : "Accepts .json, .yaml, .env, .sh, .conf, .log, .txt, .fw"}
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.25rem" }}>
+                <button type="submit" className="btn-primary" disabled={loading} style={{ minWidth: "200px", padding: "0.85rem 1.5rem", fontSize: "1rem" }}>
+                  {loading ? "Analyzing..." : "Upload & Analyze"}
+                </button>
+              </div>
             </div>
           </div>
         </form>
@@ -415,7 +433,7 @@ export default function UploadPage() {
             {uploadResult.detected_sheets !== undefined && <span><strong>Sheets:</strong> <span className="badge badge-blue">{uploadResult.detected_sheets}</span></span>}
             {uploadResult.imported_rows !== undefined && <span><strong>Records:</strong> <span className="badge badge-green">{uploadResult.imported_rows}</span></span>}
             {uploadResult.metadata?.framework && <span><strong>Standard:</strong> {uploadResult.metadata.framework}</span>}
-            {uploadResult.file_type && <span><strong>Type:</strong> <span className="badge badge-blue">{uploadResult.file_type.toUpperCase()}</span></span>}
+            {uploadResult.file_type && <span><strong>Type:</strong> <span className="badge badge-blue">{uploadResult.file_type.replace(/_/g, ' ').toUpperCase()}</span></span>}
           </div>
 
           {/* Detection Summary */}
@@ -457,6 +475,199 @@ export default function UploadPage() {
               </ul>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ──────────── CONFIGURATION REVIEW ──────────── */}
+      {uploadResult && mode === "configuration" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", marginTop: "1.5rem" }}>
+
+          {/* Compliance Score Card */}
+          {uploadResult.config_compliance && !uploadResult.config_compliance.error && (
+            <div className="card" style={{ padding: "1.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+                <h2 style={{ fontSize: "1.25rem", fontWeight: 700, margin: 0, color: "var(--text-main)" }}>Compliance Score</h2>
+                <span className="badge badge-blue" style={{ fontSize: "0.85rem" }}>{uploadResult.config_compliance.framework_label}</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
+                <div style={{ padding: "1.25rem", background: "var(--bg-main)", borderRadius: "0.75rem", border: "1px solid var(--border-color)", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.35rem" }}>Score</div>
+                  <div style={{ fontSize: "2rem", fontWeight: 800, color: uploadResult.config_compliance.compliance?.compliance_score >= 80 ? "#10B981" : uploadResult.config_compliance.compliance?.compliance_score >= 60 ? "#F59E0B" : "#EF4444" }}>{uploadResult.config_compliance.compliance?.compliance_score ?? "—"}</div>
+                </div>
+                <div style={{ padding: "1.25rem", background: "var(--bg-main)", borderRadius: "0.75rem", border: "1px solid var(--border-color)", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.35rem" }}>Grade</div>
+                  <div style={{ fontSize: "2rem", fontWeight: 800, color: "var(--primary)" }}>{uploadResult.config_compliance.compliance?.grade ?? "—"}</div>
+                </div>
+                <div style={{ padding: "1.25rem", background: "var(--bg-main)", borderRadius: "0.75rem", border: "1px solid var(--border-color)", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.35rem" }}>Risk Level</div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 700, color: uploadResult.config_compliance.compliance?.risk_level === "High Risk" ? "#EF4444" : uploadResult.config_compliance.compliance?.risk_level === "Medium Risk" ? "#F59E0B" : "#10B981" }}>{uploadResult.config_compliance.compliance?.risk_level ?? "—"}</div>
+                </div>
+                <div style={{ padding: "1.25rem", background: "var(--bg-main)", borderRadius: "0.75rem", border: "1px solid var(--border-color)", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.35rem" }}>Coverage</div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-main)" }}>{uploadResult.config_compliance.compliance?.framework_coverage?.coverage_pct ?? 0}%</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Analysis Details */}
+          <div className="card" style={{ padding: "1.5rem" }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 700, margin: "0 0 1rem 0", color: "var(--text-main)" }}>Configuration Review</h2>
+            {uploadResult.config_analysis ? (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+                  <div style={{ padding: "1rem", background: "var(--bg-main)", borderRadius: "0.5rem", border: "1px solid var(--border-color)" }}>
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.25rem" }}>Config Type</div>
+                    <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--text-main)" }}>{uploadResult.config_analysis.summary?.config_type?.replace(/_/g, ' ').toUpperCase() || "N/A"}</div>
+                  </div>
+                  <div style={{ padding: "1rem", background: "var(--bg-main)", borderRadius: "0.5rem", border: "1px solid var(--border-color)" }}>
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.25rem" }}>Overall Risk</div>
+                    <div style={{ fontSize: "1.1rem", fontWeight: 600, color: uploadResult.config_analysis.summary?.overall_risk === "High" ? "#EF4444" : uploadResult.config_analysis.summary?.overall_risk === "Medium" ? "#F59E0B" : "#10B981" }}>{uploadResult.config_analysis.summary?.overall_risk || "Low"}</div>
+                  </div>
+                  <div style={{ padding: "1rem", background: "var(--bg-main)", borderRadius: "0.5rem", border: "1px solid var(--border-color)" }}>
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.25rem" }}>Findings Summary</div>
+                    <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.9rem", fontWeight: 600 }}>
+                      <span style={{ color: "#EF4444" }}>High: {uploadResult.config_analysis.summary?.high || 0}</span>
+                      <span style={{ color: "#F59E0B" }}>Med: {uploadResult.config_analysis.summary?.medium || 0}</span>
+                      <span style={{ color: "#10B981" }}>Low: {uploadResult.config_analysis.summary?.low || 0}</span>
+                    </div>
+                  </div>
+                </div>
+                {uploadResult.config_analysis.components && uploadResult.config_analysis.components.length > 0 && (
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-main)", marginBottom: "0.5rem" }}>Detected Components</h3>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                      {uploadResult.config_analysis.components.map((comp, i) => (
+                        <span key={i} className="badge badge-blue" style={{ fontSize: "0.8rem" }}>
+                          <strong>{comp.type}:</strong> {comp.value}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {uploadResult.config_compliance?.findings && uploadResult.config_compliance.findings.length > 0 && (
+                  <div>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-main)", marginBottom: "0.5rem" }}>Detailed Findings</h3>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+                        <thead>
+                          <tr style={{ background: "rgba(0,0,0,0.02)", borderBottom: "2px solid var(--border-color)", textAlign: "left" }}>
+                            <th style={{ padding: "0.75rem 1rem", color: "var(--text-muted)", fontWeight: 600 }}>ID</th>
+                            <th style={{ padding: "0.75rem 1rem", color: "var(--text-muted)", fontWeight: 600 }}>Title</th>
+                            <th style={{ padding: "0.75rem 1rem", color: "var(--text-muted)", fontWeight: 600 }}>Severity</th>
+                            <th style={{ padding: "0.75rem 1rem", color: "var(--text-muted)", fontWeight: 600 }}>Description</th>
+                            <th style={{ padding: "0.75rem 1rem", color: "var(--text-muted)", fontWeight: 600 }}>Framework Control</th>
+                            <th style={{ padding: "0.75rem 1rem", color: "var(--text-muted)", fontWeight: 600 }}>Recommendation</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {uploadResult.config_compliance.findings.map((f, i) => (
+                            <tr key={i} style={{ borderBottom: "1px solid var(--border-color)" }}>
+                              <td style={{ padding: "0.75rem 1rem", color: "var(--text-main)", fontWeight: 500, whiteSpace: "nowrap" }}>{f.id}</td>
+                              <td style={{ padding: "0.75rem 1rem", color: "var(--text-main)", fontWeight: 500 }}>{f.title}</td>
+                              <td style={{ padding: "0.75rem 1rem" }}><span className={getBadgeClass(f.severity)}>{f.severity}</span></td>
+                              <td style={{ padding: "0.75rem 1rem", color: "var(--text-muted)" }}>{f.description}</td>
+                              <td style={{ padding: "0.75rem 1rem", color: "var(--text-main)", fontSize: "0.85rem" }}>{f.framework_control}</td>
+                              <td style={{ padding: "0.75rem 1rem", color: "var(--text-main)" }}>{f.recommendation}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Risk Register */}
+                {uploadResult.config_compliance?.risk_register && uploadResult.config_compliance.risk_register.length > 0 && (
+                  <div style={{ marginTop: "2rem" }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-main)", marginBottom: "0.5rem" }}>Risk Register</h3>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", tableLayout: "auto", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+                        <thead>
+                          <tr style={{ background: "rgba(0,0,0,0.02)", borderBottom: "2px solid var(--border-color)", textAlign: "left" }}>
+                            <th style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-muted)", fontWeight: 600, width: "90px", borderRight: "1px solid var(--border-color)" }}>Risk ID</th>
+                            <th style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-muted)", fontWeight: 600, width: "28%", borderRight: "1px solid var(--border-color)" }}>Risk Statement</th>
+                            <th style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-muted)", fontWeight: 600, textAlign: "center", width: "80px", borderRight: "1px solid var(--border-color)" }}>Impact</th>
+                            <th style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-muted)", fontWeight: 600, textAlign: "center", width: "80px", borderRight: "1px solid var(--border-color)" }}>Likelihood</th>
+                            <th style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-muted)", fontWeight: 600, textAlign: "center", width: "120px", borderRight: "1px solid var(--border-color)" }}>Risk Level</th>
+                            <th style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-muted)", fontWeight: 600, width: "20%", borderRight: "1px solid var(--border-color)" }}>Treatment</th>
+                            <th style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-muted)", fontWeight: 600 }}>Recommendation</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {uploadResult.config_compliance.risk_register.map((r, i) => {
+                            let rTitle = r.risk_statement || "—";
+                            let rDesc = "";
+                            const splitIdx = rTitle.indexOf(":") !== -1 ? rTitle.indexOf(":") : rTitle.indexOf(".");
+                            if (splitIdx !== -1 && splitIdx < 100) {
+                              rTitle = rTitle.substring(0, splitIdx + (rTitle[splitIdx] === '.' ? 1 : 0)).trim();
+                              rDesc = (r.risk_statement || "").substring(splitIdx + 1).trim();
+                            }
+                            
+                            const riskScoreNum = parseInt(r.risk_score) || 0;
+                            let rlBg = "#166534";
+                            let rlText = "#ffffff";
+                            let rlLabel = "Low";
+                            if (riskScoreNum >= 15) { rlBg = "#7f1d1d"; rlLabel = "Extreme"; }
+                            else if (riskScoreNum >= 10) { rlBg = "#9a3412"; rlLabel = "High"; }
+                            else if (riskScoreNum >= 5) { rlBg = "#854d0e"; rlLabel = "Medium"; }
+
+                            return (
+                            <tr key={i} style={{ borderBottom: "1px solid var(--border-color)" }}>
+                              <td style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-main)", fontWeight: 600, borderRight: "1px solid var(--border-color)" }}>{r.risk_id}</td>
+                              <td style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", borderRight: "1px solid var(--border-color)" }}>
+                                <div style={{ fontWeight: 600, color: "var(--text-main)", marginBottom: rDesc ? "0.4rem" : "0" }}>{rTitle}</div>
+                                {rDesc && <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{rDesc}</div>}
+                              </td>
+                              <td style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", textAlign: "center", borderRight: "1px solid var(--border-color)" }}>
+                                <span className={getBadgeClass(r.impact)} style={{ display: "inline-block", padding: "4px 10px", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 700 }}>{r.impact}</span>
+                              </td>
+                              <td style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", textAlign: "center", borderRight: "1px solid var(--border-color)" }}>
+                                <span className={getBadgeClass(r.likelihood)} style={{ display: "inline-block", padding: "4px 10px", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 700 }}>{r.likelihood}</span>
+                              </td>
+                              <td style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", textAlign: "center", borderRight: "1px solid var(--border-color)" }}>
+                                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "6px 12px", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700, background: rlBg, color: rlText, border: `1px solid ${rlBg}` }}>
+                                  {r.risk_score} {rlLabel}
+                                </span>
+                              </td>
+                              <td style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-main)", fontWeight: 500, borderRight: "1px solid var(--border-color)" }}>{r.treatment}</td>
+                              <td style={{ padding: "16px", verticalAlign: "top", lineHeight: 1.625, whiteSpace: "normal", wordBreak: "break-word", color: "var(--text-muted)", fontSize: "0.85rem" }}>{r.recommendation}</td>
+                            </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Best Practices */}
+                {uploadResult.config_compliance?.best_practices && uploadResult.config_compliance.best_practices.length > 0 && (
+                  <div style={{ marginTop: "2rem" }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-main)", marginBottom: "0.75rem" }}>Recommended Best Practices</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
+                      {uploadResult.config_compliance.best_practices.map((bp, i) => (
+                        <div key={i} style={{ padding: "1rem", background: "var(--bg-main)", borderRadius: "0.5rem", border: "1px solid var(--border-color)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
+                            <div style={{ fontWeight: 600, color: "var(--text-main)" }}>{bp.title}</div>
+                            <span className="badge badge-blue" style={{ fontSize: "0.75rem" }}>{bp.category}</span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: "1.5" }}>{bp.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ padding: "1rem", background: "rgba(0,0,0,0.02)", borderRadius: "0.5rem", border: "1px solid var(--border-color)" }}>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <svg style={{ width: "20px", height: "20px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  No configuration review findings were generated for this file.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

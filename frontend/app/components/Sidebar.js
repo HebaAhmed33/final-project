@@ -16,9 +16,14 @@ const NAV_LINKS = [
     icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
   },
   { 
-    href: "/upload", 
-    label: "Workspace",
-    icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+    href: "/assessment", 
+    label: "Assessment",
+    icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+  },
+  { 
+    href: "/configuration", 
+    label: "Configuration",
+    icon: <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
   },
   {
     href: "/exports",
@@ -108,11 +113,18 @@ export default function Sidebar({ isCollapsed = false, setIsCollapsed = () => {}
 
       <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
         {NAV_LINKS.map((link) => {
-          const isActive = pathname === link.href;
+          let targetHref = link.href;
+          if (link.label === "Assessment" && typeof window !== "undefined" && sessionStorage.getItem("assessment_result")) {
+            targetHref = "/assessment-results";
+          }
+          if (link.label === "Configuration" && typeof window !== "undefined" && sessionStorage.getItem("config_result")) {
+            targetHref = "/configuration-results";
+          }
+          const isActive = pathname === targetHref || (link.label === "Configuration" && pathname === "/configuration-results");
           return (
             <Link
               key={link.href}
-              href={link.href}
+              href={targetHref}
               style={{
                 display: "flex",
                 alignItems: "center",

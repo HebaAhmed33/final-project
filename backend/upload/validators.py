@@ -13,7 +13,7 @@ MAX_FILE_SIZE_MB = 10
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 ASSESSMENT_EXTENSIONS = {".xlsx", ".xls"}
-CONFIG_EXTENSIONS = {".json", ".yaml", ".yml", ".env"}
+CONFIG_EXTENSIONS = {".json", ".yaml", ".yml", ".env", ".sh", ".conf", ".log", ".txt", ".fw"}
 
 
 # ---------------------------------------------------------------------------

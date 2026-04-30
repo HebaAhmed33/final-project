@@ -35,6 +35,9 @@ export default function OnboardingPage() {
     }
 
     setLoading(true);
+    // Clear any previous assessment data on fresh onboarding
+    sessionStorage.removeItem("assessment_result");
+    sessionStorage.removeItem("config_result");
     // Simulate typical SaaS behavior setting some user context
     localStorage.setItem("smartisms_user", JSON.stringify({ 
       onboarded: true, 

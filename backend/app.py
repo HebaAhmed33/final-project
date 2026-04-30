@@ -229,9 +229,15 @@ def list_assessment_uploads():
 @app.post("/upload/configuration")
 async def upload_configuration(
     file: UploadFile = File(...),
+    framework: str = Form("cis"),
 ):
-    """Upload a configuration file (JSON / YAML / ENV) for processing."""
-    return await process_config_upload(file=file)
+    """Upload a configuration file (JSON / YAML / ENV) for processing.
+
+    The ``framework`` parameter selects which compliance framework to map
+    findings against (cis, nist, iso27001).  This uses the Configuration
+    Compliance Engine which is fully isolated from the Assessment Engine.
+    """
+    return await process_config_upload(file=file, framework=framework)
 
 
 @app.get("/upload/configurations")

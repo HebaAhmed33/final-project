@@ -4,10 +4,7 @@ import { useState, useEffect } from "react";
 import PageContainer from "../components/PageContainer";
 import ComplianceScoreGauge from "../components/ComplianceScoreGauge";
 import { useRouter } from "next/navigation";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer
-} from "recharts";
+
 
 export default function AssessmentResultsPage() {
   const router = useRouter();
@@ -17,10 +14,16 @@ export default function AssessmentResultsPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUpload = sessionStorage.getItem("latest_assessment_results");
-      const storedAd = sessionStorage.getItem("assessment_framework_output");
-      if (storedUpload) setUploadData(JSON.parse(storedUpload));
-      if (storedAd) setAd(JSON.parse(storedAd));
+      const stored = sessionStorage.getItem("assessment_result");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.upload) setUploadData(parsed.upload);
+          if (parsed.framework) setAd(parsed.framework);
+        } catch (e) {
+          console.error("Failed to parse stored assessment data");
+        }
+      }
     }
   }, []);
 
@@ -29,20 +32,15 @@ export default function AssessmentResultsPage() {
       <PageContainer>
         <div style={{ textAlign: "center", padding: "4rem" }}>
           <h2>No Assessment Data Found</h2>
-          <button onClick={() => router.push('/upload')} className="btn-primary" style={{ marginTop: "1rem" }}>
-            Go to Upload
+          <button onClick={() => router.push('/assessment')} className="btn-primary" style={{ marginTop: "1rem" }}>
+            Start New Assessment
           </button>
         </div>
       </PageContainer>
     );
   }
 
-  const sev = ad?.severity_summary || {};
-  const severityChartData = [
-    { name: "High", Compliant: sev.high?.compliant || 0, Missing: sev.high?.missing || 0, Partial: sev.high?.partial || 0 },
-    { name: "Medium", Compliant: sev.medium?.compliant || 0, Missing: sev.medium?.missing || 0, Partial: sev.medium?.partial || 0 },
-    { name: "Low", Compliant: sev.low?.compliant || 0, Missing: sev.low?.missing || 0, Partial: sev.low?.partial || 0 },
-  ];
+
 
   const getBadgeClass = (s) => {
     if (!s) return "badge badge-blue";
@@ -218,9 +216,9 @@ export default function AssessmentResultsPage() {
   return (
     <PageContainer>
       <div style={{ padding: "0 0 2rem" }}>
-        <button onClick={() => router.push('/upload')} style={{ background: "none", border: "none", color: "var(--primary)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+        <button onClick={() => router.push('/assessment')} style={{ background: "none", border: "none", color: "var(--primary)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
-          Back to Upload
+          Back to Assessment
         </button>
         <h1 style={{ fontSize: "2.25rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: "0.75rem", color: "var(--text-main)" }}>
           Assessment Results Dashboard
@@ -280,51 +278,62 @@ export default function AssessmentResultsPage() {
               />
             </div>
 
-            <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)" }}>Risk Assessment Summary</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: "1.5rem", marginBottom: "2.5rem", marginTop: "1rem" }}>
-              <div className="card" style={{ padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem", color: "var(--text-main)" }}>Severity Distribution</h3>
-                <div style={{ height: "200px" }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={severityChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
-                      <XAxis dataKey="name" tick={{ fill: "var(--text-muted)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: "var(--text-muted)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <RechartsTooltip cursor={{ fill: "var(--bg-main)" }} contentStyle={{ borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-card)" }} />
-                      <Bar dataKey="Compliant" stackId="a" fill="#10B981" maxBarSize={50} />
-                      <Bar dataKey="Partial" stackId="a" fill="#F59E0B" maxBarSize={50} />
-                      <Bar dataKey="Missing" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} maxBarSize={50} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+            <h3 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "1.25rem", marginTop: "1rem" }}>Assessment Executive Summary</h3>
+            
+            {/* KPI Cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2.5rem" }}>
+              <div className="card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: "0.5rem" }}>Compliance Score</span>
+                <span style={{ fontSize: "2rem", fontWeight: 800, color: "var(--primary)" }}>{uploadData.compliance_score || Math.round(ad.compliance_score || 0)}%</span>
               </div>
+              <div className="card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: "0.5rem" }}>Implemented</span>
+                <span style={{ fontSize: "2rem", fontWeight: 800, color: "#10B981" }}>{ad.compliant_controls || 0}</span>
+              </div>
+              <div className="card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: "0.5rem" }}>Partial</span>
+                <span style={{ fontSize: "2rem", fontWeight: 800, color: "#F59E0B" }}>{ad.partial_controls || 0}</span>
+              </div>
+              <div className="card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: "0.5rem" }}>Missing</span>
+                <span style={{ fontSize: "2rem", fontWeight: 800, color: "#EF4444" }}>{ad.missing_controls || 0}</span>
+              </div>
+              <div className="card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", marginBottom: "0.5rem" }}>High/Critical Risks</span>
+                <span style={{ fontSize: "2rem", fontWeight: 800, color: "#EF4444" }}>{highRiskRows.length}</span>
+              </div>
+            </div>
 
-              <div className="card" style={{ padding: "1.25rem", border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.02)" }}>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem", color: "#EF4444" }}>Critical Gaps</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                  {(ad.top_missing_high_risk?.length > 0) ? ad.top_missing_high_risk.map((r, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "0.6rem 0.75rem", background: "var(--bg-card)", borderRadius: "6px", border: "1px solid rgba(239,68,68,0.15)" }}>
-                      <div><span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#EF4444", marginRight: "0.5rem" }}>{r.rule_id}</span><span style={{ fontSize: "0.82rem", color: "var(--text-main)" }}>{r.name}</span></div>
-                      <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{r.section_key}</span>
+            {/* Top Priority Gaps */}
+            <div style={{ marginBottom: "2.5rem" }}>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text-main)", marginBottom: "1rem" }}>Top Priority Gaps</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1rem" }}>
+                {(ad.top_missing_high_risk?.length > 0) ? ad.top_missing_high_risk.map((r, i) => (
+                  <div key={i} className="card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem", borderLeft: "4px solid #EF4444" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#EF4444", background: "rgba(239,68,68,0.1)", padding: "0.2rem 0.6rem", borderRadius: "4px" }}>
+                        {r.rule_id || "GAP"}
+                      </span>
+                      <span className="badge badge-red">
+                        Missing
+                      </span>
                     </div>
-                  )) : <p style={{color: "var(--text-muted)", fontSize:"0.9rem"}}>No critical gaps derived.</p>}
-                </div>
+                    <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text-main)", lineHeight: "1.4" }}>
+                      {r.name || r.control_title || "Unnamed Control"}
+                    </div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.5" }}>
+                      <strong>Action:</strong> {r.recommendation || `Implement control to resolve gap in ${r.section_key || 'framework'}.`}
+                    </div>
+                  </div>
+                )) : (
+                  <div className="card" style={{ padding: "1.5rem", textAlign: "center", gridColumn: "1 / -1" }}>
+                    <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0 }}>No critical gaps identified. Excellent posture!</p>
+                  </div>
+                )}
               </div>
             </div>
             
-            {ad.insights?.length > 0 && (
-              <div className="card" style={{ padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "1rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <svg style={{ width: "18px", height: "18px", color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                  Actionable Insights
-                </h3>
-                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                  {ad.insights.map((ins, i) => (
-                    <li key={i} style={{ padding: "0.75rem 1rem", background: "var(--bg-main)", borderRadius: "6px", fontSize: "0.88rem", color: "var(--text-main)", borderLeft: "3px solid var(--primary)", lineHeight: "1.45" }}>{ins}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+
           </div>
         )}
 
@@ -467,24 +476,39 @@ export default function AssessmentResultsPage() {
 
                       <div className="w-full rounded-xl overflow-hidden border border-slate-200 bg-white dark:bg-slate-950 dark:border-slate-800">
                       <div className="table-container" style={{ margin: 0, borderRadius: 0, border: "none", width: "100%" }}>
-                        <table style={{ margin: 0, width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
+                        <table className="table-auto w-full" style={{ margin: 0, width: "100%", borderCollapse: "collapse" }}>
                           <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                             <tr className="bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-white">
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", wordBreak: "break-word", whiteSpace: "normal" }}>Risk ID</th>
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>Risk Statement</th>
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", wordBreak: "break-word", whiteSpace: "normal" }}>Asset</th>
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", wordBreak: "break-word", whiteSpace: "normal" }}>Threat</th>
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>Likelihood</th>
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>Impact</th>
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>Risk Level</th>
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", maxWidth: "300px", wordBreak: "break-word", whiteSpace: "normal" }}>Control</th>
-                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800" style={{ textAlign: "left", wordBreak: "break-word", whiteSpace: "normal" }}>Owner</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "left", width: "90px", padding: "16px", verticalAlign: "top" }}>Risk ID</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "left", width: "28%", padding: "16px", verticalAlign: "top" }}>Risk Statement</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "left", padding: "16px", verticalAlign: "top" }}>Asset</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "left", padding: "16px", verticalAlign: "top" }}>Threat</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "center", width: "80px", padding: "16px", verticalAlign: "top" }}>Likelihood</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "center", width: "80px", padding: "16px", verticalAlign: "top" }}>Impact</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "center", width: "120px", padding: "16px", verticalAlign: "top" }}>Risk Level</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "left", width: "20%", padding: "16px", verticalAlign: "top" }}>Control</th>
+                              <th className="px-4 py-3 text-sm font-semibold border-b border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "left", padding: "16px", verticalAlign: "top" }}>Owner</th>
                             </tr>
                           </thead>
                           <tbody>
                             {entries.map((risk, idx) => {
                               const rId = risk.risk_id || risk.id || `R${idx + 1}`;
-                              const rStatement = risk.risk_statement || risk.description || risk.title || risk.name || risk.risk_name || "—";
+                              let rTitle = risk.title || risk.name || risk.risk_name;
+                              let rDesc = risk.description || "";
+                              
+                              if (!rTitle) {
+                                const text = risk.risk_statement || "—";
+                                const splitIdx = text.indexOf(":") !== -1 ? text.indexOf(":") : text.indexOf(".");
+                                if (splitIdx !== -1 && splitIdx < 100) {
+                                  rTitle = text.substring(0, splitIdx + (text[splitIdx] === '.' ? 1 : 0)).trim();
+                                  rDesc = text.substring(splitIdx + 1).trim();
+                                } else {
+                                  rTitle = text;
+                                }
+                              } else if (!rDesc && risk.risk_statement && risk.risk_statement !== rTitle) {
+                                rDesc = risk.risk_statement;
+                              }
+
                               const rAsset = risk.asset || risk.asset_type || "System";
                               const rThreat = risk.threat || risk.vulnerability || risk.rule_id || "Unspecified Threat";
                               
@@ -519,30 +543,33 @@ export default function AssessmentResultsPage() {
 
                               return (
                                 <tr key={`${rId || risk.id || "risk"}-${idx}`} className="bg-white text-slate-800 border-slate-200 hover:bg-slate-50 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-800 dark:hover:bg-slate-900">
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ fontWeight: 600, wordBreak: "break-word", whiteSpace: "normal" }}>{rId}</td>
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ maxWidth: "250px", wordBreak: "break-word", whiteSpace: "normal" }}>{rStatement}</td>
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ wordBreak: "break-word", whiteSpace: "normal" }}>{rAsset}</td>
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ wordBreak: "break-word", whiteSpace: "normal" }}>{rThreat}</td>
+                                  <td className="px-4 py-3 text-sm border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ fontWeight: 600, padding: "16px", verticalAlign: "top" }}>{rId}</td>
+                                  <td className="px-4 py-3 text-sm border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ padding: "16px", verticalAlign: "top" }}>
+                                    <div style={{ fontWeight: 600, color: "var(--text-main)", marginBottom: rDesc ? "0.4rem" : "0" }}>{rTitle}</div>
+                                    {rDesc && <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{rDesc}</div>}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ padding: "16px", verticalAlign: "top" }}>{rAsset}</td>
+                                  <td className="px-4 py-3 text-sm border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ padding: "16px", verticalAlign: "top" }}>{rThreat}</td>
                                   
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                  <td className="px-4 py-3 text-sm border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "center", padding: "16px", verticalAlign: "top" }}>
                                     <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 700, background: getScoreColorBg(lScore), color: getScoreColorText(lScore) }}>
                                       {lScore}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                  <td className="px-4 py-3 text-sm border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "center", padding: "16px", verticalAlign: "top" }}>
                                     <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 700, background: getScoreColorBg(iScore), color: getScoreColorText(iScore) }}>
                                       {iScore}
                                     </span>
                                   </td>
                                   
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ textAlign: "center", wordBreak: "break-word", whiteSpace: "normal" }}>
+                                  <td className="px-4 py-3 text-sm border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ textAlign: "center", padding: "16px", verticalAlign: "top" }}>
                                     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "6px 12px", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700, background: riskLevelMeta.bg, color: riskLevelMeta.text, border: `1px solid ${riskLevelMeta.bg}` }}>
                                       {riskScore} {riskLevelMeta.label}
                                     </span>
                                   </td>
                                   
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ fontWeight: 500, maxWidth: "300px", wordBreak: "break-word", whiteSpace: "normal" }}>{rControl}</td>
-                                  <td className="px-4 py-3 text-sm border-slate-200 dark:border-slate-800" style={{ wordBreak: "break-word", whiteSpace: "normal" }}>{rOwner}</td>
+                                  <td className="px-4 py-3 text-sm border-b border-r border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ fontWeight: 500, padding: "16px", verticalAlign: "top" }}>{rControl}</td>
+                                  <td className="px-4 py-3 text-sm border-b border-slate-200 dark:border-slate-800 whitespace-normal break-words leading-relaxed" style={{ padding: "16px", verticalAlign: "top" }}>{rOwner}</td>
                                 </tr>
                               );
                             })}

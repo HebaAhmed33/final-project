@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import PageContainer from "../components/PageContainer";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const API_BASE_URL =
   typeof window !== "undefined"
@@ -32,6 +34,12 @@ export default function ExportsPage() {
   }, []);
 
   const handleDownload = async (type) => {
+    const sessionAssessment = sessionStorage.getItem("assessment_result");
+    if (!sessionAssessment) {
+      alert("No recent assessment or configuration data available. Please run a new analysis.");
+      return;
+    }
+
     setDownloading((prev) => ({ ...prev, [type]: true }));
     setError((prev) => ({ ...prev, [type]: "" }));
     try {
@@ -65,6 +73,286 @@ export default function ExportsPage() {
       setDownloading((prev) => ({ ...prev, [type]: false }));
     }
   };
+
+  const handleConfigPdfDownload = () => {
+    const dataStr = sessionStorage.getItem("config_result");
+    if (!dataStr) {
+      alert("No recent assessment or configuration data available. Please run a new analysis.");
+      return;
+    }
+
+    let raw;
+    try {
+      raw = JSON.parse(dataStr);
+    } catch (e) {
+      alert("Failed to parse configuration result data.");
+      return;
+    }
+
+    const normalized = {
+      framework: raw.framework || raw.config_compliance?.framework || raw.selected_framework || "Framework",
+      file_name: raw.file_name || raw.filename || raw.original_filename || "Unknown File",
+      company_name: raw.company_name || raw.company?.name || "Aegis.One Client",
+
+      compliance_score:
+        raw.compliance_score ||
+        raw.compliance?.compliance_score ||
+        raw.config_compliance?.compliance_score ||
+        raw.config_compliance?.compliance?.compliance_score || 0,
+
+      risk_level:
+        raw.risk_level ||
+        raw.compliance?.risk_level ||
+        raw.config_compliance?.risk_level ||
+        raw.config_compliance?.compliance?.risk_level || "Unknown",
+
+      config_analysis:
+        raw.config_analysis || raw.analysis || {},
+
+      findings:
+        raw.config_compliance?.findings ||
+        raw.findings ||
+        raw.config_analysis?.findings ||
+        raw.config_compliance?.config_analysis?.findings ||
+        [],
+
+      risk_register:
+        raw.config_compliance?.risk_register ||
+        raw.risk_register ||
+        [],
+
+      best_practices:
+        raw.config_compliance?.best_practices ||
+        raw.best_practices ||
+        []
+    };
+
+    console.log("RAW CONFIG RESULT:", raw);
+    console.log("NORMALIZED PDF DATA:", normalized);
+    console.log("PDF findings:", normalized.findings);
+
+    if (normalized.findings.length === 0 && normalized.risk_register.length === 0 && normalized.best_practices.length === 0) {
+      alert("No configuration result data found. Please run a configuration analysis again.");
+      return;
+    }
+
+    setDownloading(prev => ({ ...prev, configPdf: true }));
+
+    const dateStr = new Date().toISOString().split("T")[0];
+    const filenameOut = `configuration_security_report_${normalized.framework.replace(/ /g, "_")}_${dateStr}.pdf`;
+
+    const doc = new jsPDF("p", "pt", "a4");
+
+    let currentY = 40;
+    const addPage = () => {
+      doc.addPage();
+      currentY = 40;
+    };
+
+    // Header
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(37, 99, 235);
+    doc.text("Aegis.One", 40, currentY);
+    currentY += 25;
+
+    doc.setFontSize(16);
+    doc.setTextColor(17, 24, 39);
+    doc.text("Configuration Security Analysis Report", 40, currentY);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(75, 85, 99);
+    doc.text(`Framework: ${normalized.framework}`, 400, currentY - 15);
+    doc.text(`File: ${normalized.file_name}`, 400, currentY);
+    doc.text(`Generated: ${dateStr}`, 400, currentY + 15);
+
+    currentY += 20;
+    doc.text(`Company: ${normalized.company_name}`, 40, currentY);
+    currentY += 25;
+
+    doc.setDrawColor(229, 231, 235);
+    doc.line(40, currentY, 555, currentY);
+    currentY += 25;
+
+    // Executive Summary
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(17, 24, 39);
+    doc.text("Executive Summary", 40, currentY);
+    currentY += 20;
+
+    autoTable(doc, {
+      startY: currentY,
+      theme: "grid",
+      headStyles: { fillColor: [249, 250, 251], textColor: [107, 114, 128], fontStyle: "bold" },
+      head: [["Compliance Score", "Risk Level", "Config Type", "Overall Risk"]],
+      body: [[
+        `${normalized.compliance_score}%`,
+        normalized.risk_level,
+        normalized.config_analysis?.summary?.config_type?.toUpperCase() || "N/A",
+        normalized.config_analysis?.summary?.overall_risk || "Low"
+      ]],
+      styles: { halign: "center", fontSize: 10, textColor: [17, 24, 39] }
+    });
+    currentY = doc.lastAutoTable.finalY + 20;
+
+    autoTable(doc, {
+      startY: currentY,
+      theme: "plain",
+      body: [[
+        `Findings Summary:   High: ${normalized.config_analysis?.summary?.high || 0}   |   Medium: ${normalized.config_analysis?.summary?.medium || 0}   |   Low: ${normalized.config_analysis?.summary?.low || 0}`
+      ]],
+      styles: { fillColor: [238, 242, 255], textColor: [49, 46, 129], fontStyle: "bold", fontSize: 10 }
+    });
+    currentY = doc.lastAutoTable.finalY + 25;
+
+    // Detected Components
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(17, 24, 39);
+    doc.text("Detected Components", 40, currentY);
+    currentY += 15;
+
+    const components = normalized.config_analysis?.components || [];
+    if (components.length === 0) {
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(107, 114, 128);
+      doc.text("No explicit components detected.", 40, currentY);
+      currentY += 20;
+    } else {
+      const compBody = components.map(c => [`${c.type}:`, c.value]);
+      autoTable(doc, {
+        startY: currentY,
+        theme: "plain",
+        body: compBody,
+        styles: { fontSize: 9, cellPadding: 2 },
+        columnStyles: { 0: { fontStyle: "bold", cellWidth: 100 } }
+      });
+      currentY = doc.lastAutoTable.finalY + 25;
+    }
+
+    // Detailed Findings
+    if (normalized.findings.length > 0) {
+      if (currentY > 700) addPage();
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(17, 24, 39);
+      doc.text("Detailed Findings", 40, currentY);
+      currentY += 15;
+
+      const findingsBody = normalized.findings.map(f => {
+        const control = f.framework_control || f.control || f.mapped_control || f.framework_mapping || "No direct mapping";
+        return [
+          f.id || "N/A",
+          f.title || "N/A",
+          f.severity || "N/A",
+          f.description || "N/A",
+          control,
+          f.recommendation || "N/A"
+        ];
+      });
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [["ID", "Title", "Severity", "Description", "Control", "Recommendation"]],
+        body: findingsBody,
+        theme: "grid",
+        headStyles: { fillColor: [243, 244, 246], textColor: [55, 65, 81] },
+        styles: { fontSize: 9, cellPadding: 4, overflow: "linebreak" },
+        columnStyles: {
+          0: { cellWidth: 35 },
+          1: { cellWidth: 75 },
+          2: { cellWidth: 45 },
+          3: { cellWidth: 110 },
+          4: { cellWidth: 100 },
+          5: { cellWidth: "auto" }
+        }
+      });
+      currentY = doc.lastAutoTable.finalY + 25;
+    }
+
+    // Risk Register
+    if (normalized.risk_register.length > 0) {
+      if (currentY > 700) addPage();
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(17, 24, 39);
+      doc.text("Risk Register", 40, currentY);
+      currentY += 15;
+
+      const risksBody = normalized.risk_register.map(r => [
+        r.risk_id || "N/A",
+        r.risk_statement || "N/A",
+        r.impact || "N/A",
+        r.likelihood || "N/A",
+        r.risk_score || "N/A",
+        r.treatment || "N/A",
+        r.recommendation || "N/A"
+      ]);
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Risk ID", "Risk Statement", "Impact", "Likelihood", "Score", "Treatment", "Recommendation"]],
+        body: risksBody,
+        theme: "grid",
+        headStyles: { fillColor: [243, 244, 246], textColor: [55, 65, 81] },
+        styles: { fontSize: 8, cellPadding: 4, overflow: "linebreak" },
+        columnStyles: {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 100 },
+          2: { cellWidth: 50 },
+          3: { cellWidth: 50 },
+          4: { cellWidth: 40 },
+          5: { cellWidth: 70 },
+          6: { cellWidth: "auto" }
+        }
+      });
+      currentY = doc.lastAutoTable.finalY + 25;
+    }
+
+    // Best Practices
+    if (normalized.best_practices.length > 0) {
+      if (currentY > 700) addPage();
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(17, 24, 39);
+      doc.text("Recommended Best Practices", 40, currentY);
+      currentY += 15;
+
+      const practicesBody = normalized.best_practices.map(bp => [
+        bp.title || "Best Practice",
+        bp.category || "General",
+        bp.description || "N/A"
+      ]);
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Title", "Category", "Description"]],
+        body: practicesBody,
+        theme: "grid",
+        headStyles: { fillColor: [243, 244, 246], textColor: [55, 65, 81] },
+        styles: { fontSize: 9, cellPadding: 5, overflow: "linebreak" },
+        columnStyles: {
+          0: { cellWidth: 120, fontStyle: "bold" },
+          1: { cellWidth: 70 },
+          2: { cellWidth: "auto" }
+        }
+      });
+    }
+
+    try {
+      doc.save(filenameOut);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to generate PDF");
+    }
+    setDownloading(prev => ({ ...prev, configPdf: false }));
+  };
+
 
   return (
     <PageContainer>
@@ -450,6 +738,119 @@ export default function ExportsPage() {
           </div>
         </div>
       )}
+
+      {/* ──────────────────────────────────────────────────────── */}
+      {/* CONFIGURATION EXPORT CENTER                              */}
+      {/* ──────────────────────────────────────────────────────── */}
+
+      <div style={{ padding: "4rem 0 2rem" }}>
+        <h1
+          style={{
+            fontSize: "2.25rem",
+            fontWeight: 800,
+            letterSpacing: "-0.04em",
+            marginBottom: "0.5rem",
+            color: "var(--text-main)",
+          }}
+        >
+          Configuration Export Center
+        </h1>
+        <p
+          style={{
+            color: "var(--text-secondary)",
+            fontSize: "1rem",
+            maxWidth: "700px",
+          }}
+        >
+          Download your latest configuration analysis results as a PDF report.
+        </p>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: "1.5rem",
+          maxWidth: "780px",
+          paddingBottom: "4rem"
+        }}
+      >
+        {/* PDF Card */}
+        <div
+          className="card"
+          style={{
+            padding: "2rem 1.75rem",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "1rem",
+          }}
+        >
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "12px",
+              background: "rgba(239, 68, 68, 0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <svg width="24" height="24" fill="none" stroke="#EF4444" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-6 3h4" />
+            </svg>
+          </div>
+          <div>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-main)", marginBottom: "0.35rem" }}>
+              Configuration PDF Report
+            </h3>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.55, margin: 0 }}>
+              Download a formatted configuration security report including compliance score, findings, risk register, and best practices.
+            </p>
+          </div>
+          <button
+            className="btn-primary"
+            disabled={downloading.configPdf}
+            onClick={handleConfigPdfDownload}
+            style={{
+              marginTop: "auto",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              width: "100%",
+              justifyContent: "center",
+              padding: "0.7rem 1.25rem",
+            }}
+          >
+            {downloading.configPdf ? (
+              <>
+                <span
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    border: "2px solid rgba(255,255,255,0.3)",
+                    borderTop: "2px solid #fff",
+                    borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite",
+                    display: "inline-block",
+                  }}
+                />
+                Generating…
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Configuration PDF Report
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </PageContainer>
   );
 }
