@@ -76,7 +76,7 @@ export default function ConfigurationPage() {
           Analyze technical configurations for compliance.
         </p>
         <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", maxWidth: "700px", lineHeight: "1.6", margin: 0 }}>
-          Upload JSON, YAML, ENV, or raw files to map against CIS, NIST, or ISO 27001.
+          Upload JSON, YAML, ENV, or raw files to map against CIS or NIST.
         </p>
       </div>
 
@@ -98,11 +98,10 @@ export default function ConfigurationPage() {
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-main)", margin: 0 }}>Compliance Framework</h3>
             </div>
             <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "1rem" }}>Select a framework to map configuration findings against.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.75rem" }}>
               {[
                 { key: "cis", label: "CIS Controls", desc: "Center for Internet Security" },
                 { key: "nist", label: "NIST 800-53", desc: "National Institute of Standards" },
-                { key: "iso27001", label: "ISO 27001", desc: "Information Security Management" },
               ].map((fw) => (
                 <button key={fw.key} type="button" onClick={() => setConfigFramework(fw.key)}
                   style={{
