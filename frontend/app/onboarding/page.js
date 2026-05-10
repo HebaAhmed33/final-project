@@ -38,7 +38,28 @@ export default function OnboardingPage() {
     // Clear any previous assessment data on fresh onboarding
     sessionStorage.removeItem("assessment_result");
     sessionStorage.removeItem("config_result");
-    // Simulate typical SaaS behavior setting some user context
+
+    // Persist to server so admin dashboard can see this company
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeName: formData.employeeName,
+          workEmail: formData.workEmail,
+          companyName: formData.companyName,
+          companyType: formData.companyType,
+          country: formData.country,
+        }),
+      });
+      if (!res.ok) {
+        console.error("Onboarding persistence failed:", res.status);
+      }
+    } catch (err) {
+      console.error("Onboarding persistence error:", err);
+    }
+
+    // Set local user context
     localStorage.setItem("smartisms_user", JSON.stringify({ 
       onboarded: true, 
       email: formData.workEmail, 
