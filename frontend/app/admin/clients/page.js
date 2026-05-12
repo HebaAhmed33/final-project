@@ -1,4 +1,6 @@
 "use client";
+import API_BASE_URL from "../../lib/api";
+
 
 import { useEffect, useState } from "react";
 
@@ -10,7 +12,7 @@ export default function AdminClientsPage() {
   useEffect(() => {
     async function fetchClients() {
       try {
-        const res = await fetch("http://localhost:8000/api/onboarding");
+        const res = await fetch(`${API_BASE_URL}/api/onboarding");
         console.log("Content-Type:", res.headers.get("content-type"));
         if (res.headers.get("content-type")?.includes("text/html")) {
           console.error("API returned HTML instead of JSON for /api/onboarding");

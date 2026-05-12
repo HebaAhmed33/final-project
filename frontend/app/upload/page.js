@@ -121,7 +121,7 @@ export default function UploadPage() {
 
     try {
       // 1) Upload
-      const uploadRes = await fetch(`http://localhost:8000/upload/assessment`, {
+      const uploadRes = await fetch(`${API_BASE_URL}/upload/assessment`, {
         method: "POST",
         body: formData,
       });
@@ -145,7 +145,7 @@ export default function UploadPage() {
         sessionStorage.setItem("assessment_result", JSON.stringify({ upload: uploadData, framework: uploadData.framework_assessment }));
       } else if (isEnrichedFramework) {
         // Fallback for legacy mode just in case
-        const assessRes = await fetch(`http://localhost:8000/assess/${framework}`, {
+        const assessRes = await fetch(`${API_BASE_URL}/assess/${framework}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -204,7 +204,7 @@ export default function UploadPage() {
     formData.append("framework", configFramework);
 
     try {
-      const res = await fetch(`http://localhost:8000/upload/configuration`, {
+      const res = await fetch(`${API_BASE_URL}/upload/configuration`, {
         method: "POST",
         body: formData,
       });

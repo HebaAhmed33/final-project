@@ -30,7 +30,7 @@ export default function ConfigurationUploadPage() {
     formData.append("framework", configFramework);
 
     try {
-      const res = await fetch(`http://localhost:8000/upload/configuration`, {
+      const res = await fetch(`${API_BASE_URL}/upload/configuration`, {
         method: "POST",
         body: formData,
       });

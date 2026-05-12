@@ -1,4 +1,6 @@
 "use client";
+import API_BASE_URL from "./lib/api";
+
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -11,7 +13,7 @@ export default function MarketingHomePage() {
   useEffect(() => {
     async function fetchNewsPreview() {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "${API_BASE_URL}";
         const res = await fetch(`${API_BASE_URL}/news`);
         if (res.headers.get("content-type")?.includes("text/html")) {
           throw new Error("API returned HTML instead of JSON");
