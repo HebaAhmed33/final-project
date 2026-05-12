@@ -32,7 +32,9 @@ export default function ExportsPage() {
       }
     }
     checkData();
+  }, []);
 
+  useEffect(() => {
     // Check for live scan data in session storage
     if (typeof window !== "undefined") {
       try {
@@ -41,11 +43,15 @@ export default function ExportsPage() {
           const configData = JSON.parse(configStr);
           if (configData.scan_type === "live_scan") {
             setHasLiveScan(true);
+          } else {
+            setHasLiveScan(false);
           }
+        } else {
+          setHasLiveScan(false);
         }
       } catch (e) { /* ignore parse errors */ }
     }
-  }, []);
+  });
 
   const handleDownload = async (type) => {
     const sessionAssessment = sessionStorage.getItem("assessment_result");

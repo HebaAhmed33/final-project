@@ -44,7 +44,7 @@ export default function ConfigurationLivePage() {
 
       setScanProgress(prev => [...prev, { message: "Sending scan request...", status: "running" }]);
 
-      const res = await fetch(`http://localhost:8000/live-scan/start`, {
+      const res = await fetch(`${API_BASE_URL}/live-scan/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
