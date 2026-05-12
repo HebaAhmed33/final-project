@@ -1004,6 +1004,11 @@ export default function ExportsPage() {
                 width: "100%",
                 justifyContent: "center",
                 padding: "0.7rem 1.25rem",
+                ...((!hasLiveScan || downloading.liveScanPdf) && {
+                  backgroundColor: "var(--primary)",
+                  cursor: "default",
+                  opacity: 0.65,
+                }),
               }}
             >
               {downloading.liveScanPdf ? (
