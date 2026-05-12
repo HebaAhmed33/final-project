@@ -12,8 +12,9 @@ const API_BASE_URL =
 
 export default function ExportsPage() {
   const [hasData, setHasData] = useState(null); // null = loading
-  const [downloading, setDownloading] = useState({ excel: false, pdf: false });
+  const [downloading, setDownloading] = useState({ excel: false, pdf: false, configPdf: false, liveScanPdf: false });
   const [error, setError] = useState({ excel: "", pdf: "" });
+  const [hasLiveScan, setHasLiveScan] = useState(false);
 
   useEffect(() => {
     async function checkData() {
@@ -31,6 +32,19 @@ export default function ExportsPage() {
       }
     }
     checkData();
+
+    // Check for live scan data in session storage
+    if (typeof window !== "undefined") {
+      try {
+        const configStr = sessionStorage.getItem("config_result");
+        if (configStr) {
+          const configData = JSON.parse(configStr);
+          if (configData.scan_type === "live_scan") {
+            setHasLiveScan(true);
+          }
+        }
+      } catch (e) { /* ignore parse errors */ }
+    }
   }, []);
 
   const handleDownload = async (type) => {
@@ -89,9 +103,11 @@ export default function ExportsPage() {
       return;
     }
 
+    const isLiveScan = raw.scan_type === "live_scan";
+
     const normalized = {
-      framework: raw.framework || raw.config_compliance?.framework || raw.selected_framework || "Framework",
-      file_name: raw.file_name || raw.filename || raw.original_filename || "Unknown File",
+      framework: raw.framework_label || raw.framework || raw.config_compliance?.framework || raw.selected_framework || "Framework",
+      file_name: isLiveScan ? `Live Scan — ${raw.target_host || "Unknown Host"}` : (raw.file_name || raw.filename || raw.original_filename || "Unknown File"),
       company_name: raw.company_name || raw.company?.name || "Aegis.One Client",
 
       compliance_score:
@@ -124,22 +140,28 @@ export default function ExportsPage() {
       best_practices:
         raw.config_compliance?.best_practices ||
         raw.best_practices ||
-        []
-    };
+        [],
 
-    console.log("RAW CONFIG RESULT:", raw);
-    console.log("NORMALIZED PDF DATA:", normalized);
-    console.log("PDF findings:", normalized.findings);
+      // Live scan specific fields
+      scan_type: raw.scan_type || "upload",
+      target_host: raw.target_host || "",
+      scan_timestamp: raw.scan_timestamp || "",
+      scan_duration_seconds: raw.scan_duration_seconds || 0,
+      collected_configs: raw.collected_configs || {},
+    };
 
     if (normalized.findings.length === 0 && normalized.risk_register.length === 0 && normalized.best_practices.length === 0) {
       alert("No configuration result data found. Please run a configuration analysis again.");
       return;
     }
 
-    setDownloading(prev => ({ ...prev, configPdf: true }));
+    const downloadKey = isLiveScan ? "liveScanPdf" : "configPdf";
+    setDownloading(prev => ({ ...prev, [downloadKey]: true }));
 
     const dateStr = new Date().toISOString().split("T")[0];
-    const filenameOut = `configuration_security_report_${normalized.framework.replace(/ /g, "_")}_${dateStr}.pdf`;
+    const filenameOut = isLiveScan
+      ? `live_scan_report_${normalized.framework.replace(/ /g, "_")}_${dateStr}.pdf`
+      : `configuration_security_report_${normalized.framework.replace(/ /g, "_")}_${dateStr}.pdf`;
 
     const doc = new jsPDF("p", "pt", "a4");
 
@@ -158,18 +180,48 @@ export default function ExportsPage() {
 
     doc.setFontSize(16);
     doc.setTextColor(17, 24, 39);
-    doc.text("Configuration Security Analysis Report", 40, currentY);
+    doc.text(isLiveScan ? "Live Configuration Scan Report" : "Configuration Security Analysis Report", 40, currentY);
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(75, 85, 99);
     doc.text(`Framework: ${normalized.framework}`, 400, currentY - 15);
-    doc.text(`File: ${normalized.file_name}`, 400, currentY);
+    if (isLiveScan) {
+      doc.text(`Target: ${normalized.target_host}`, 400, currentY);
+    } else {
+      doc.text(`File: ${normalized.file_name}`, 400, currentY);
+    }
     doc.text(`Generated: ${dateStr}`, 400, currentY + 15);
 
     currentY += 20;
     doc.text(`Company: ${normalized.company_name}`, 40, currentY);
     currentY += 25;
+
+    // Live scan metadata block
+    if (isLiveScan) {
+      const scanDate = normalized.scan_timestamp ? new Date(normalized.scan_timestamp).toLocaleString() : "N/A";
+      const durationMin = normalized.scan_duration_seconds ? `${Math.round(normalized.scan_duration_seconds)}s` : "N/A";
+      const collectedCount = Object.values(normalized.collected_configs).filter(c => c.has_content).length;
+      const totalChecks = Object.keys(normalized.collected_configs).length;
+
+      autoTable(doc, {
+        startY: currentY,
+        theme: "grid",
+        headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: "bold" },
+        head: [["Scan Detail", "Value"]],
+        body: [
+          ["Scan Type", "Live SSH Configuration Scan"],
+          ["Target Host", normalized.target_host],
+          ["Framework", normalized.framework],
+          ["Scan Timestamp", scanDate],
+          ["Duration", durationMin],
+          ["Configs Collected", `${collectedCount} / ${totalChecks} checks`],
+        ],
+        styles: { fontSize: 9, cellPadding: 5, textColor: [17, 24, 39] },
+        columnStyles: { 0: { fontStyle: "bold", cellWidth: 130 } }
+      });
+      currentY = doc.lastAutoTable.finalY + 20;
+    }
 
     doc.setDrawColor(229, 231, 235);
     doc.line(40, currentY, 555, currentY);
@@ -344,13 +396,55 @@ export default function ExportsPage() {
       });
     }
 
+    // Collected configs summary (live scan only)
+    if (isLiveScan && Object.keys(normalized.collected_configs).length > 0) {
+      if (currentY > 700) addPage();
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(17, 24, 39);
+      doc.text("Collected Configuration Sources", 40, currentY);
+      currentY += 15;
+
+      const configRows = Object.entries(normalized.collected_configs).map(([id, info]) => [
+        info.label || id,
+        info.has_content ? "Collected" : "Not Available",
+        info.has_content ? `${info.output_length} bytes` : "—",
+      ]);
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Configuration Source", "Status", "Size"]],
+        body: configRows,
+        theme: "grid",
+        headStyles: { fillColor: [243, 244, 246], textColor: [55, 65, 81] },
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { cellWidth: 200, fontStyle: "bold" },
+          1: { cellWidth: 100, halign: "center" },
+          2: { cellWidth: "auto", halign: "center" },
+        },
+        didParseCell: function(data) {
+          if (data.section === "body" && data.column.index === 1) {
+            if (data.cell.raw === "Collected") {
+              data.cell.styles.textColor = [16, 185, 129];
+              data.cell.styles.fontStyle = "bold";
+            } else {
+              data.cell.styles.textColor = [156, 163, 175];
+            }
+          }
+        }
+      });
+    }
+
     try {
       doc.save(filenameOut);
     } catch (e) {
       console.error(e);
       alert("Failed to generate PDF");
     }
-    setDownloading(prev => ({ ...prev, configPdf: false }));
+    const doneKey = isLiveScan ? "liveScanPdf" : "configPdf";
+    setDownloading(prev => ({ ...prev, [doneKey]: false }));
   };
 
 
@@ -762,7 +856,7 @@ export default function ExportsPage() {
             maxWidth: "700px",
           }}
         >
-          Download your latest configuration analysis results as a PDF report.
+          Download your latest configuration analysis or live scan results as a PDF report.
         </p>
       </div>
 
@@ -771,7 +865,7 @@ export default function ExportsPage() {
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
           gap: "1.5rem",
-          maxWidth: "780px",
+          maxWidth: "1200px",
           paddingBottom: "4rem"
         }}
       >
@@ -850,6 +944,87 @@ export default function ExportsPage() {
             )}
           </button>
         </div>
+
+        {/* Live Scan PDF Card */}
+        {hasLiveScan && (
+          <div
+            className="card"
+            style={{
+              padding: "2rem 1.75rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: "1rem",
+              border: "1px solid rgba(37, 99, 235, 0.2)",
+            }}
+          >
+            <div
+              style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "12px",
+                background: "rgba(37, 99, 235, 0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <svg width="24" height="24" fill="none" stroke="#2563EB" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-main)", margin: 0 }}>
+                  Live Scan PDF Report
+                </h3>
+                <span style={{ fontSize: "0.7rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: "9999px", background: "rgba(37, 99, 235, 0.1)", color: "#2563EB" }}>LIVE</span>
+              </div>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.55, margin: 0 }}>
+                Download a comprehensive PDF report from your latest live SSH scan, including target host details, scan metadata, collected configuration sources, compliance score, and findings.
+              </p>
+            </div>
+            <button
+              className="btn-primary"
+              disabled={downloading.liveScanPdf}
+              onClick={handleConfigPdfDownload}
+              style={{
+                marginTop: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                width: "100%",
+                justifyContent: "center",
+                padding: "0.7rem 1.25rem",
+              }}
+            >
+              {downloading.liveScanPdf ? (
+                <>
+                  <span
+                    style={{
+                      width: "16px",
+                      height: "16px",
+                      border: "2px solid rgba(255,255,255,0.3)",
+                      borderTop: "2px solid #fff",
+                      borderRadius: "50%",
+                      animation: "spin 0.8s linear infinite",
+                      display: "inline-block",
+                    }}
+                  />
+                  Generating…
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download Live Scan PDF Report
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </PageContainer>
   );
