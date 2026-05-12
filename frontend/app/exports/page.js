@@ -987,15 +987,19 @@ export default function ExportsPage() {
                 <span style={{ fontSize: "0.7rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: "9999px", background: "rgba(37, 99, 235, 0.1)", color: "#2563EB" }}>LIVE</span>
               </div>
               <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.55, margin: 0 }}>
-                {hasLiveScan 
-                  ? "Download a comprehensive PDF report from your latest live SSH scan, including target host details, scan metadata, collected configuration sources, compliance score, and findings."
-                  : "No live scan available yet"}
+                Download a PDF report of the latest live scan results including findings, risk summary, and recommendations.
               </p>
             </div>
             <button
               className="btn-primary"
-              disabled={!hasLiveScan || downloading.liveScanPdf}
-              onClick={handleConfigPdfDownload}
+              aria-disabled={!hasLiveScan || downloading.liveScanPdf}
+              onClick={(e) => {
+                if (!hasLiveScan || downloading.liveScanPdf) {
+                  e.preventDefault();
+                  return;
+                }
+                handleConfigPdfDownload(e);
+              }}
               style={{
                 marginTop: "auto",
                 display: "flex",
@@ -1004,11 +1008,8 @@ export default function ExportsPage() {
                 width: "100%",
                 justifyContent: "center",
                 padding: "0.7rem 1.25rem",
-                ...((!hasLiveScan || downloading.liveScanPdf) && {
-                  backgroundColor: "var(--primary)",
-                  cursor: "default",
-                  opacity: 0.65,
-                }),
+                opacity: (!hasLiveScan || downloading.liveScanPdf) ? 0.6 : 1,
+                cursor: (!hasLiveScan || downloading.liveScanPdf) ? "default" : undefined,
               }}
             >
               {downloading.liveScanPdf ? (
