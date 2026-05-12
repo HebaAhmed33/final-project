@@ -64,7 +64,8 @@ export default function OnboardingPage() {
       onboarded: true, 
       email: formData.workEmail, 
       name: formData.employeeName,
-      companyName: formData.companyName
+      companyName: formData.companyName,
+      companyType: formData.companyType
     }));
     
     router.push("/workspace");
