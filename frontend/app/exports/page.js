@@ -952,10 +952,9 @@ export default function ExportsPage() {
         </div>
 
         {/* Live Scan PDF Card */}
-        {hasLiveScan && (
-          <div
-            className="card"
-            style={{
+        <div
+          className="card"
+          style={{
               padding: "2rem 1.75rem",
               display: "flex",
               flexDirection: "column",
@@ -988,12 +987,14 @@ export default function ExportsPage() {
                 <span style={{ fontSize: "0.7rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: "9999px", background: "rgba(37, 99, 235, 0.1)", color: "#2563EB" }}>LIVE</span>
               </div>
               <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.55, margin: 0 }}>
-                Download a comprehensive PDF report from your latest live SSH scan, including target host details, scan metadata, collected configuration sources, compliance score, and findings.
+                {hasLiveScan 
+                  ? "Download a comprehensive PDF report from your latest live SSH scan, including target host details, scan metadata, collected configuration sources, compliance score, and findings."
+                  : "No live scan available yet"}
               </p>
             </div>
             <button
               className="btn-primary"
-              disabled={downloading.liveScanPdf}
+              disabled={!hasLiveScan || downloading.liveScanPdf}
               onClick={handleConfigPdfDownload}
               style={{
                 marginTop: "auto",
@@ -1029,8 +1030,7 @@ export default function ExportsPage() {
                 </>
               )}
             </button>
-          </div>
-        )}
+        </div>
       </div>
     </PageContainer>
   );
