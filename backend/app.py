@@ -9,6 +9,8 @@ import sys
 import uuid
 from datetime import datetime, timezone
 
+import portalocker
+
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
@@ -132,7 +134,9 @@ def log_audit(action_type: str, detail: str, user: str = "", email: str = "", co
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
         with open(_AUDIT_LOG_PATH, "w", encoding="utf-8") as f:
+            portalocker.lock(f, portalocker.LOCK_EX)
             json.dump(entries, f, indent=2, ensure_ascii=False)
+            portalocker.unlock(f)
     except Exception:
         pass  # Never break caller
 
@@ -762,7 +766,9 @@ def _admin_read_json(path):
 def _admin_write_json(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
+        portalocker.lock(f, portalocker.LOCK_EX)
         json.dump(data, f, indent=2, ensure_ascii=False)
+        portalocker.unlock(f)
 
 
 # --- Admin: Client/User actions ---

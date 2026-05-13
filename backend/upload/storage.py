@@ -7,6 +7,8 @@ Follows the same pattern as isms_core/report_history_manager.py.
 import json
 import os
 
+import portalocker
+
 _DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 _ASSESSMENTS_FILE = os.path.join(_DATA_DIR, "assessments.json")
@@ -31,7 +33,9 @@ def _load(path: str) -> list[dict]:
 def _save(path: str, data: list[dict]) -> None:
     _ensure_dir()
     with open(path, "w", encoding="utf-8") as fh:
+        portalocker.lock(fh, portalocker.LOCK_EX)
         json.dump(data, fh, indent=2, ensure_ascii=False)
+        portalocker.unlock(fh)
 
 
 # ---------------------------------------------------------------------------

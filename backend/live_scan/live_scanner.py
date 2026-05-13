@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import paramiko
+import portalocker
 
 from config_analysis.raw_config_analyzer import (
     analyze_raw_config,
@@ -323,7 +324,9 @@ def _save_scan_history(result: dict) -> None:
 
     os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
     with open(HISTORY_FILE, "w") as f:
+        portalocker.lock(f, portalocker.LOCK_EX)
         json.dump(history, f, indent=2)
+        portalocker.unlock(f)
 
 
 def get_scan_history() -> list[dict]:

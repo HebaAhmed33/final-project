@@ -1,6 +1,8 @@
 import json
 import os
 
+import portalocker
+
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 
@@ -14,7 +16,9 @@ def save_report(company_id, report):
     reports = get_reports(company_id)
     reports.append(report)
     with open(path, "w") as f:
+        portalocker.lock(f, portalocker.LOCK_EX)
         json.dump(reports, f, indent=2)
+        portalocker.unlock(f)
 
 
 def get_reports(company_id):

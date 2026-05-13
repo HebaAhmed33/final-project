@@ -12,6 +12,8 @@ import os
 import uuid
 from datetime import datetime, timezone
 
+import portalocker
+
 _DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 _HISTORY_FILE = os.path.join(_DATA_DIR, "assessment_history.json")
 
@@ -26,7 +28,9 @@ def _load() -> list[dict]:
 def _save(records: list[dict]) -> None:
     os.makedirs(_DATA_DIR, exist_ok=True)
     with open(_HISTORY_FILE, "w", encoding="utf-8") as fh:
+        portalocker.lock(fh, portalocker.LOCK_EX)
         json.dump(records, fh, indent=2, ensure_ascii=False)
+        portalocker.unlock(fh)
 
 
 def save_assessment_run(assessment_result: dict) -> dict:
