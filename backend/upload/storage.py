@@ -7,6 +7,7 @@ Follows the same pattern as isms_core/report_history_manager.py.
 import json
 import os
 
+# pyrefly: ignore [missing-import]
 import portalocker
 
 _DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")

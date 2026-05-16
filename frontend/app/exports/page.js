@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import PageContainer from "../components/PageContainer";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
-const API_BASE_URL =
-  typeof window !== "undefined"
-    ? process.env.NEXT_PUBLIC_API_BASE_URL || "${API_BASE_URL}"
-    : "${API_BASE_URL}";
+import API_BASE_URL from "../lib/api";
 
 export default function ExportsPage() {
   const [hasData, setHasData] = useState(null); // null = loading

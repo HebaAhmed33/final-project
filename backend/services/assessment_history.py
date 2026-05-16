@@ -12,6 +12,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
+# pyrefly: ignore [missing-import]
 import portalocker
 
 _DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")

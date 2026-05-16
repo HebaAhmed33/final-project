@@ -13,7 +13,6 @@ export default function MarketingHomePage() {
   useEffect(() => {
     async function fetchNewsPreview() {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "${API_BASE_URL}";
         const res = await fetch(`${API_BASE_URL}/news`);
         if (res.headers.get("content-type")?.includes("text/html")) {
           throw new Error("API returned HTML instead of JSON");
