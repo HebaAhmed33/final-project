@@ -8,9 +8,7 @@ To access the admin dashboard or login page, use the following default demo cred
 - Project Demo
 Watch the SmartISMS demonstration here:
 https://youtu.be/kZawrGUT0bE
-
-Created README.md
- emojis. اتفضلي النص
+ النص
 # SmartISMS
 .
 .
