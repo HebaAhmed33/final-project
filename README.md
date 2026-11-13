@@ -9,3 +9,45 @@ To access the admin dashboard or login page, use the following default demo cred
 Watch the SmartISMS demonstration here:
 https://youtu.be/kZawrGUT0bE
 
+Created README.md
+ emojis. اتفضلي النص
+# SmartISMS
+.
+.
+.
+Smart Information Security Management System — 
+---
+
+## Requirements
+
+- Python 3.10+
+- Node.js 18+
+
+---
+
+## Getting Started
+
+### Backend
+cd backend
+pip install -r requirements.txt
+python run_server.py
+
+Runs on: http://localhost:8000
+
+### Frontend
+cd frontend
+npm install
+npm run dev
+
+Runs on: http://localhost:3000
+
+---
+
+## Default Credentials
+
+Email: demo@smartisms.com  
+Password: demo123
+
+---
+
+نظيف واحترافي ✅
